@@ -15,6 +15,10 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
+<!-- PDF Generation Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
 <style>
     * {
         margin: 0;
@@ -330,6 +334,18 @@
         border-radius: 10px;
     }
 
+    .btn-danger {
+        background: var(--danger);
+        color: white;
+        border: 1px solid var(--danger);
+    }
+
+    .btn-warning {
+        background: var(--warning);
+        color: white;
+        border: 1px solid var(--warning);
+    }
+
     .table-container {
         background: var(--card-bg);
         border-radius: 20px;
@@ -346,7 +362,7 @@
     .table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 1000px;
+        min-width: 1200px;
     }
 
     .table th,
@@ -400,6 +416,12 @@
         background: rgba(255, 59, 48, 0.2);
         color: var(--danger);
         border: 1px solid rgba(255, 59, 48, 0.3);
+    }
+
+    .payment-status.left {
+        background: rgba(128, 128, 128, 0.2);
+        color: #808080;
+        border: 1px solid rgba(128, 128, 128, 0.3);
     }
 
     .payment-status .dot {
@@ -553,6 +575,24 @@
         border-radius: 16px;
         margin-bottom: 16px;
         border: 1px solid var(--border);
+        position: relative;
+    }
+
+    .payment-entry .delete-payment {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: var(--danger);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .loading {
@@ -719,6 +759,40 @@
         gap: 16px;
     }
 
+    .student-status-section {
+        background: var(--card-bg-elevated);
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 20px;
+        border: 1px solid var(--border);
+    }
+
+    .student-status-section h4 {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: var(--text-primary);
+    }
+
+    .status-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .status-option input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary);
+    }
+
+    .status-option label {
+        font-size: 14px;
+        color: var(--text-primary);
+        cursor: pointer;
+    }
+
     /* Mobile Optimizations */
     @media (max-width: 768px) {
         .header {
@@ -794,6 +868,76 @@
             grid-template-columns: repeat(4, 1fr);
         }
     }
+
+    /* PDF Export Button Styling */
+    .pdf-export-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .pdf-export-card {
+        background: linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg-elevated) 100%);
+        border-radius: 16px;
+        padding: 24px;
+        border: 1px solid var(--border);
+        box-shadow: 0 4px 16px var(--shadow);
+    }
+
+    .pdf-export-card h3 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: var(--text-primary);
+    }
+
+    .pdf-export-card p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+
+    .pdf-btn {
+        width: 100%;
+        padding: 14px 20px;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 15px;
+        font-family: inherit;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        box-shadow: 0 4px 16px rgba(16, 163, 127, 0.3);
+    }
+
+    .pdf-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 163, 127, 0.4);
+    }
+
+    .pdf-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .pdf-loading {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        display: none;
+    }
 </style>
 </head>
 <body>
@@ -863,8 +1007,8 @@
                         <option value="paid">Fully Paid</option>
                         <option value="partial">Partially Paid</option>
                         <option value="unpaid">Unpaid</option>
-                        <option value="bank">Bank Transfers</option>
-                        <option value="cash">Cash Payments</option>
+                        <option value="active">Active Students</option>
+                        <option value="left">Left Students</option>
                         <option value="outstanding">Outstanding Only</option>
                     </select>
                     <button class="btn btn-secondary" onclick="showImportModal()">Import CSV</button>
@@ -884,13 +1028,14 @@
                                     <th>Total Paid</th>
                                     <th>Outstanding</th>
                                     <th>Status</th>
-                                    <th>Sibling Discount</th>
+                                    <th>Student Status</th>
+                                    <th>Discount</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="term1StudentsTable">
                                 <tr>
-                                    <td colspan="11">
+                                    <td colspan="12">
                                         <div class="empty-state">
                                             <div class="icon">🎓</div>
                                             <div class="title">No students added yet</div>
@@ -936,8 +1081,8 @@
                         <option value="paid">Fully Paid</option>
                         <option value="partial">Partially Paid</option>
                         <option value="unpaid">Unpaid</option>
-                        <option value="bank">Bank Transfers</option>
-                        <option value="cash">Cash Payments</option>
+                        <option value="active">Active Students</option>
+                        <option value="left">Left Students</option>
                         <option value="outstanding">Outstanding Only</option>
                     </select>
                     <button class="btn btn-secondary" onclick="showImportModal()">Import CSV</button>
@@ -957,13 +1102,14 @@
                                     <th>Total Paid</th>
                                     <th>Outstanding</th>
                                     <th>Status</th>
-                                    <th>Sibling Discount</th>
+                                    <th>Student Status</th>
+                                    <th>Discount</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="term2StudentsTable">
                                 <tr>
-                                    <td colspan="11">
+                                    <td colspan="12">
                                         <div class="empty-state">
                                             <div class="icon">🎓</div>
                                             <div class="title">No students added yet</div>
@@ -1048,63 +1194,69 @@
             <!-- Reports View -->
             <div id="reportsView" class="view">
                 <div class="controls">
-                    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px; color: var(--text-primary);">Export Reports</h2>
+                    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px; color: var(--text-primary);">PDF Reports</h2>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
-                    <div class="table-container">
-                        <div style="padding: 24px;">
-                            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Detailed Reports</h3>
-                            <p style="color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
-                                Export comprehensive student data with all payment details
-                            </p>
-                            <button class="btn btn-primary" onclick="exportDetailedReport('term1')" style="margin-bottom: 12px; width: 100%;">
-                                Term 1 Detailed Report
-                            </button>
-                            <button class="btn btn-primary" onclick="exportDetailedReport('term2')" style="width: 100%;">
-                                Term 2 Detailed Report
-                            </button>
-                        </div>
+                <div class="pdf-export-section">
+                    <div class="pdf-export-card">
+                        <h3>📊 Term 1 Detailed Report</h3>
+                        <p>Comprehensive report with all Term 1 student data, payment details, and analytics</p>
+                        <button class="pdf-btn" onclick="exportPDFReport('term1', 'detailed')" id="term1DetailedBtn">
+                            <div class="pdf-loading" id="term1DetailedSpinner"></div>
+                            📄 Generate Term 1 PDF
+                        </button>
                     </div>
 
-                    <div class="table-container">
-                        <div style="padding: 24px;">
-                            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Outstanding Reports</h3>
-                            <p style="color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
-                                Export only students with outstanding balances
-                            </p>
-                            <button class="btn btn-secondary" onclick="exportOutstandingReport('term1')" style="margin-bottom: 12px; width: 100%;">
-                                Term 1 Outstanding
-                            </button>
-                            <button class="btn btn-secondary" onclick="exportOutstandingReport('term2')" style="margin-bottom: 12px; width: 100%;">
-                                Term 2 Outstanding
-                            </button>
-                            <button class="btn btn-secondary" onclick="exportOutstandingReport('overall')" style="width: 100%;">
-                                Overall Outstanding
-                            </button>
-                        </div>
+                    <div class="pdf-export-card">
+                        <h3>📊 Term 2 Detailed Report</h3>
+                        <p>Comprehensive report with all Term 2 student data, payment details, and analytics</p>
+                        <button class="pdf-btn" onclick="exportPDFReport('term2', 'detailed')" id="term2DetailedBtn">
+                            <div class="pdf-loading" id="term2DetailedSpinner"></div>
+                            📄 Generate Term 2 PDF
+                        </button>
                     </div>
 
-                    <div class="table-container">
-                        <div style="padding: 24px;">
-                            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Summary Reports</h3>
-                            <p style="color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
-                                Export financial summaries and statistics
-                            </p>
-                            <button class="btn btn-secondary" onclick="exportSummaryReport()" style="margin-bottom: 12px; width: 100%;">
-                                Financial Summary
-                            </button>
-                            <button class="btn btn-secondary" onclick="exportPaymentMethodReport()" style="width: 100%;">
-                                Payment Methods Report
-                            </button>
-                        </div>
+                    <div class="pdf-export-card">
+                        <h3>💰 Outstanding Fees Report</h3>
+                        <p>Report focusing on students with outstanding balances across both terms</p>
+                        <button class="pdf-btn" onclick="exportPDFReport('all', 'outstanding')" id="outstandingBtn">
+                            <div class="pdf-loading" id="outstandingSpinner"></div>
+                            📄 Generate Outstanding PDF
+                        </button>
+                    </div>
+
+                    <div class="pdf-export-card">
+                        <h3>📈 Financial Summary</h3>
+                        <p>Executive summary with key financial metrics and collection statistics</p>
+                        <button class="pdf-btn" onclick="exportPDFReport('all', 'summary')" id="summaryBtn">
+                            <div class="pdf-loading" id="summarySpinner"></div>
+                            📄 Generate Summary PDF
+                        </button>
+                    </div>
+
+                    <div class="pdf-export-card">
+                        <h3>💳 Payment Methods Analysis</h3>
+                        <p>Detailed breakdown of payment methods and collection patterns</p>
+                        <button class="pdf-btn" onclick="exportPDFReport('all', 'payments')" id="paymentsBtn">
+                            <div class="pdf-loading" id="paymentsSpinner"></div>
+                            📄 Generate Payments PDF
+                        </button>
+                    </div>
+
+                    <div class="pdf-export-card">
+                        <h3>🎓 Year Group Analysis</h3>
+                        <p>Student distribution and financial metrics by year group</p>
+                        <button class="pdf-btn" onclick="exportPDFReport('all', 'yeargroups')" id="yearGroupsBtn">
+                            <div class="pdf-loading" id="yearGroupsSpinner"></div>
+                            📄 Generate Year Groups PDF
+                        </button>
                     </div>
                 </div>
 
                 <div class="table-container" style="margin-top: 32px;">
                     <div style="padding: 24px;">
                         <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Add Report Notes</h3>
-                        <textarea id="reportNotes" class="form-textarea" placeholder="Add notes that will be included in exported reports..."></textarea>
+                        <textarea id="reportNotes" class="form-textarea" placeholder="Add notes that will be included in PDF reports..."></textarea>
                     </div>
                 </div>
             </div>
@@ -1216,8 +1368,7 @@
                             <option value="9">Year 9</option>
                             <option value="10">Year 10</option>
                             <option value="11">Year 11</option>
-                            <option value="12">Year 12</option>
-                            <option value="13">Year 13</option>
+                            <option value="16+">16+</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1227,6 +1378,18 @@
                     <div class="form-group">
                         <label class="form-label">VAT (£)</label>
                         <input type="number" step="0.01" class="form-input" id="studentVAT" value="0">
+                    </div>
+                </div>
+
+                <div class="student-status-section">
+                    <h4>Student Status</h4>
+                    <div class="status-option">
+                        <input type="radio" id="statusActive" name="studentStatus" value="active" checked>
+                        <label for="statusActive">Active Student</label>
+                    </div>
+                    <div class="status-option">
+                        <input type="radio" id="statusLeft" name="studentStatus" value="left">
+                        <label for="statusLeft">Student Left</label>
                     </div>
                 </div>
 
@@ -1787,15 +1950,16 @@
 
     function updateTermStats(term) {
         const students = term === 'term1' ? window.term1Students : window.term2Students;
+        const activeStudents = students.filter(s => s.studentStatus !== 'left');
         
-        const totalStudents = students.length;
-        const fullyPaid = students.filter(s => getOutstandingAmount(s, term) === 0).length;
-        const partiallyPaid = students.filter(s => {
+        const totalStudents = activeStudents.length;
+        const fullyPaid = activeStudents.filter(s => getOutstandingAmount(s, term) === 0).length;
+        const partiallyPaid = activeStudents.filter(s => {
             const paid = getTotalPaid(s);
             const outstanding = getOutstandingAmount(s, term);
             return paid > 0 && outstanding > 0;
         }).length;
-        const totalOutstanding = students.reduce((sum, s) => sum + getOutstandingAmount(s, term), 0);
+        const totalOutstanding = activeStudents.reduce((sum, s) => sum + getOutstandingAmount(s, term), 0);
         
         const totalEl = document.getElementById(`${term}TotalStudents`);
         const fullyPaidEl = document.getElementById(`${term}FullyPaid`);
@@ -1810,7 +1974,9 @@
 
     function updateOverviewStats() {
         const allStudents = [...window.term1Students, ...window.term2Students];
-        const uniqueStudents = allStudents.reduce((acc, student) => {
+        const activeStudents = allStudents.filter(s => s.studentStatus !== 'left');
+        
+        const uniqueStudents = activeStudents.reduce((acc, student) => {
             const key = `${student.firstName}_${student.lastName}_${student.dob}`;
             if (!acc[key]) {
                 acc[key] = student;
@@ -1819,12 +1985,9 @@
         }, {});
         
         const totalStudents = Object.keys(uniqueStudents).length;
-        const totalRevenue = [...window.term1Students, ...window.term2Students]
-            .reduce((sum, s) => sum + getTotalPaid(s), 0);
-        const totalOutstanding = [...window.term1Students, ...window.term2Students]
-            .reduce((sum, s) => sum + getOutstandingAmount(s, s.term || 'term1'), 0);
-        const totalFees = [...window.term1Students, ...window.term2Students]
-            .reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
+        const totalRevenue = activeStudents.reduce((sum, s) => sum + getTotalPaid(s), 0);
+        const totalOutstanding = activeStudents.reduce((sum, s) => sum + getOutstandingAmount(s, s.term || 'term1'), 0);
+        const totalFees = activeStudents.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
         const collectionRate = totalFees > 0 ? (totalRevenue / totalFees * 100) : 0;
         
         const overviewTotalStudentsEl = document.getElementById('overviewTotalStudents');
@@ -1838,25 +2001,27 @@
         if (overviewCollectionRateEl) overviewCollectionRateEl.textContent = collectionRate.toFixed(1) + '%';
         
         // Update term summaries
-        const term1TotalFees = window.term1Students.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
-        const term1Outstanding = window.term1Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term1'), 0);
+        const term1ActiveStudents = window.term1Students.filter(s => s.studentStatus !== 'left');
+        const term1TotalFees = term1ActiveStudents.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
+        const term1Outstanding = term1ActiveStudents.reduce((sum, s) => sum + getOutstandingAmount(s, 'term1'), 0);
         
         const term1SummaryCountEl = document.getElementById('term1SummaryCount');
         const term1SummaryFeesEl = document.getElementById('term1SummaryFees');
         const term1SummaryOutstandingEl = document.getElementById('term1SummaryOutstanding');
         
-        if (term1SummaryCountEl) term1SummaryCountEl.textContent = window.term1Students.length;
+        if (term1SummaryCountEl) term1SummaryCountEl.textContent = term1ActiveStudents.length;
         if (term1SummaryFeesEl) term1SummaryFeesEl.textContent = '£' + term1TotalFees.toFixed(2);
         if (term1SummaryOutstandingEl) term1SummaryOutstandingEl.textContent = '£' + term1Outstanding.toFixed(2);
         
-        const term2TotalFees = window.term2Students.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
-        const term2Outstanding = window.term2Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term2'), 0);
+        const term2ActiveStudents = window.term2Students.filter(s => s.studentStatus !== 'left');
+        const term2TotalFees = term2ActiveStudents.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
+        const term2Outstanding = term2ActiveStudents.reduce((sum, s) => sum + getOutstandingAmount(s, 'term2'), 0);
         
         const term2SummaryCountEl = document.getElementById('term2SummaryCount');
         const term2SummaryFeesEl = document.getElementById('term2SummaryFees');
         const term2SummaryOutstandingEl = document.getElementById('term2SummaryOutstanding');
         
-        if (term2SummaryCountEl) term2SummaryCountEl.textContent = window.term2Students.length;
+        if (term2SummaryCountEl) term2SummaryCountEl.textContent = term2ActiveStudents.length;
         if (term2SummaryFeesEl) term2SummaryFeesEl.textContent = '£' + term2TotalFees.toFixed(2);
         if (term2SummaryOutstandingEl) term2SummaryOutstandingEl.textContent = '£' + term2Outstanding.toFixed(2);
     }
@@ -1870,7 +2035,7 @@
         if (students.length === 0) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="11">
+                    <td colspan="12">
                         <div class="empty-state">
                             <div class="icon">🎓</div>
                             <div class="title">No students added yet</div>
@@ -1887,9 +2052,10 @@
             const outstanding = getOutstandingAmount(student, term);
             const status = getPaymentStatus(student, term);
             const discountText = getDiscountText(student);
+            const studentStatus = student.studentStatus || 'active';
             
             return `
-                <tr>
+                <tr style="${studentStatus === 'left' ? 'opacity: 0.6;' : ''}">
                     <td>${index + 1}</td>
                     <td>${student.firstName} ${student.lastName}</td>
                     <td>${new Date(student.dob).toLocaleDateString('en-GB')}</td>
@@ -1898,11 +2064,12 @@
                     <td>£${(student.vat || 0).toFixed(2)}</td>
                     <td>£${totalPaid.toFixed(2)}</td>
                     <td>£${outstanding.toFixed(2)}</td>
-                    <td><span class="payment-status ${status}"><span class="dot"></span>${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+                    <td><span class="payment-status ${studentStatus === 'left' ? 'left' : status}"><span class="dot"></span>${studentStatus === 'left' ? 'Left' : status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+                    <td><span class="payment-status ${studentStatus}">${studentStatus === 'left' ? '📤 Left' : '✅ Active'}</span></td>
                     <td>${discountText}</td>
                     <td>
                         <button class="btn btn-secondary btn-sm" onclick="editStudent('${student.id}', '${term}')">Edit</button>
-                        <button class="btn btn-secondary btn-sm" onclick="deleteStudent('${student.id}', '${term}')" style="margin-left: 8px; color: var(--danger);">Delete</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteStudent('${student.id}', '${term}')" style="margin-left: 8px;">Delete</button>
                     </td>
                 </tr>
             `;
@@ -1998,6 +2165,7 @@
             const name = row.children[1]?.textContent.toLowerCase() || '';
             const year = row.children[3]?.textContent.toLowerCase() || '';
             const status = row.children[8]?.textContent.toLowerCase() || '';
+            const studentStatus = row.children[9]?.textContent.toLowerCase() || '';
             
             // Search filter
             const matchesSearch = name.includes(searchTerm.toLowerCase()) || 
@@ -2016,13 +2184,15 @@
                     case 'unpaid':
                         matchesFilter = status.includes('unpaid');
                         break;
+                    case 'active':
+                        matchesFilter = studentStatus.includes('active');
+                        break;
+                    case 'left':
+                        matchesFilter = studentStatus.includes('left');
+                        break;
                     case 'outstanding':
                         const outstanding = parseFloat(row.children[7]?.textContent.replace('£', '') || '0');
                         matchesFilter = outstanding > 0;
-                        break;
-                    case 'bank':
-                    case 'cash':
-                        matchesFilter = true; // Simplified for now
                         break;
                     default:
                         matchesFilter = true;
@@ -2048,6 +2218,12 @@
             studentForm.reset();
         }
         resetPaymentsContainer();
+        
+        // Set default status to active
+        const activeRadio = document.getElementById('statusActive');
+        if (activeRadio) {
+            activeRadio.checked = true;
+        }
         
         const modal = document.getElementById('studentModal');
         if (modal) {
@@ -2085,6 +2261,13 @@
         if (studentFee) studentFee.value = student.setFee || 0;
         if (studentVAT) studentVAT.value = student.vat || 0;
         if (studentComments) studentComments.value = student.comments || '';
+        
+        // Set student status
+        const studentStatus = student.studentStatus || 'active';
+        const statusRadio = document.getElementById(studentStatus === 'left' ? 'statusLeft' : 'statusActive');
+        if (statusRadio) {
+            statusRadio.checked = true;
+        }
         
         // Fill discount
         if (student.discount) {
@@ -2135,7 +2318,7 @@
         
         if (!student) return;
         
-        if (!confirm(`Are you sure you want to delete ${student.firstName} ${student.lastName}?`)) {
+        if (!confirm(`Are you sure you want to permanently delete ${student.firstName} ${student.lastName}? This action cannot be undone.`)) {
             return;
         }
         
@@ -2164,6 +2347,7 @@
         const newEntry = document.createElement('div');
         newEntry.className = 'payment-entry';
         newEntry.innerHTML = `
+            <button type="button" class="delete-payment" onclick="removePaymentEntry(this)">×</button>
             <div class="form-group">
                 <label class="form-label">Amount (£)</label>
                 <input type="number" step="0.01" class="form-input" name="paymentAmount[]">
@@ -2188,6 +2372,21 @@
             </div>
         `;
         container.appendChild(newEntry);
+    }
+
+    function removePaymentEntry(button) {
+        const entry = button.closest('.payment-entry');
+        const container = document.getElementById('paymentsContainer');
+        
+        // Don't remove if it's the only payment entry
+        if (container.querySelectorAll('.payment-entry').length > 1) {
+            entry.remove();
+        } else {
+            // Clear the fields instead
+            entry.querySelectorAll('input, select').forEach(field => {
+                field.value = '';
+            });
+        }
     }
 
     function resetPaymentsContainer() {
@@ -2225,6 +2424,15 @@
     function saveStudent(event) {
         event.preventDefault();
         
+        // Get student status from radio buttons
+        const statusRadios = document.querySelectorAll('input[name="studentStatus"]');
+        let studentStatus = 'active';
+        statusRadios.forEach(radio => {
+            if (radio.checked) {
+                studentStatus = radio.value;
+            }
+        });
+        
         const studentData = {
             id: currentStudentId || Date.now().toString(),
             firstName: document.getElementById('studentFirstName')?.value || '',
@@ -2234,6 +2442,7 @@
             setFee: parseFloat(document.getElementById('studentFee')?.value) || 0,
             vat: parseFloat(document.getElementById('studentVAT')?.value) || 0,
             comments: document.getElementById('studentComments')?.value || '',
+            studentStatus: studentStatus,
             discount: {
                 type: document.getElementById('discountType')?.value || 'none',
                 value: parseFloat(document.getElementById('discountValue')?.value) || 0,
@@ -2400,6 +2609,7 @@
                     setFee: parseFloat(row['set fee'] || row['fee'] || 0),
                     vat: parseFloat(row['vat amount'] || row['vat'] || 0),
                     comments: '',
+                    studentStatus: 'active',
                     discount: { type: 'none', value: 0, siblingNames: '' },
                     payments: [],
                     term: term,
@@ -2428,187 +2638,276 @@
         alert(`Successfully imported ${importedCount} students to ${term === 'term1' ? 'Term 1' : 'Term 2'}`);
     }
 
-    // Export Functions
-    function exportDetailedReport(term) {
-        const students = term === 'term1' ? window.term1Students : window.term2Students;
-        const reportNotesEl = document.getElementById('reportNotes');
-        const reportNotes = reportNotesEl ? reportNotesEl.value : '';
+    // PDF Export Functions
+    function exportPDFReport(scope, type) {
+        const btnId = `${scope}${type.charAt(0).toUpperCase() + type.slice(1)}Btn`;
+        const spinnerId = `${scope}${type.charAt(0).toUpperCase() + type.slice(1)}Spinner`;
         
-        if (students.length === 0) {
-            alert('No data to export');
-            return;
-        }
-
-        let csv = 'Student Fees Detailed Report\n';
-        csv += `Term: ${term === 'term1' ? 'Term 1' : 'Term 2'} (2025-2026)\n`;
-        csv += `Generated: ${new Date().toLocaleDateString('en-GB')}\n`;
-        if (reportNotes) csv += `Notes: ${reportNotes}\n`;
-        csv += '\n';
-
-        csv += 'No,First Name,Last Name,DOB,Year,Set Fee,VAT,Sibling Discount,Total Fee,';
-        csv += 'Paid 1,Inv 1,Date 1,Method 1,Paid 2,Inv 2,Date 2,Method 2,';
-        csv += 'Paid 3,Inv 3,Date 3,Method 3,Paid 4,Inv 4,Date 4,Method 4,';
-        csv += 'Total Paid,Outstanding,Status,Comments\n';
-
-        students.forEach((student, index) => {
-            const discount = calculateDiscount(student);
-            const totalFee = (student.setFee || 0) + (student.vat || 0) - discount;
-            const totalPaid = getTotalPaid(student);
-            const outstanding = getOutstandingAmount(student, term);
-            const status = getPaymentStatus(student, term);
-            const payments = student.payments || [];
-
-            let row = [
-                index + 1,
-                `"${student.firstName || ''}"`,
-                `"${student.lastName || ''}"`,
-                student.dob || '',
-                student.year || '',
-                (student.setFee || 0).toFixed(2),
-                (student.vat || 0).toFixed(2),
-                discount.toFixed(2),
-                totalFee.toFixed(2)
-            ];
-
-            // Add up to 4 payments
-            for (let i = 0; i < 4; i++) {
-                if (payments[i]) {
-                    row.push(
-                        (payments[i].amount || 0).toFixed(2),
-                        `"${payments[i].invoice || ''}"`,
-                        payments[i].date || '',
-                        `"${payments[i].method || ''}"`
-                    );
-                } else {
-                    row.push('', '', '', '');
-                }
+        const btn = document.getElementById(btnId);
+        const spinner = document.getElementById(spinnerId);
+        
+        if (btn) btn.disabled = true;
+        if (spinner) spinner.style.display = 'block';
+        
+        try {
+            if (typeof window.jspdf === 'undefined') {
+                alert('PDF library not loaded. Please refresh the page and try again.');
+                resetPDFButton(btnId, spinnerId);
+                return;
             }
 
-            row.push(
-                totalPaid.toFixed(2),
-                outstanding.toFixed(2),
-                status,
-                `"${student.comments || ''}"`
-            );
-
-            csv += row.join(',') + '\n';
-        });
-
-        downloadCSV(csv, `${term}_detailed_report_${new Date().toISOString().split('T')[0]}.csv`);
+            const { jsPDF } = window.jspdf;
+            
+            // Create landscape PDF
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4'
+            });
+            
+            const reportNotes = document.getElementById('reportNotes')?.value || '';
+            
+            switch (type) {
+                case 'detailed':
+                    generateDetailedReport(doc, scope, reportNotes);
+                    break;
+                case 'outstanding':
+                    generateOutstandingReport(doc, reportNotes);
+                    break;
+                case 'summary':
+                    generateSummaryReport(doc, reportNotes);
+                    break;
+                case 'payments':
+                    generatePaymentMethodsReport(doc, reportNotes);
+                    break;
+                case 'yeargroups':
+                    generateYearGroupsReport(doc, reportNotes);
+                    break;
+            }
+            
+            const fileName = `${type}_report_${scope}_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(fileName);
+            
+            setTimeout(() => {
+                alert(`📄 ${type.charAt(0).toUpperCase() + type.slice(1)} report generated successfully!`);
+                resetPDFButton(btnId, spinnerId);
+            }, 500);
+            
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('Error generating PDF: ' + error.message);
+            resetPDFButton(btnId, spinnerId);
+        }
     }
 
-    function exportOutstandingReport(type) {
-        let students = [];
-        let filename = '';
+    function resetPDFButton(btnId, spinnerId) {
+        const btn = document.getElementById(btnId);
+        const spinner = document.getElementById(spinnerId);
         
-        if (type === 'term1') {
-            students = window.term1Students.filter(s => getOutstandingAmount(s, 'term1') > 0);
-            filename = 'term1_outstanding';
-        } else if (type === 'term2') {
-            students = window.term2Students.filter(s => getOutstandingAmount(s, 'term2') > 0);
-            filename = 'term2_outstanding';
-        } else {
-            students = [...window.term1Students, ...window.term2Students]
-                .filter(s => getOutstandingAmount(s, s.term || 'term1') > 0);
-            filename = 'overall_outstanding';
+        if (btn) btn.disabled = false;
+        if (spinner) spinner.style.display = 'none';
+    }
+
+    function generateDetailedReport(doc, scope, notes) {
+        let students = [];
+        let title = '';
+        
+        if (scope === 'term1') {
+            students = window.term1Students;
+            title = 'Term 1 Detailed Report';
+        } else if (scope === 'term2') {
+            students = window.term2Students;
+            title = 'Term 2 Detailed Report';
         }
         
-        if (students.length === 0) {
-            alert('No outstanding balances found');
+        // Header
+        addPDFHeader(doc, title, notes);
+        
+        // Summary stats
+        addSummaryStats(doc, students, scope);
+        
+        // Student table
+        addStudentTable(doc, students, scope);
+        
+        // Footer
+        addPDFFooter(doc);
+    }
+
+    function generateOutstandingReport(doc, notes) {
+        const allStudents = [...window.term1Students, ...window.term2Students];
+        const outstandingStudents = allStudents.filter(s => {
+            const outstanding = getOutstandingAmount(s, s.term || 'term1');
+            return outstanding > 0 && s.studentStatus !== 'left';
+        });
+        
+        addPDFHeader(doc, 'Outstanding Fees Report', notes);
+        
+        if (outstandingStudents.length === 0) {
+            doc.setFontSize(16);
+            doc.text('No outstanding fees found!', 148, 100, { align: 'center' });
+            addPDFFooter(doc);
             return;
         }
-
-        const reportNotesEl = document.getElementById('reportNotes');
-        const reportNotes = reportNotesEl ? reportNotesEl.value : '';
         
-        let csv = 'Outstanding Fees Report\n';
-        csv += `Type: ${type === 'overall' ? 'Overall' : (type === 'term1' ? 'Term 1' : 'Term 2')}\n`;
-        csv += `Generated: ${new Date().toLocaleDateString('en-GB')}\n`;
-        if (reportNotes) csv += `Notes: ${reportNotes}\n`;
-        csv += '\n';
-
-        csv += 'No,Name,Year,Term,Set Fee,VAT,Discount,Total Paid,Outstanding,Last Payment Date\n';
-
-        students.forEach((student, index) => {
-            const discount = calculateDiscount(student);
-            const totalPaid = getTotalPaid(student);
-            const outstanding = getOutstandingAmount(student, student.term || 'term1');
-            const lastPayment = student.payments && student.payments.length > 0 ? 
-                student.payments[student.payments.length - 1].date : '';
-
-            const row = [
-                index + 1,
-                `"${student.firstName} ${student.lastName}"`,
-                student.year || '',
-                student.term || 'term1',
-                (student.setFee || 0).toFixed(2),
-                (student.vat || 0).toFixed(2),
-                discount.toFixed(2),
-                totalPaid.toFixed(2),
-                outstanding.toFixed(2),
-                lastPayment
-            ];
-
-            csv += row.join(',') + '\n';
+        // Outstanding summary
+        let yPos = 60;
+        const totalOutstanding = outstandingStudents.reduce((sum, s) => sum + getOutstandingAmount(s, s.term || 'term1'), 0);
+        
+        doc.setFillColor(255, 249, 235);
+        doc.rect(20, yPos, 256, 25, 'F');
+        
+        doc.setTextColor(217, 119, 6);
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text(`Total Outstanding: £${totalOutstanding.toFixed(2)}`, 148, yPos + 10, { align: 'center' });
+        doc.text(`Students with Outstanding Fees: ${outstandingStudents.length}`, 148, yPos + 20, { align: 'center' });
+        
+        yPos += 35;
+        
+        // Outstanding students table
+        const tableData = outstandingStudents.map(student => [
+            `${student.firstName} ${student.lastName}`,
+            `Year ${student.year}`,
+            student.term === 'term1' ? 'Term 1' : 'Term 2',
+            `£${(student.setFee || 0).toFixed(2)}`,
+            `£${(student.vat || 0).toFixed(2)}`,
+            `£${getTotalPaid(student).toFixed(2)}`,
+            `£${getOutstandingAmount(student, student.term || 'term1').toFixed(2)}`,
+            getPaymentStatus(student, student.term || 'term1').toUpperCase()
+        ]);
+        
+        doc.autoTable({
+            startY: yPos,
+            head: [['Student Name', 'Year', 'Term', 'Set Fee', 'VAT', 'Paid', 'Outstanding', 'Status']],
+            body: tableData,
+            theme: 'grid',
+            headStyles: { 
+                fillColor: [217, 119, 6],
+                textColor: [255, 255, 255],
+                fontSize: 10,
+                fontStyle: 'bold'
+            },
+            bodyStyles: { 
+                fontSize: 9,
+                cellPadding: 3
+            },
+            columnStyles: {
+                0: { cellWidth: 45 },
+                1: { cellWidth: 20, halign: 'center' },
+                2: { cellWidth: 25, halign: 'center' },
+                3: { cellWidth: 25, halign: 'right' },
+                4: { cellWidth: 20, halign: 'right' },
+                5: { cellWidth: 25, halign: 'right' },
+                6: { cellWidth: 30, halign: 'right', fillColor: [254, 242, 242] },
+                7: { cellWidth: 25, halign: 'center' }
+            },
+            margin: { left: 20, right: 20 }
         });
-
-        downloadCSV(csv, `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
-    }
-
-    function exportSummaryReport() {
-        const reportNotesEl = document.getElementById('reportNotes');
-        const reportNotes = reportNotesEl ? reportNotesEl.value : '';
         
-        let csv = 'Financial Summary Report\n';
-        csv += `Academic Year: 2025-2026\n`;
-        csv += `Generated: ${new Date().toLocaleDateString('en-GB')}\n`;
-        if (reportNotes) csv += `Notes: ${reportNotes}\n`;
-        csv += '\n';
-
-        // Term 1 Summary
-        const t1TotalFees = window.term1Students.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
-        const t1TotalDiscount = window.term1Students.reduce((sum, s) => sum + calculateDiscount(s), 0);
-        const t1TotalPaid = window.term1Students.reduce((sum, s) => sum + getTotalPaid(s), 0);
-        const t1Outstanding = window.term1Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term1'), 0);
-
-        csv += 'TERM 1 SUMMARY\n';
-        csv += `Students Enrolled,${window.term1Students.length}\n`;
-        csv += `Total Fees Set,£${t1TotalFees.toFixed(2)}\n`;
-        csv += `Total Discounts,£${t1TotalDiscount.toFixed(2)}\n`;
-        csv += `Net Fees,£${(t1TotalFees - t1TotalDiscount).toFixed(2)}\n`;
-        csv += `Total Collected,£${t1TotalPaid.toFixed(2)}\n`;
-        csv += `Outstanding,£${t1Outstanding.toFixed(2)}\n`;
-        csv += `Collection Rate,${t1TotalFees > 0 ? ((t1TotalPaid / (t1TotalFees - t1TotalDiscount)) * 100).toFixed(1) : 0}%\n`;
-        csv += '\n';
-
-        // Term 2 Summary
-        const t2TotalFees = window.term2Students.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
-        const t2TotalDiscount = window.term2Students.reduce((sum, s) => sum + calculateDiscount(s), 0);
-        const t2TotalPaid = window.term2Students.reduce((sum, s) => sum + getTotalPaid(s), 0);
-        const t2Outstanding = window.term2Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term2'), 0);
-
-        csv += 'TERM 2 SUMMARY\n';
-        csv += `Students Enrolled,${window.term2Students.length}\n`;
-        csv += `Total Fees Set,£${t2TotalFees.toFixed(2)}\n`;
-        csv += `Total Discounts,£${t2TotalDiscount.toFixed(2)}\n`;
-        csv += `Net Fees,£${(t2TotalFees - t2TotalDiscount).toFixed(2)}\n`;
-        csv += `Total Collected,£${t2TotalPaid.toFixed(2)}\n`;
-        csv += `Outstanding,£${t2Outstanding.toFixed(2)}\n`;
-        csv += `Collection Rate,${t2TotalFees > 0 ? ((t2TotalPaid / (t2TotalFees - t2TotalDiscount)) * 100).toFixed(1) : 0}%\n`;
-        csv += '\n';
-
-        // Overall Summary
-        csv += 'OVERALL SUMMARY\n';
-        csv += `Total Students,${window.term1Students.length + window.term2Students.length}\n`;
-        csv += `Total Revenue,£${(t1TotalPaid + t2TotalPaid).toFixed(2)}\n`;
-        csv += `Total Outstanding,£${(t1Outstanding + t2Outstanding).toFixed(2)}\n`;
-        csv += `Overall Collection Rate,${(t1TotalFees + t2TotalFees) > 0 ? (((t1TotalPaid + t2TotalPaid) / (t1TotalFees + t2TotalFees - t1TotalDiscount - t2TotalDiscount)) * 100).toFixed(1) : 0}%\n`;
-
-        downloadCSV(csv, `financial_summary_${new Date().toISOString().split('T')[0]}.csv`);
+        addPDFFooter(doc);
     }
 
-    function exportPaymentMethodReport() {
+    function generateSummaryReport(doc, notes) {
+        addPDFHeader(doc, 'Financial Summary Report', notes);
+        
+        const allStudents = [...window.term1Students, ...window.term2Students];
+        const activeStudents = allStudents.filter(s => s.studentStatus !== 'left');
+        
+        let yPos = 60;
+        
+        // Overall summary
+        const totalRevenue = activeStudents.reduce((sum, s) => sum + getTotalPaid(s), 0);
+        const totalOutstanding = activeStudents.reduce((sum, s) => sum + getOutstandingAmount(s, s.term || 'term1'), 0);
+        const totalFees = activeStudents.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
+        const collectionRate = totalFees > 0 ? (totalRevenue / totalFees * 100) : 0;
+        
+        // Summary cards
+        doc.setFillColor(16, 163, 127);
+        doc.rect(20, yPos, 60, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('Total Revenue', 50, yPos + 15, { align: 'center' });
+        doc.setFontSize(18);
+        doc.text(`£${totalRevenue.toFixed(2)}`, 50, yPos + 30, { align: 'center' });
+        
+        doc.setFillColor(255, 149, 0);
+        doc.rect(88, yPos, 60, 40, 'F');
+        doc.setFontSize(14);
+        doc.text('Outstanding', 118, yPos + 15, { align: 'center' });
+        doc.setFontSize(18);
+        doc.text(`£${totalOutstanding.toFixed(2)}`, 118, yPos + 30, { align: 'center' });
+        
+        doc.setFillColor(99, 102, 241);
+        doc.rect(156, yPos, 60, 40, 'F');
+        doc.setFontSize(14);
+        doc.text('Collection Rate', 186, yPos + 15, { align: 'center' });
+        doc.setFontSize(18);
+        doc.text(`${collectionRate.toFixed(1)}%`, 186, yPos + 30, { align: 'center' });
+        
+        doc.setFillColor(34, 197, 94);
+        doc.rect(224, yPos, 52, 40, 'F');
+        doc.setFontSize(14);
+        doc.text('Students', 250, yPos + 15, { align: 'center' });
+        doc.setFontSize(18);
+        doc.text(`${activeStudents.length}`, 250, yPos + 30, { align: 'center' });
+        
+        yPos += 55;
+        
+        // Term comparison
+        const term1Students = window.term1Students.filter(s => s.studentStatus !== 'left');
+        const term2Students = window.term2Students.filter(s => s.studentStatus !== 'left');
+        
+        const comparisonData = [
+            [
+                'Term 1',
+                term1Students.length.toString(),
+                `£${term1Students.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0).toFixed(2)}`,
+                `£${term1Students.reduce((sum, s) => sum + getTotalPaid(s), 0).toFixed(2)}`,
+                `£${term1Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term1'), 0).toFixed(2)}`
+            ],
+            [
+                'Term 2',
+                term2Students.length.toString(),
+                `£${term2Students.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0).toFixed(2)}`,
+                `£${term2Students.reduce((sum, s) => sum + getTotalPaid(s), 0).toFixed(2)}`,
+                `£${term2Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term2'), 0).toFixed(2)}`
+            ]
+        ];
+        
+        doc.autoTable({
+            startY: yPos,
+            head: [['Term', 'Students', 'Total Fees', 'Collected', 'Outstanding']],
+            body: comparisonData,
+            theme: 'grid',
+            headStyles: { 
+                fillColor: [16, 163, 127],
+                textColor: [255, 255, 255],
+                fontSize: 12,
+                fontStyle: 'bold'
+            },
+            bodyStyles: { 
+                fontSize: 11,
+                cellPadding: 5
+            },
+            columnStyles: {
+                0: { cellWidth: 50, fontStyle: 'bold' },
+                1: { cellWidth: 50, halign: 'center' },
+                2: { cellWidth: 50, halign: 'right' },
+                3: { cellWidth: 50, halign: 'right' },
+                4: { cellWidth: 50, halign: 'right' }
+            },
+            margin: { left: 20, right: 20 }
+        });
+        
+        addPDFFooter(doc);
+    }
+
+    function generatePaymentMethodsReport(doc, notes) {
+        addPDFHeader(doc, 'Payment Methods Analysis', notes);
+        
         const allPayments = [...window.term1Students, ...window.term2Students]
+            .filter(s => s.studentStatus !== 'left')
             .flatMap(s => s.payments || []);
         
         const paymentMethods = {};
@@ -2620,247 +2919,344 @@
             paymentMethods[method].count++;
             paymentMethods[method].total += payment.amount || 0;
         });
-
-        const reportNotesEl = document.getElementById('reportNotes');
-        const reportNotes = reportNotesEl ? reportNotesEl.value : '';
         
-        let csv = 'Payment Methods Report\n';
-        csv += `Generated: ${new Date().toLocaleDateString('en-GB')}\n`;
-        if (reportNotes) csv += `Notes: ${reportNotes}\n`;
-        csv += '\n';
-
-        csv += 'Payment Method,Number of Payments,Total Amount,Average Payment\n';
-
-        Object.entries(paymentMethods).forEach(([method, data]) => {
-            const average = data.count > 0 ? data.total / data.count : 0;
-            csv += `"${method}",${data.count},£${data.total.toFixed(2)},£${average.toFixed(2)}\n`;
+        let yPos = 60;
+        
+        if (Object.keys(paymentMethods).length === 0) {
+            doc.setFontSize(16);
+            doc.text('No payment data found!', 148, 100, { align: 'center' });
+            addPDFFooter(doc);
+            return;
+        }
+        
+        const tableData = Object.entries(paymentMethods)
+            .sort(([,a], [,b]) => b.total - a.total)
+            .map(([method, data]) => {
+                const average = data.count > 0 ? data.total / data.count : 0;
+                const percentage = allPayments.length > 0 ? (data.count / allPayments.length * 100) : 0;
+                return [
+                    method,
+                    data.count.toString(),
+                    `£${data.total.toFixed(2)}`,
+                    `£${average.toFixed(2)}`,
+                    `${percentage.toFixed(1)}%`
+                ];
+            });
+        
+        doc.autoTable({
+            startY: yPos,
+            head: [['Payment Method', 'Count', 'Total Amount', 'Average', 'Percentage']],
+            body: tableData,
+            theme: 'grid',
+            headStyles: { 
+                fillColor: [16, 163, 127],
+                textColor: [255, 255, 255],
+                fontSize: 12,
+                fontStyle: 'bold'
+            },
+            bodyStyles: { 
+                fontSize: 11,
+                cellPadding: 5
+            },
+            columnStyles: {
+                0: { cellWidth: 60, fontStyle: 'bold' },
+                1: { cellWidth: 40, halign: 'center' },
+                2: { cellWidth: 50, halign: 'right' },
+                3: { cellWidth: 50, halign: 'right' },
+                4: { cellWidth: 46, halign: 'center' }
+            },
+            margin: { left: 20, right: 20 }
         });
-
-        downloadCSV(csv, `payment_methods_${new Date().toISOString().split('T')[0]}.csv`);
-    }
-
-    function downloadCSV(csvContent, filename) {
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    // Analytics Functions
-    function updateAnalytics() {
-        updateAnalyticsStats();
-        renderPaymentChart();
-        renderYearGroupStats();
-        renderPaymentMethodsChart();
-        renderOutstandingByYear();
-    }
-
-    function updateAnalyticsStats() {
-        // Collection trend calculation
-        const currentRevenue = [...window.term1Students, ...window.term2Students]
-            .reduce((sum, s) => sum + getTotalPaid(s), 0);
         
-        // Average payment time (simplified calculation)
-        const allPayments = [...window.term1Students, ...window.term2Students]
-            .flatMap(s => s.payments || [])
-            .filter(p => p.date);
+        addPDFFooter(doc);
+    }
+
+    function generateYearGroupsReport(doc, notes) {
+        addPDFHeader(doc, 'Year Group Analysis', notes);
         
-        const avgDays = allPayments.length > 0 ? 
-            Math.round(allPayments.map(p => {
-                const paymentDate = new Date(p.date);
-                const enrollDate = new Date(); // Simplified
-                return Math.abs(paymentDate - enrollDate) / (1000 * 60 * 60 * 24);
-            }).reduce((sum, days) => sum + days, 0) / allPayments.length) : 0;
-
-        // Top payment method
-        const paymentMethods = {};
-        allPayments.forEach(p => {
-            paymentMethods[p.method] = (paymentMethods[p.method] || 0) + 1;
-        });
-        const topMethod = Object.keys(paymentMethods).reduce((a, b) => 
-            paymentMethods[a] > paymentMethods[b] ? a : b, 'None');
-
-        // Discount usage
-        const studentsWithDiscount = [...window.term1Students, ...window.term2Students]
-            .filter(s => s.discount && s.discount.type !== 'none').length;
-        const totalStudents = window.term1Students.length + window.term2Students.length;
-        const discountPercentage = totalStudents > 0 ? 
-            Math.round((studentsWithDiscount / totalStudents) * 100) : 0;
-
-        const collectionTrendEl = document.getElementById('collectionTrend');
-        const avgPaymentTimeEl = document.getElementById('avgPaymentTime');
-        const topPaymentMethodEl = document.getElementById('topPaymentMethod');
-        const discountUsageEl = document.getElementById('discountUsage');
-
-        if (collectionTrendEl) collectionTrendEl.textContent = '+15%'; // Placeholder
-        if (avgPaymentTimeEl) avgPaymentTimeEl.textContent = avgDays + ' days';
-        if (topPaymentMethodEl) topPaymentMethodEl.textContent = topMethod;
-        if (discountUsageEl) discountUsageEl.textContent = discountPercentage + '%';
-    }
-
-    function renderPaymentChart() {
-        const chartDiv = document.getElementById('paymentChart');
-        if (!chartDiv) return;
+        const activeStudents = [...window.term1Students, ...window.term2Students]
+            .filter(s => s.studentStatus !== 'left');
         
-        chartDiv.innerHTML = `
-            <div style="display: flex; align-items: end; gap: 8px; height: 200px; margin-bottom: 16px;">
-                ${generatePaymentBars()}
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary);">
-                <span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span>
-            </div>
-        `;
-    }
-
-    function generatePaymentBars() {
-        const months = [
-            { amount: 15000, height: '60%' },
-            { amount: 22000, height: '90%' },
-            { amount: 18000, height: '70%' },
-            { amount: 25000, height: '100%' },
-            { amount: 20000, height: '80%' },
-            { amount: 12000, height: '50%' }
-        ];
-
-        return months.map(month => `
-            <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
-                <div style="background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%); 
-                           width: 100%; height: ${month.height}; border-radius: 4px 4px 0 0; margin-bottom: 8px;"></div>
-                <div style="font-size: 10px; color: var(--text-secondary);">£${(month.amount/1000).toFixed(0)}k</div>
-            </div>
-        `).join('');
-    }
-
-    function renderYearGroupStats() {
         const yearGroups = {};
-        [...window.term1Students, ...window.term2Students].forEach(student => {
+        activeStudents.forEach(student => {
             const year = student.year || 'Unknown';
             if (!yearGroups[year]) {
-                yearGroups[year] = { count: 0, totalFees: 0, outstanding: 0 };
+                yearGroups[year] = { count: 0, totalFees: 0, collected: 0, outstanding: 0 };
             }
             yearGroups[year].count++;
             yearGroups[year].totalFees += (student.setFee || 0) + (student.vat || 0);
+            yearGroups[year].collected += getTotalPaid(student);
             yearGroups[year].outstanding += getOutstandingAmount(student, student.term || 'term1');
         });
-
-        const statsHTML = Object.entries(yearGroups)
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([year, stats]) => `
-                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
-                    <div>
-                        <div style="font-weight: 600;">Year ${year}</div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">${stats.count} students</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-weight: 600;">£${stats.totalFees.toFixed(0)}</div>
-                        <div style="font-size: 12px; color: var(--danger);">£${stats.outstanding.toFixed(0)} due</div>
-                    </div>
-                </div>
-            `).join('');
-
-        const yearGroupStatsEl = document.getElementById('yearGroupStats');
-        if (yearGroupStatsEl) {
-            yearGroupStatsEl.innerHTML = statsHTML || '<p style="color: var(--text-secondary);">No data available</p>';
+        
+        let yPos = 60;
+        
+        if (Object.keys(yearGroups).length === 0) {
+            doc.setFontSize(16);
+            doc.text('No student data found!', 148, 100, { align: 'center' });
+            addPDFFooter(doc);
+            return;
         }
-    }
-
-    function renderPaymentMethodsChart() {
-        const methods = {};
-        [...window.term1Students, ...window.term2Students]
-            .flatMap(s => s.payments || [])
-            .forEach(payment => {
-                const method = payment.method || 'Unknown';
-                methods[method] = (methods[method] || 0) + (payment.amount || 0);
+        
+        const tableData = Object.entries(yearGroups)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([year, stats]) => {
+                const collectionRate = stats.totalFees > 0 ? (stats.collected / stats.totalFees * 100) : 0;
+                return [
+                    `Year ${year}`,
+                    stats.count.toString(),
+                    `£${stats.totalFees.toFixed(2)}`,
+                    `£${stats.collected.toFixed(2)}`,
+                    `£${stats.outstanding.toFixed(2)}`,
+                    `${collectionRate.toFixed(1)}%`
+                ];
             });
-
-        const total = Object.values(methods).reduce((sum, amount) => sum + amount, 0);
         
-        const chartHTML = Object.entries(methods)
-            .sort(([,a], [,b]) => b - a)
-            .map(([method, amount]) => {
-                const percentage = total > 0 ? (amount / total * 100) : 0;
-                return `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600;">${method}</div>
-                            <div style="background: var(--border); height: 8px; border-radius: 4px; margin-top: 4px;">
-                                <div style="background: linear-gradient(90deg, var(--primary), var(--primary-dark)); 
-                                           height: 100%; width: ${percentage}%; border-radius: 4px;"></div>
-                            </div>
-                        </div>
-                        <div style="margin-left: 16px; text-align: right;">
-                            <div style="font-weight: 600;">£${amount.toFixed(0)}</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);">${percentage.toFixed(1)}%</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-        const paymentMethodsChartEl = document.getElementById('paymentMethodsChart');
-        if (paymentMethodsChartEl) {
-            paymentMethodsChartEl.innerHTML = chartHTML || '<p style="color: var(--text-secondary);">No payment data</p>';
-        }
-    }
-
-    function renderOutstandingByYear() {
-        const yearOutstanding = {};
-        [...window.term1Students, ...window.term2Students].forEach(student => {
-            const year = student.year || 'Unknown';
-            const outstanding = getOutstandingAmount(student, student.term || 'term1');
-            yearOutstanding[year] = (yearOutstanding[year] || 0) + outstanding;
+        doc.autoTable({
+            startY: yPos,
+            head: [['Year Group', 'Students', 'Total Fees', 'Collected', 'Outstanding', 'Collection Rate']],
+            body: tableData,
+            theme: 'grid',
+            headStyles: { 
+                fillColor: [16, 163, 127],
+                textColor: [255, 255, 255],
+                fontSize: 12,
+                fontStyle: 'bold'
+            },
+            bodyStyles: { 
+                fontSize: 11,
+                cellPadding: 5
+            },
+            columnStyles: {
+                0: { cellWidth: 40, fontStyle: 'bold' },
+                1: { cellWidth: 35, halign: 'center' },
+                2: { cellWidth: 45, halign: 'right' },
+                3: { cellWidth: 45, halign: 'right' },
+                4: { cellWidth: 45, halign: 'right' },
+                5: { cellWidth: 36, halign: 'center' }
+            },
+            margin: { left: 20, right: 20 }
         });
-
-        const maxOutstanding = Math.max(...Object.values(yearOutstanding));
         
-        const chartHTML = Object.entries(yearOutstanding)
-            .filter(([, amount]) => amount > 0)
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([year, amount]) => {
-                const height = maxOutstanding > 0 ? (amount / maxOutstanding * 100) : 0;
-                return `
-                    <div style="display: flex; align-items: end; margin-bottom: 16px;">
-                        <div style="width: 60px; font-size: 14px; font-weight: 600;">Year ${year}</div>
-                        <div style="flex: 1; margin-left: 12px;">
-                            <div style="background: var(--border); height: 20px; border-radius: 10px;">
-                                <div style="background: linear-gradient(90deg, var(--danger), #DC3545); 
-                                           height: 100%; width: ${height}%; border-radius: 10px;"></div>
-                            </div>
-                        </div>
-                        <div style="width: 80px; text-align: right; margin-left: 12px; font-weight: 600; color: var(--danger);">
-                            £${amount.toFixed(0)}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-        const outstandingByYearEl = document.getElementById('outstandingByYear');
-        if (outstandingByYearEl) {
-            outstandingByYearEl.innerHTML = chartHTML || '<p style="color: var(--text-secondary);">No outstanding amounts</p>';
-        }
+        addPDFFooter(doc);
     }
 
-    // Event Listeners
-    window.addEventListener('click', function(e) {
-        if (e.target.classList.contains('modal')) {
-            e.target.classList.remove('active');
+    function addPDFHeader(doc, title, notes) {
+        // Header background
+        doc.setFillColor(24, 24, 24);
+        doc.rect(0, 0, 297, 35, 'F');
+        
+        // Green stripe
+        doc.setFillColor(16, 163, 127);
+        doc.rect(0, 0, 297, 3, 'F');
+        
+        // Title
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.setFont(undefined, 'bold');
+        doc.text(title, 148, 15, { align: 'center' });
+        
+        // Academic year and date
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Academic Year: 2024/25`, 20, 25);
+        doc.text(`Generated: ${new Date().toLocaleDateString()}`, 277, 25, { align: 'right' });
+        
+        // Notes if provided
+        if (notes && notes.trim()) {
+            doc.setTextColor(200, 200, 200);
+            doc.text(`Notes: ${notes}`, 20, 30);
         }
+        
+        // Reset text color for body
+        doc.setTextColor(0, 0, 0);
+    }
+
+    function addPDFFooter(doc) {
+        const pageHeight = doc.internal.pageSize.height;
+        
+        // Footer line
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(0.5);
+        doc.line(20, pageHeight - 25, 277, pageHeight - 25);
+        
+        // Footer text
+        doc.setTextColor(128, 128, 128);
+        doc.setFontSize(8);
+        doc.text('Generated by Student Fees Tracker', 20, pageHeight - 15);
+        doc.text(`Page 1`, 277, pageHeight - 15, { align: 'right' });
+        doc.text(`© ${new Date().getFullYear()} School Management System`, 148, pageHeight - 8, { align: 'center' });
+    }
+
+    function addSummaryStats(doc, students, scope) {
+        let yPos = 50;
+        
+        // Calculate statistics
+        const totalStudents = students.length;
+        const activeStudents = students.filter(s => s.studentStatus !== 'left').length;
+        const totalFees = students.reduce((sum, s) => sum + (s.fees || 0), 0);
+        const totalCollected = students.reduce((sum, s) => {
+            const fee = s.fees || 0;
+            const term = s.term || 'term1';
+            return sum + getCollectedAmount(s, term);
+        }, 0);
+        const totalOutstanding = totalFees - totalCollected;
+        const collectionRate = totalFees > 0 ? (totalCollected / totalFees * 100) : 0;
+        
+        // Summary box
+        doc.setFillColor(248, 250, 252);
+        doc.rect(20, yPos, 256, 35, 'F');
+        doc.setDrawColor(220, 220, 220);
+        doc.rect(20, yPos, 256, 35, 'S');
+        
+        // Summary content
+        doc.setTextColor(31, 41, 55);
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text('SUMMARY STATISTICS', 148, yPos + 10, { align: 'center' });
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Total Students: ${totalStudents}`, 30, yPos + 20);
+        doc.text(`Active Students: ${activeStudents}`, 30, yPos + 28);
+        doc.text(`Total Fees: £${totalFees.toFixed(2)}`, 150, yPos + 20);
+        doc.text(`Collected: £${totalCollected.toFixed(2)}`, 150, yPos + 28);
+        doc.text(`Outstanding: £${totalOutstanding.toFixed(2)}`, 250, yPos + 20);
+        doc.text(`Collection Rate: ${collectionRate.toFixed(1)}%`, 250, yPos + 28);
+    }
+
+    function addStudentTable(doc, students, scope) {
+        let yPos = 95;
+        
+        if (students.length === 0) {
+            doc.setFontSize(16);
+            doc.text('No students found for this scope!', 148, yPos + 20, { align: 'center' });
+            return;
+        }
+        
+        const tableData = students.map(student => {
+            const fee = student.fees || 0;
+            const term = student.term || 'term1';
+            const collected = getCollectedAmount(student, term);
+            const outstanding = fee - collected;
+            const status = student.studentStatus || 'active';
+            
+            return [
+                `${student.firstName} ${student.lastName}`,
+                `Year ${student.year}`,
+                term === 'term1' ? 'Term 1' : 'Term 2',
+                `£${fee.toFixed(2)}`,
+                `£${collected.toFixed(2)}`,
+                `£${outstanding.toFixed(2)}`,
+                status.charAt(0).toUpperCase() + status.slice(1)
+            ];
+        });
+        
+        doc.autoTable({
+            startY: yPos,
+            head: [['Student Name', 'Year', 'Term', 'Total Fee', 'Collected', 'Outstanding', 'Status']],
+            body: tableData,
+            theme: 'grid',
+            headStyles: { 
+                fillColor: [16, 163, 127],
+                textColor: [255, 255, 255],
+                fontSize: 10,
+                fontStyle: 'bold'
+            },
+            bodyStyles: { 
+                fontSize: 9,
+                cellPadding: 4
+            },
+            columnStyles: {
+                0: { cellWidth: 50, fontStyle: 'bold' },
+                1: { cellWidth: 25, halign: 'center' },
+                2: { cellWidth: 25, halign: 'center' },
+                3: { cellWidth: 30, halign: 'right' },
+                4: { cellWidth: 30, halign: 'right' },
+                5: { cellWidth: 30, halign: 'right' },
+                6: { cellWidth: 26, halign: 'center' }
+            },
+            margin: { left: 20, right: 20 }
+        });
+    }
+
+    function getCollectedAmount(student, term) {
+        const payments = student.payments || [];
+        return payments
+            .filter(p => p.term === term && p.status === 'confirmed')
+            .reduce((sum, p) => sum + (p.amount || 0), 0);
+    }
+
+    function getOutstandingAmount(student, term) {
+        const fee = student.fees || 0;
+        const collected = getCollectedAmount(student, term);
+        return Math.max(0, fee - collected);
+    }
+
+    // Report generation buttons
+    document.getElementById('generateOverviewBtn').addEventListener('click', () => {
+        const notes = document.getElementById('reportNotes').value;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape');
+        generateOverviewReport(doc, notes);
+        doc.save(`overview_report_${new Date().toISOString().split('T')[0]}.pdf`);
     });
 
-    window.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            const modal = document.querySelector('.modal.active');
-            if (modal) {
-                modal.classList.remove('active');
-            }
-        }
+    document.getElementById('generateTerm1Btn').addEventListener('click', () => {
+        const notes = document.getElementById('reportNotes').value;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape');
+        generateDetailedReport(doc, 'term1', notes);
+        doc.save(`term1_report_${new Date().toISOString().split('T')[0]}.pdf`);
     });
 
-    console.log('Student Fees App initialized successfully');
+    document.getElementById('generateTerm2Btn').addEventListener('click', () => {
+        const notes = document.getElementById('reportNotes').value;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape');
+        generateDetailedReport(doc, 'term2', notes);
+        doc.save(`term2_report_${new Date().toISOString().split('T')[0]}.pdf`);
+    });
+
+    document.getElementById('generateOutstandingBtn').addEventListener('click', () => {
+        const notes = document.getElementById('reportNotes').value;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape');
+        generateOutstandingReport(doc, notes);
+        doc.save(`outstanding_report_${new Date().toISOString().split('T')[0]}.pdf`);
+    });
+
+    // Initialize app
+    updateDashboard();
+    populateReports();
+
+    // Make functions globally accessible for onclick handlers
+    window.selectProfile = selectProfile;
+    window.continueToLogin = continueToLogin;
+    window.goBackToProfiles = goBackToProfiles;
+    window.login = login;
+    window.openProgressModal = openProgressModal;
+    window.selectGrade = selectGrade;
+    window.saveProgress = saveProgress;
+    window.clearProgress = clearProgress;
+    window.toggleAbsent = toggleAbsent;
+    window.toggleParentCheck = toggleParentCheck;
+    window.changeMonth = changeMonth;
+    window.closeModal = closeModal;
+    window.openDayModal = openDayModal;
+    window.markDayAbsent = markDayAbsent;
+    window.removeAbsent = removeAbsent;
+    window.showAddStudentModal = showAddStudentModal;
+    window.addStudent = addStudent;
+    window.showRemoveStudentModal = showRemoveStudentModal;
+    window.removeStudent = removeStudent;
+    window.showHolidayModal = showHolidayModal;
+    window.addHoliday = addHoliday;
+    window.removeHoliday = removeHoliday;
+    window.exportStudentPDF = exportStudentPDF;
+    window.generateSelectedPDF = generateSelectedPDF;
+    window.showResetModal = showResetModal;
+    window.logout = logout;
 </script>
 </body>
 </html>
