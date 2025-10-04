@@ -1,0 +1,2866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#10A37F">
+<title>Student Fees Tracker</title>
+<link rel="manifest" href="fees-manifest.json">
+<link rel="apple-touch-icon" href="fees-icon-192.png">
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+        --primary: #10A37F;
+        --primary-dark: #0D7A5F;
+        --primary-light: #D1FAE5;
+        --success: #34C759;
+        --warning: #FF9500;
+        --danger: #FF3B30;
+        --background: #000000;
+        --card-bg: #1C1C1E;
+        --card-bg-elevated: #2C2C2E;
+        --text-primary: #FFFFFF;
+        --text-secondary: #98989D;
+        --border: #38383A;
+        --shadow: rgba(0, 0, 0, 0.3);
+        --term1-color: #34C759;
+        --term2-color: #AF52DE;
+    }
+
+    @media (prefers-color-scheme: light) {
+        :root {
+            --background: #F2F2F7;
+            --card-bg: #FFFFFF;
+            --card-bg-elevated: #FFFFFF;
+            --text-primary: #000000;
+            --text-secondary: #8E8E93;
+            --border: #E5E5EA;
+            --shadow: rgba(0, 0, 0, 0.08);
+        }
+    }
+
+    html {
+        height: 100vh;
+        height: -webkit-fill-available;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+        background: var(--background);
+        color: var(--text-primary);
+        height: 100vh;
+        height: -webkit-fill-available;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .app-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        height: -webkit-fill-available;
+        position: relative;
+    }
+
+    .header {
+        background: var(--card-bg);
+        padding: calc(env(safe-area-inset-top, 0px) + 16px) 24px 24px;
+        position: relative;
+        z-index: 100;
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        background: rgba(28, 28, 30, 0.72);
+        border-bottom: 0.5px solid var(--border);
+        flex-shrink: 0;
+    }
+
+    @media (prefers-color-scheme: light) {
+        .header {
+            background: rgba(242, 242, 247, 0.8);
+        }
+    }
+
+    .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header h1 {
+        font-size: 38px;
+        font-weight: 700;
+        letter-spacing: -1px;
+        margin-bottom: 8px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .year-badge {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(16, 163, 127, 0.3);
+    }
+
+    .nav-tabs {
+        background: var(--card-bg);
+        border-bottom: 0.5px solid var(--border);
+        padding: 0 24px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nav-tabs-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        gap: 8px;
+    }
+
+    .nav-tab {
+        padding: 16px 24px;
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 12px 12px 0 0;
+        transition: all 0.3s;
+        white-space: nowrap;
+        font-size: 16px;
+        position: relative;
+    }
+
+    .nav-tab.active {
+        color: var(--primary);
+        background: var(--card-bg-elevated);
+        transform: translateY(-2px);
+    }
+
+    .nav-tab.term1.active {
+        color: var(--term1-color);
+    }
+
+    .nav-tab.term2.active {
+        color: var(--term2-color);
+    }
+
+    .view-content {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 24px;
+        min-height: 0;
+    }
+
+    .main-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .view {
+        display: none;
+    }
+
+    .view.active {
+        display: block;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg-elevated) 100%);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 4px 16px var(--shadow);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+    }
+
+    .stat-card.total::before { background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%); }
+    .stat-card.paid::before { background: linear-gradient(180deg, var(--success) 0%, #28A745 100%); }
+    .stat-card.partial::before { background: linear-gradient(180deg, var(--warning) 0%, #E67E22 100%); }
+    .stat-card.outstanding::before { background: linear-gradient(180deg, var(--danger) 0%, #DC3545 100%); }
+
+    .stat-card .label {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card .value {
+        font-size: 36px;
+        font-weight: 700;
+        letter-spacing: -1px;
+        margin-bottom: 8px;
+    }
+
+    .stat-card .description {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.4;
+    }
+
+    .stat-card.total .value { color: var(--primary); }
+    .stat-card.paid .value { color: var(--success); }
+    .stat-card.partial .value { color: var(--warning); }
+    .stat-card.outstanding .value { color: var(--danger); }
+
+    .controls {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .search-box {
+        flex: 1;
+        min-width: 320px;
+        padding: 16px 20px;
+        border: 1.5px solid var(--border);
+        border-radius: 16px;
+        background: var(--card-bg-elevated);
+        color: var(--text-primary);
+        font-size: 16px;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+
+    .search-box:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: var(--card-bg);
+        box-shadow: 0 0 0 4px rgba(16, 163, 127, 0.1);
+    }
+
+    .filter-select {
+        padding: 16px 20px;
+        border: 1.5px solid var(--border);
+        border-radius: 16px;
+        background: var(--card-bg-elevated);
+        color: var(--text-primary);
+        font-size: 16px;
+        font-family: inherit;
+        transition: all 0.2s;
+        min-width: 180px;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: var(--card-bg);
+        box-shadow: 0 0 0 4px rgba(16, 163, 127, 0.1);
+    }
+
+    .btn {
+        padding: 16px 24px;
+        border: none;
+        border-radius: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 16px;
+        font-family: inherit;
+    }
+
+    .btn:active {
+        transform: scale(0.98);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        box-shadow: 0 4px 16px rgba(16, 163, 127, 0.3);
+    }
+
+    .btn-secondary {
+        background: var(--card-bg-elevated);
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+    }
+
+    .btn-sm {
+        padding: 10px 16px;
+        font-size: 14px;
+        border-radius: 10px;
+    }
+
+    .table-container {
+        background: var(--card-bg);
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        overflow: hidden;
+        box-shadow: 0 4px 16px var(--shadow);
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1000px;
+    }
+
+    .table th,
+    .table td {
+        padding: 16px 20px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+    }
+
+    .table th {
+        background: var(--card-bg-elevated);
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table tr:hover {
+        background: var(--card-bg-elevated);
+    }
+
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .payment-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        gap: 6px;
+    }
+
+    .payment-status.paid {
+        background: rgba(52, 199, 89, 0.2);
+        color: var(--success);
+        border: 1px solid rgba(52, 199, 89, 0.3);
+    }
+
+    .payment-status.partial {
+        background: rgba(255, 149, 0, 0.2);
+        color: var(--warning);
+        border: 1px solid rgba(255, 149, 0, 0.3);
+    }
+
+    .payment-status.unpaid {
+        background: rgba(255, 59, 48, 0.2);
+        color: var(--danger);
+        border: 1px solid rgba(255, 59, 48, 0.3);
+    }
+
+    .payment-status .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        animation: fadeIn 0.3s;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .modal.active {
+        display: flex !important;
+    }
+
+    .modal-content {
+        background: var(--card-bg);
+        border-radius: 24px;
+        padding: 32px;
+        width: 100%;
+        max-width: 700px;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(100px) scale(0.95); opacity: 0; }
+        to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+    }
+
+    .modal-header h2 {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+
+    .close-btn {
+        background: var(--card-bg-elevated);
+        border: 1px solid var(--border);
+        width: 36px;
+        height: 36px;
+        border-radius: 18px;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        transition: all 0.2s;
+    }
+
+    .close-btn:active {
+        transform: scale(0.9);
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: var(--text-secondary);
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+        width: 100%;
+        padding: 16px 18px;
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        background: var(--card-bg-elevated);
+        color: var(--text-primary);
+        font-size: 17px;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+
+    .form-textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: var(--card-bg);
+        box-shadow: 0 0 0 4px rgba(16, 163, 127, 0.1);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .payments-section {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+    }
+
+    .payments-section h3 {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--text-primary);
+    }
+
+    .payment-entry {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        align-items: end;
+        padding: 20px;
+        background: var(--card-bg-elevated);
+        border-radius: 16px;
+        margin-bottom: 16px;
+        border: 1px solid var(--border);
+    }
+
+    .loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--background);
+        z-index: 3000;
+        text-align: center;
+        padding: 80px 20px;
+        color: var(--text-secondary);
+    }
+
+    .spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid var(--border);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: var(--text-secondary);
+    }
+
+    .empty-state .icon {
+        font-size: 60px;
+        margin-bottom: 16px;
+        opacity: 0.4;
+    }
+
+    .empty-state .title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .empty-state .subtitle {
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    .fab {
+        position: fixed;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+        right: 24px;
+        width: 60px;
+        height: 60px;
+        border-radius: 30px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        box-shadow: 0 8px 24px rgba(16, 163, 127, 0.4);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+        transition: transform 0.2s;
+    }
+
+    .fab:active {
+        transform: scale(0.92);
+    }
+
+    .fab svg {
+        width: 28px;
+        height: 28px;
+        stroke: white;
+    }
+
+    .sync-status {
+        position: fixed;
+        top: calc(env(safe-area-inset-top, 0px) + 12px);
+        right: 20px;
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 6px 12px;
+        font-size: 11px;
+        font-weight: 600;
+        z-index: 1001;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        box-shadow: 0 2px 8px var(--shadow);
+    }
+
+    .sync-status.syncing { color: var(--warning); }
+    .sync-status.synced { color: var(--success); }
+    .sync-status.offline { color: var(--text-secondary); }
+
+    .sync-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .sync-dot.syncing {
+        animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+
+    .file-upload-area {
+        border: 2px dashed var(--border);
+        border-radius: 16px;
+        padding: 32px;
+        text-align: center;
+        background: var(--card-bg-elevated);
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .file-upload-area:hover {
+        border-color: var(--primary);
+        background: rgba(16, 163, 127, 0.05);
+    }
+
+    .file-upload-area.dragover {
+        border-color: var(--primary);
+        background: rgba(16, 163, 127, 0.1);
+    }
+
+    .file-upload-input {
+        display: none;
+    }
+
+    .sibling-discount {
+        background: var(--card-bg-elevated);
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 20px;
+        border: 1px solid var(--border);
+    }
+
+    .sibling-discount h4 {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: var(--text-primary);
+    }
+
+    .sibling-discount-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+    }
+
+    /* Mobile Optimizations */
+    @media (max-width: 768px) {
+        .header {
+            padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 16px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+        }
+
+        .view-content {
+            padding: 16px;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            padding: 16px;
+        }
+
+        .stat-card .value {
+            font-size: 24px;
+        }
+
+        .controls {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .search-box,
+        .filter-select {
+            min-width: auto;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+
+        .payment-entry {
+            grid-template-columns: 1fr;
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-content {
+            padding: 24px;
+            margin: 16px;
+            border-radius: 20px;
+        }
+
+        .fab {
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+            right: 16px;
+            width: 56px;
+            height: 56px;
+        }
+    }
+
+    /* Desktop-specific optimizations */
+    @media (min-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+</style>
+</head>
+<body>
+<div class="app-container">
+    <div id="appLoading" class="loading">
+        <div class="spinner"></div>
+        <div style="color: var(--text-primary); font-size: 18px; font-weight: 600;">Loading student data...</div>
+        <div style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">Please wait...</div>
+    </div>
+
+    <div id="syncStatus" class="sync-status offline">
+        <div class="sync-dot"></div>
+        <span>Offline</span>
+    </div>
+
+    <header class="header">
+        <div class="header-content">
+            <div>
+                <h1>Student Fees</h1>
+                <div style="font-size: 17px; color: var(--text-secondary); font-weight: 500;">Fee Management System</div>
+            </div>
+            <div class="year-badge">2025-2026</div>
+        </div>
+    </header>
+
+    <nav class="nav-tabs">
+        <div class="nav-tabs-inner">
+            <button class="nav-tab term1 active" onclick="switchView('term1')">Term 1</button>
+            <button class="nav-tab term2" onclick="switchView('term2')">Term 2</button>
+            <button class="nav-tab" onclick="switchView('overview')">Overview</button>
+            <button class="nav-tab" onclick="switchView('reports')">Reports</button>
+            <button class="nav-tab" onclick="switchView('analytics')">Analytics</button>
+        </div>
+    </nav>
+
+    <div class="view-content">
+        <main class="main-content">
+            <!-- Term 1 View -->
+            <div id="term1View" class="view active">
+                <div class="stats-grid">
+                    <div class="stat-card total">
+                        <div class="label">Total Students</div>
+                        <div class="value" id="term1TotalStudents">0</div>
+                        <div class="description">Enrolled in Term 1</div>
+                    </div>
+                    <div class="stat-card paid">
+                        <div class="label">Fully Paid</div>
+                        <div class="value" id="term1FullyPaid">0</div>
+                        <div class="description">No outstanding balance</div>
+                    </div>
+                    <div class="stat-card partial">
+                        <div class="label">Partially Paid</div>
+                        <div class="value" id="term1PartiallyPaid">0</div>
+                        <div class="description">Some payments made</div>
+                    </div>
+                    <div class="stat-card outstanding">
+                        <div class="label">Outstanding</div>
+                        <div class="value" id="term1Outstanding">£0</div>
+                        <div class="description">Total amount due</div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <input type="text" class="search-box" id="term1Search" placeholder="Search students...">
+                    <select class="filter-select" id="term1Filter" onchange="applyFilter('term1')">
+                        <option value="all">All Students</option>
+                        <option value="paid">Fully Paid</option>
+                        <option value="partial">Partially Paid</option>
+                        <option value="unpaid">Unpaid</option>
+                        <option value="bank">Bank Transfers</option>
+                        <option value="cash">Cash Payments</option>
+                        <option value="outstanding">Outstanding Only</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="showImportModal()">Import CSV</button>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Name</th>
+                                    <th>DOB</th>
+                                    <th>Year</th>
+                                    <th>Set Fee</th>
+                                    <th>VAT</th>
+                                    <th>Total Paid</th>
+                                    <th>Outstanding</th>
+                                    <th>Status</th>
+                                    <th>Sibling Discount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="term1StudentsTable">
+                                <tr>
+                                    <td colspan="11">
+                                        <div class="empty-state">
+                                            <div class="icon">🎓</div>
+                                            <div class="title">No students added yet</div>
+                                            <div class="subtitle">Click the + button to add your first student</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Term 2 View -->
+            <div id="term2View" class="view">
+                <div class="stats-grid">
+                    <div class="stat-card total">
+                        <div class="label">Total Students</div>
+                        <div class="value" id="term2TotalStudents">0</div>
+                        <div class="description">Enrolled in Term 2</div>
+                    </div>
+                    <div class="stat-card paid">
+                        <div class="label">Fully Paid</div>
+                        <div class="value" id="term2FullyPaid">0</div>
+                        <div class="description">No outstanding balance</div>
+                    </div>
+                    <div class="stat-card partial">
+                        <div class="label">Partially Paid</div>
+                        <div class="value" id="term2PartiallyPaid">0</div>
+                        <div class="description">Some payments made</div>
+                    </div>
+                    <div class="stat-card outstanding">
+                        <div class="label">Outstanding</div>
+                        <div class="value" id="term2Outstanding">£0</div>
+                        <div class="description">Total amount due</div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <input type="text" class="search-box" id="term2Search" placeholder="Search students...">
+                    <select class="filter-select" id="term2Filter" onchange="applyFilter('term2')">
+                        <option value="all">All Students</option>
+                        <option value="paid">Fully Paid</option>
+                        <option value="partial">Partially Paid</option>
+                        <option value="unpaid">Unpaid</option>
+                        <option value="bank">Bank Transfers</option>
+                        <option value="cash">Cash Payments</option>
+                        <option value="outstanding">Outstanding Only</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="showImportModal()">Import CSV</button>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Name</th>
+                                    <th>DOB</th>
+                                    <th>Year</th>
+                                    <th>Set Fee</th>
+                                    <th>VAT</th>
+                                    <th>Total Paid</th>
+                                    <th>Outstanding</th>
+                                    <th>Status</th>
+                                    <th>Sibling Discount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="term2StudentsTable">
+                                <tr>
+                                    <td colspan="11">
+                                        <div class="empty-state">
+                                            <div class="icon">🎓</div>
+                                            <div class="title">No students added yet</div>
+                                            <div class="subtitle">Click the + button to add your first student</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overview View -->
+            <div id="overviewView" class="view">
+                <div class="stats-grid">
+                    <div class="stat-card total">
+                        <div class="label">Total Students</div>
+                        <div class="value" id="overviewTotalStudents">0</div>
+                        <div class="description">Across both terms</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Total Revenue</div>
+                        <div class="value" id="overviewTotalRevenue">£0</div>
+                        <div class="description">Collected payments</div>
+                    </div>
+                    <div class="stat-card outstanding">
+                        <div class="label">Total Outstanding</div>
+                        <div class="value" id="overviewTotalOutstanding">£0</div>
+                        <div class="description">Across both terms</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Collection Rate</div>
+                        <div class="value" id="overviewCollectionRate">0%</div>
+                        <div class="description">Fees collected</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-top: 32px;">
+                    <div class="table-container">
+                        <div style="padding: 20px; border-bottom: 1px solid var(--border); background: var(--card-bg-elevated);">
+                            <h3 style="color: var(--term1-color); font-weight: 700; font-size: 18px;">Term 1 Summary</h3>
+                        </div>
+                        <div id="term1Summary" style="padding: 20px;">
+                            <div style="margin-bottom: 12px;">
+                                <div style="color: var(--text-secondary); font-size: 14px;">Students enrolled</div>
+                                <div style="font-size: 24px; font-weight: 700; color: var(--term1-color);" id="term1SummaryCount">0</div>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <div style="color: var(--text-secondary); font-size: 14px;">Total fees set</div>
+                                <div style="font-size: 20px; font-weight: 600;" id="term1SummaryFees">£0</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-secondary); font-size: 14px;">Outstanding</div>
+                                <div style="font-size: 20px; font-weight: 600; color: var(--danger);" id="term1SummaryOutstanding">£0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div style="padding: 20px; border-bottom: 1px solid var(--border); background: var(--card-bg-elevated);">
+                            <h3 style="color: var(--term2-color); font-weight: 700; font-size: 18px;">Term 2 Summary</h3>
+                        </div>
+                        <div id="term2Summary" style="padding: 20px;">
+                            <div style="margin-bottom: 12px;">
+                                <div style="color: var(--text-secondary); font-size: 14px;">Students enrolled</div>
+                                <div style="font-size: 24px; font-weight: 700; color: var(--term2-color);" id="term2SummaryCount">0</div>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <div style="color: var(--text-secondary); font-size: 14px;">Total fees set</div>
+                                <div style="font-size: 20px; font-weight: 600;" id="term2SummaryFees">£0</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-secondary); font-size: 14px;">Outstanding</div>
+                                <div style="font-size: 20px; font-weight: 600; color: var(--danger);" id="term2SummaryOutstanding">£0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports View -->
+            <div id="reportsView" class="view">
+                <div class="controls">
+                    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px; color: var(--text-primary);">Export Reports</h2>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                    <div class="table-container">
+                        <div style="padding: 24px;">
+                            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Detailed Reports</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
+                                Export comprehensive student data with all payment details
+                            </p>
+                            <button class="btn btn-primary" onclick="exportDetailedReport('term1')" style="margin-bottom: 12px; width: 100%;">
+                                Term 1 Detailed Report
+                            </button>
+                            <button class="btn btn-primary" onclick="exportDetailedReport('term2')" style="width: 100%;">
+                                Term 2 Detailed Report
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div style="padding: 24px;">
+                            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Outstanding Reports</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
+                                Export only students with outstanding balances
+                            </p>
+                            <button class="btn btn-secondary" onclick="exportOutstandingReport('term1')" style="margin-bottom: 12px; width: 100%;">
+                                Term 1 Outstanding
+                            </button>
+                            <button class="btn btn-secondary" onclick="exportOutstandingReport('term2')" style="margin-bottom: 12px; width: 100%;">
+                                Term 2 Outstanding
+                            </button>
+                            <button class="btn btn-secondary" onclick="exportOutstandingReport('overall')" style="width: 100%;">
+                                Overall Outstanding
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div style="padding: 24px;">
+                            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Summary Reports</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
+                                Export financial summaries and statistics
+                            </p>
+                            <button class="btn btn-secondary" onclick="exportSummaryReport()" style="margin-bottom: 12px; width: 100%;">
+                                Financial Summary
+                            </button>
+                            <button class="btn btn-secondary" onclick="exportPaymentMethodReport()" style="width: 100%;">
+                                Payment Methods Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container" style="margin-top: 32px;">
+                    <div style="padding: 24px;">
+                        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Add Report Notes</h3>
+                        <textarea id="reportNotes" class="form-textarea" placeholder="Add notes that will be included in exported reports..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics View -->
+            <div id="analyticsView" class="view">
+                <div class="controls">
+                    <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px; color: var(--text-primary);">Analytics Dashboard</h2>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="label">Collection Trend</div>
+                        <div class="value" id="collectionTrend">+15%</div>
+                        <div class="description">vs previous period</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Avg Payment Time</div>
+                        <div class="value" id="avgPaymentTime">23 days</div>
+                        <div class="description">from enrollment</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Payment Methods</div>
+                        <div class="value" id="topPaymentMethod">Bank</div>
+                        <div class="description">most popular</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Discount Usage</div>
+                        <div class="value" id="discountUsage">12%</div>
+                        <div class="description">of students</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-top: 32px;">
+                    <div class="table-container">
+                        <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                            <h3 style="font-weight: 700; font-size: 18px;">Payment Timeline</h3>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div id="paymentChart"></div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                            <h3 style="font-weight: 700; font-size: 18px;">Year Group Analysis</h3>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div id="yearGroupStats"></div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                            <h3 style="font-weight: 700; font-size: 18px;">Payment Methods Breakdown</h3>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div id="paymentMethodsChart"></div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                            <h3 style="font-weight: 700; font-size: 18px;">Outstanding by Year</h3>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div id="outstandingByYear"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <button class="fab" onclick="showAddStudent()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+    </button>
+
+    <!-- Add/Edit Student Modal -->
+    <div id="studentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Student</h2>
+                <button class="close-btn" onclick="closeModal('studentModal')">&times;</button>
+            </div>
+            <form id="studentForm" onsubmit="saveStudent(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <input type="text" class="form-input" id="studentFirstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" class="form-input" id="studentLastName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" class="form-input" id="studentDOB" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Year Group</label>
+                        <select class="form-select" id="studentYear" required>
+                            <option value="">Select Year</option>
+                            <option value="7">Year 7</option>
+                            <option value="8">Year 8</option>
+                            <option value="9">Year 9</option>
+                            <option value="10">Year 10</option>
+                            <option value="11">Year 11</option>
+                            <option value="12">Year 12</option>
+                            <option value="13">Year 13</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Set Fee (£)</label>
+                        <input type="number" step="0.01" class="form-input" id="studentFee" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">VAT (£)</label>
+                        <input type="number" step="0.01" class="form-input" id="studentVAT" value="0">
+                    </div>
+                </div>
+
+                <div class="sibling-discount">
+                    <h4>Sibling Discount</h4>
+                    <div class="sibling-discount-grid">
+                        <div class="form-group">
+                            <label class="form-label">Discount Type</label>
+                            <select class="form-select" id="discountType">
+                                <option value="none">No Discount</option>
+                                <option value="percentage">Percentage</option>
+                                <option value="fixed">Fixed Amount</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Discount Value</label>
+                            <input type="number" step="0.01" class="form-input" id="discountValue" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sibling Names</label>
+                            <input type="text" class="form-input" id="siblingNames" placeholder="Names of siblings">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="payments-section">
+                    <h3>Payments</h3>
+                    <div id="paymentsContainer">
+                        <div class="payment-entry">
+                            <div class="form-group">
+                                <label class="form-label">Amount (£)</label>
+                                <input type="number" step="0.01" class="form-input" name="paymentAmount[]">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Invoice No.</label>
+                                <input type="text" class="form-input" name="paymentInvoice[]">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Date</label>
+                                <input type="date" class="form-input" name="paymentDate[]">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Method</label>
+                                <select class="form-select" name="paymentMethod[]">
+                                    <option value="">Select Method</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Card">Card</option>
+                                    <option value="Cheque">Cheque</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="addPaymentEntry()">
+                        + Add Payment
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Comments</label>
+                    <textarea class="form-input form-textarea" id="studentComments" placeholder="Any additional notes..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 32px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('studentModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Import CSV Modal -->
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Import Student Data</h2>
+                <button class="close-btn" onclick="closeModal('importModal')">&times;</button>
+            </div>
+            <div>
+                <p style="color: var(--text-secondary); margin-bottom: 24px; line-height: 1.5;">
+                    Upload a CSV file with student data. Required columns: Student Name, DOB, School Year, Set Fee, VAT Amount
+                </p>
+                
+                <div class="file-upload-area" onclick="document.getElementById('csvFileInput').click()">
+                    <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.6;">📄</div>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Click to upload CSV file</div>
+                    <div style="color: var(--text-secondary);">Or drag and drop your file here</div>
+                </div>
+                
+                <input type="file" id="csvFileInput" class="file-upload-input" accept=".csv" onchange="handleCSVUpload(event)">
+                
+                <div style="margin-top: 24px;">
+                    <label class="form-label">Import to Term</label>
+                    <select class="form-select" id="importTerm">
+                        <option value="term1">Term 1</option>
+                        <option value="term2">Term 2</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 32px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('importModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="processCSVImport()" id="importBtn" disabled>Import Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyC-AM7-3HdvjRpJMDVQLfxUsZmgh1aA8UU",
+        authDomain: "dul-accounts-21118.firebaseapp.com",
+        projectId: "dul-accounts-21118",
+        storageBucket: "dul-accounts-21118.firebasestorage.app",
+        messagingSenderId: "484339552499",
+        appId: "1:484339552499:web:1dff66886e1627a178a786"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Global variables
+    let currentUser = null;
+    let currentTerm = 'term1';
+    let currentStudentId = null;
+    let isOnline = navigator.onLine;
+    let isSyncing = false;
+    let unsubscribeTerm1 = null;
+    let unsubscribeTerm2 = null;
+    let csvData = null;
+    let families = [];
+    let archivedYears = [];
+    let currentAcademicYear = '2025-2026';
+
+    // Data storage
+    window.term1Students = [];
+    window.term2Students = [];
+
+    // Initialize app
+    document.addEventListener('DOMContentLoaded', async function() {
+        console.log('Student Fees App starting...');
+        
+        try {
+            // Hide loading immediately to show the interface
+            const loadingEl = document.getElementById('appLoading');
+            if (loadingEl) {
+                loadingEl.style.display = 'none';
+            }
+            
+            loadLocalData();
+            updateAllUI();
+            setupSearchFilters();
+            setupFileUpload();
+            
+            // Initialize Firebase in background
+            initFirebase().catch(error => {
+                console.error('Firebase initialization failed:', error);
+                updateSyncStatus('offline');
+            });
+            
+            setupNetworkMonitoring();
+            
+            console.log('App initialized successfully');
+        } catch (error) {
+            console.error('App initialization error:', error);
+            // Hide loading even if there's an error
+            const loadingEl = document.getElementById('appLoading');
+            if (loadingEl) {
+                loadingEl.style.display = 'none';
+            }
+        }
+    });
+
+    async function initFirebase() {
+        try {
+            console.log('Initializing Firebase...');
+            
+            try {
+                await db.enablePersistence({ synchronizeTabs: true });
+                console.log('Persistence enabled');
+            } catch (err) {
+                console.warn('Persistence error:', err.code);
+                // Continue without persistence
+            }
+
+            await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+            
+            auth.onAuthStateChanged(async (user) => {
+                console.log('Auth state changed:', user ? 'Authenticated' : 'Not authenticated');
+                try {
+                    await handleAuthStateChange(user);
+                } catch (error) {
+                    console.error('Auth state change error:', error);
+                    updateSyncStatus('offline');
+                }
+            });
+            
+            // Don't wait for authentication - let it happen in background
+            if (!auth.currentUser) {
+                signInUser().catch(error => {
+                    console.error('Sign in failed:', error);
+                    updateSyncStatus('offline');
+                });
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Firebase init error:', error);
+            handleOfflineMode();
+            return false;
+        }
+    }
+
+    async function signInUser() {
+        try {
+            console.log('Attempting sign in...');
+            const credential = await auth.signInAnonymously();
+            currentUser = credential.user;
+            console.log('Signed in successfully:', currentUser.uid);
+            return true;
+        } catch (error) {
+            console.error('Sign in error:', error);
+            if (isOnline) {
+                setTimeout(signInUser, 3000);
+            }
+            return false;
+        }
+    }
+
+    async function handleAuthStateChange(user) {
+        if (user) {
+            currentUser = user;
+            console.log('User authenticated:', user.uid);
+            
+            if (unsubscribeTerm1) unsubscribeTerm1();
+            if (unsubscribeTerm2) unsubscribeTerm2();
+            
+            setupRealtimeSync();
+            
+            if (isOnline) {
+                updateSyncStatus('syncing');
+                await syncFromFirebase();
+            }
+        } else {
+            currentUser = null;
+            console.log('User not authenticated');
+            
+            if (unsubscribeTerm1) unsubscribeTerm1();
+            if (unsubscribeTerm2) unsubscribeTerm2();
+            
+            if (isOnline) {
+                await signInUser();
+            } else {
+                handleOfflineMode();
+            }
+        }
+    }
+
+    function setupRealtimeSync() {
+        console.log('Setting up realtime sync...');
+        
+        // Term 1 listener
+        unsubscribeTerm1 = db.collection('studentFees')
+            .doc('term1_2025_2026')
+            .onSnapshot(
+                { includeMetadataChanges: true },
+                (doc) => {
+                    console.log('Term 1 snapshot received, fromCache:', doc.metadata.fromCache);
+                    
+                    if (doc.exists && !doc.metadata.fromCache) {
+                        const data = doc.data();
+                        if (data && data.students) {
+                            console.log('Updating Term 1 from server data');
+                            window.term1Students = data.students;
+                            saveLocalData();
+                            updateAllUI();
+                        }
+                    }
+                    
+                    if (!doc.metadata.hasPendingWrites && !doc.metadata.fromCache) {
+                        updateSyncStatus('synced');
+                        isSyncing = false;
+                    }
+                },
+                (error) => {
+                    console.error('Term 1 snapshot error:', error);
+                    updateSyncStatus('offline');
+                }
+            );
+
+        // Term 2 listener
+        unsubscribeTerm2 = db.collection('studentFees')
+            .doc('term2_2025_2026')
+            .onSnapshot(
+                { includeMetadataChanges: true },
+                (doc) => {
+                    console.log('Term 2 snapshot received, fromCache:', doc.metadata.fromCache);
+                    
+                    if (doc.exists && !doc.metadata.fromCache) {
+                        const data = doc.data();
+                        if (data && data.students) {
+                            console.log('Updating Term 2 from server data');
+                            window.term2Students = data.students;
+                            saveLocalData();
+                            updateAllUI();
+                        }
+                    }
+                },
+                (error) => {
+                    console.error('Term 2 snapshot error:', error);
+                    updateSyncStatus('offline');
+                }
+            );
+    }
+
+    async function syncFromFirebase() {
+        if (!currentUser || !isOnline || isSyncing) return;
+        
+        isSyncing = true;
+        updateSyncStatus('syncing');
+        
+        try {
+            console.log('Syncing from Firebase...');
+            
+            // Get Term 1 data
+            const term1Doc = await db.collection('studentFees').doc('term1_2025_2026').get({ source: 'server' });
+            if (term1Doc.exists) {
+                const data = term1Doc.data();
+                if (data && data.students) {
+                    window.term1Students = data.students;
+                }
+            }
+            
+            // Get Term 2 data
+            const term2Doc = await db.collection('studentFees').doc('term2_2025_2026').get({ source: 'server' });
+            if (term2Doc.exists) {
+                const data = term2Doc.data();
+                if (data && data.students) {
+                    window.term2Students = data.students;
+                }
+            }
+            
+            saveLocalData();
+            updateAllUI();
+            updateSyncStatus('synced');
+            console.log('Sync completed successfully');
+        } catch (error) {
+            console.error('Sync error:', error);
+            updateSyncStatus('offline');
+        } finally {
+            isSyncing = false;
+        }
+    }
+
+    async function saveToFirebase(term) {
+        if (!currentUser || !isOnline || isSyncing) {
+            console.log('Cannot save: no user, offline, or syncing');
+            saveLocalData();
+            return;
+        }
+        
+        isSyncing = true;
+        updateSyncStatus('syncing');
+        
+        try {
+            const students = term === 'term1' ? window.term1Students : window.term2Students;
+            const docId = term === 'term1' ? 'term1_2025_2026' : 'term2_2025_2026';
+            
+            await db.collection('studentFees').doc(docId).set({
+                students: students,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                userId: currentUser.uid,
+                term: term,
+                academicYear: '2025-2026'
+            });
+            
+            console.log(`${term} saved to Firebase successfully`);
+            
+            setTimeout(() => {
+                updateSyncStatus('synced');
+                isSyncing = false;
+            }, 1000);
+        } catch (error) {
+            console.error(`Error saving ${term}:`, error);
+            updateSyncStatus('offline');
+            isSyncing = false;
+            alert('Failed to sync. Your data is saved locally and will sync when connection improves.');
+        }
+    }
+
+    function handleOfflineMode() {
+        console.log('Running in offline mode');
+        updateSyncStatus('offline');
+        isSyncing = false;
+    }
+
+    function setupNetworkMonitoring() {
+        window.addEventListener('online', async () => {
+            console.log('Network: online');
+            isOnline = true;
+            
+            if (!currentUser) {
+                await signInUser();
+            } else {
+                updateSyncStatus('syncing');
+                await syncFromFirebase();
+            }
+        });
+
+        window.addEventListener('offline', () => {
+            console.log('Network: offline');
+            isOnline = false;
+            handleOfflineMode();
+        });
+    }
+
+    function saveLocalData() {
+        try {
+            window.localStorage.setItem('dulTerm1Students', JSON.stringify(window.term1Students));
+            window.localStorage.setItem('dulTerm2Students', JSON.stringify(window.term2Students));
+            window.localStorage.setItem('dulFamilies', JSON.stringify(families));
+            window.localStorage.setItem('dulArchivedYears', JSON.stringify(archivedYears));
+            window.localStorage.setItem('dulStudentsTimestamp', Date.now().toString());
+            console.log('Local data saved');
+        } catch (e) {
+            console.error('Failed to save local data:', e);
+        }
+    }
+
+    function loadLocalData() {
+        try {
+            const term1Data = window.localStorage.getItem('dulTerm1Students');
+            const term2Data = window.localStorage.getItem('dulTerm2Students');
+            const familiesData = window.localStorage.getItem('dulFamilies');
+            const archivedData = window.localStorage.getItem('dulArchivedYears');
+            
+            if (term1Data) {
+                window.term1Students = JSON.parse(term1Data);
+                console.log('Term 1 local data loaded:', window.term1Students.length, 'students');
+            }
+            
+            if (term2Data) {
+                window.term2Students = JSON.parse(term2Data);
+                console.log('Term 2 local data loaded:', window.term2Students.length, 'students');
+            }
+            
+            if (familiesData) {
+                families = JSON.parse(familiesData);
+                console.log('Families data loaded:', families.length, 'families');
+            }
+            
+            if (archivedData) {
+                archivedYears = JSON.parse(archivedData);
+                console.log('Archived years loaded:', archivedYears.length, 'years');
+            }
+        } catch (e) {
+            console.error('Failed to load local data:', e);
+            window.term1Students = [];
+            window.term2Students = [];
+            families = [];
+            archivedYears = [];
+        }
+    }
+
+    function updateSyncStatus(status) {
+        const syncEl = document.getElementById('syncStatus');
+        if (!syncEl) return;
+        
+        const dotEl = syncEl.querySelector('.sync-dot');
+        const textEl = syncEl.querySelector('span');
+        
+        syncEl.className = `sync-status ${status}`;
+        if (dotEl) dotEl.className = `sync-dot ${status}`;
+        
+        if (textEl) {
+            switch(status) {
+                case 'syncing':
+                    textEl.textContent = 'Syncing...';
+                    break;
+                case 'synced':
+                    textEl.textContent = 'Synced';
+                    break;
+                default:
+                    textEl.textContent = 'Offline';
+            }
+        }
+        
+        console.log('Sync status:', status);
+    }
+
+    // UI Functions
+    function switchView(view) {
+        // Update active tab
+        document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+        
+        // Find and activate the correct nav item
+        const navTabs = document.querySelectorAll('.nav-tab');
+        navTabs.forEach(tab => {
+            const onclick = tab.getAttribute('onclick');
+            if (onclick && onclick.includes(`'${view}'`)) {
+                tab.classList.add('active');
+            }
+        });
+        
+        // Update active view
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        
+        // Handle view mapping
+        let targetView = view;
+        if (view === 'term1') {
+            targetView = 'term1View';
+            currentTerm = 'term1';
+        } else if (view === 'term2') {
+            targetView = 'term2View';
+            currentTerm = 'term2';
+        } else if (view === 'overview') {
+            targetView = 'overviewView';
+        } else if (view === 'reports') {
+            targetView = 'reportsView';
+        } else if (view === 'analytics') {
+            targetView = 'analyticsView';
+            updateAnalytics();
+        }
+        
+        const targetElement = document.getElementById(targetView);
+        if (targetElement) {
+            targetElement.classList.add('active');
+        }
+    }
+
+    function updateAllUI() {
+        try {
+            console.log('Updating all UI...');
+            updateTermStats('term1');
+            updateTermStats('term2');
+            updateOverviewStats();
+            renderStudentsTable('term1');
+            renderStudentsTable('term2');
+            
+            // Hide loading
+            const loadingEl = document.getElementById('appLoading');
+            if (loadingEl) {
+                loadingEl.style.display = 'none';
+            }
+            console.log('UI updated successfully');
+        } catch (error) {
+            console.error('Error updating UI:', error);
+            // Hide loading even if there's an error
+            const loadingEl = document.getElementById('appLoading');
+            if (loadingEl) {
+                loadingEl.style.display = 'none';
+            }
+        }
+    }
+
+    function updateTermStats(term) {
+        const students = term === 'term1' ? window.term1Students : window.term2Students;
+        
+        const totalStudents = students.length;
+        const fullyPaid = students.filter(s => getOutstandingAmount(s, term) === 0).length;
+        const partiallyPaid = students.filter(s => {
+            const paid = getTotalPaid(s);
+            const outstanding = getOutstandingAmount(s, term);
+            return paid > 0 && outstanding > 0;
+        }).length;
+        const totalOutstanding = students.reduce((sum, s) => sum + getOutstandingAmount(s, term), 0);
+        
+        const totalEl = document.getElementById(`${term}TotalStudents`);
+        const fullyPaidEl = document.getElementById(`${term}FullyPaid`);
+        const partiallyPaidEl = document.getElementById(`${term}PartiallyPaid`);
+        const outstandingEl = document.getElementById(`${term}Outstanding`);
+        
+        if (totalEl) totalEl.textContent = totalStudents;
+        if (fullyPaidEl) fullyPaidEl.textContent = fullyPaid;
+        if (partiallyPaidEl) partiallyPaidEl.textContent = partiallyPaid;
+        if (outstandingEl) outstandingEl.textContent = '£' + totalOutstanding.toFixed(2);
+    }
+
+    function updateOverviewStats() {
+        const allStudents = [...window.term1Students, ...window.term2Students];
+        const uniqueStudents = allStudents.reduce((acc, student) => {
+            const key = `${student.firstName}_${student.lastName}_${student.dob}`;
+            if (!acc[key]) {
+                acc[key] = student;
+            }
+            return acc;
+        }, {});
+        
+        const totalStudents = Object.keys(uniqueStudents).length;
+        const totalRevenue = [...window.term1Students, ...window.term2Students]
+            .reduce((sum, s) => sum + getTotalPaid(s), 0);
+        const totalOutstanding = [...window.term1Students, ...window.term2Students]
+            .reduce((sum, s) => sum + getOutstandingAmount(s, s.term || 'term1'), 0);
+        const totalFees = [...window.term1Students, ...window.term2Students]
+            .reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
+        const collectionRate = totalFees > 0 ? (totalRevenue / totalFees * 100) : 0;
+        
+        const overviewTotalStudentsEl = document.getElementById('overviewTotalStudents');
+        const overviewTotalRevenueEl = document.getElementById('overviewTotalRevenue');
+        const overviewTotalOutstandingEl = document.getElementById('overviewTotalOutstanding');
+        const overviewCollectionRateEl = document.getElementById('overviewCollectionRate');
+        
+        if (overviewTotalStudentsEl) overviewTotalStudentsEl.textContent = totalStudents;
+        if (overviewTotalRevenueEl) overviewTotalRevenueEl.textContent = '£' + totalRevenue.toFixed(2);
+        if (overviewTotalOutstandingEl) overviewTotalOutstandingEl.textContent = '£' + totalOutstanding.toFixed(2);
+        if (overviewCollectionRateEl) overviewCollectionRateEl.textContent = collectionRate.toFixed(1) + '%';
+        
+        // Update term summaries
+        const term1TotalFees = window.term1Students.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
+        const term1Outstanding = window.term1Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term1'), 0);
+        
+        const term1SummaryCountEl = document.getElementById('term1SummaryCount');
+        const term1SummaryFeesEl = document.getElementById('term1SummaryFees');
+        const term1SummaryOutstandingEl = document.getElementById('term1SummaryOutstanding');
+        
+        if (term1SummaryCountEl) term1SummaryCountEl.textContent = window.term1Students.length;
+        if (term1SummaryFeesEl) term1SummaryFeesEl.textContent = '£' + term1TotalFees.toFixed(2);
+        if (term1SummaryOutstandingEl) term1SummaryOutstandingEl.textContent = '£' + term1Outstanding.toFixed(2);
+        
+        const term2TotalFees = window.term2Students.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
+        const term2Outstanding = window.term2Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term2'), 0);
+        
+        const term2SummaryCountEl = document.getElementById('term2SummaryCount');
+        const term2SummaryFeesEl = document.getElementById('term2SummaryFees');
+        const term2SummaryOutstandingEl = document.getElementById('term2SummaryOutstanding');
+        
+        if (term2SummaryCountEl) term2SummaryCountEl.textContent = window.term2Students.length;
+        if (term2SummaryFeesEl) term2SummaryFeesEl.textContent = '£' + term2TotalFees.toFixed(2);
+        if (term2SummaryOutstandingEl) term2SummaryOutstandingEl.textContent = '£' + term2Outstanding.toFixed(2);
+    }
+
+    function renderStudentsTable(term) {
+        const students = term === 'term1' ? window.term1Students : window.term2Students;
+        const tableBody = document.getElementById(`${term}StudentsTable`);
+        
+        if (!tableBody) return;
+        
+        if (students.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="11">
+                        <div class="empty-state">
+                            <div class="icon">🎓</div>
+                            <div class="title">No students added yet</div>
+                            <div class="subtitle">Click the + button to add your first student</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        tableBody.innerHTML = students.map((student, index) => {
+            const totalPaid = getTotalPaid(student);
+            const outstanding = getOutstandingAmount(student, term);
+            const status = getPaymentStatus(student, term);
+            const discountText = getDiscountText(student);
+            
+            return `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${student.firstName} ${student.lastName}</td>
+                    <td>${new Date(student.dob).toLocaleDateString('en-GB')}</td>
+                    <td>Year ${student.year}</td>
+                    <td>£${(student.setFee || 0).toFixed(2)}</td>
+                    <td>£${(student.vat || 0).toFixed(2)}</td>
+                    <td>£${totalPaid.toFixed(2)}</td>
+                    <td>£${outstanding.toFixed(2)}</td>
+                    <td><span class="payment-status ${status}"><span class="dot"></span>${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+                    <td>${discountText}</td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm" onclick="editStudent('${student.id}', '${term}')">Edit</button>
+                        <button class="btn btn-secondary btn-sm" onclick="deleteStudent('${student.id}', '${term}')" style="margin-left: 8px; color: var(--danger);">Delete</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function getTotalPaid(student) {
+        const payments = student.payments || [];
+        return payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+    }
+
+    function getOutstandingAmount(student, term) {
+        const totalFee = (student.setFee || 0) + (student.vat || 0);
+        const discount = calculateDiscount(student);
+        const discountedFee = totalFee - discount;
+        const totalPaid = getTotalPaid(student);
+        return Math.max(0, discountedFee - totalPaid);
+    }
+
+    function calculateDiscount(student) {
+        if (!student.discount || student.discount.type === 'none') return 0;
+        
+        const totalFee = (student.setFee || 0) + (student.vat || 0);
+        const discountValue = student.discount.value || 0;
+        
+        if (student.discount.type === 'percentage') {
+            return (totalFee * discountValue) / 100;
+        } else if (student.discount.type === 'fixed') {
+            return Math.min(discountValue, totalFee);
+        }
+        
+        return 0;
+    }
+
+    function getDiscountText(student) {
+        if (!student.discount || student.discount.type === 'none') return 'None';
+        
+        const discount = calculateDiscount(student);
+        if (student.discount.type === 'percentage') {
+            return `${student.discount.value}% (£${discount.toFixed(2)})`;
+        } else if (student.discount.type === 'fixed') {
+            return `£${discount.toFixed(2)}`;
+        }
+        
+        return 'None';
+    }
+
+    function getPaymentStatus(student, term) {
+        const outstanding = getOutstandingAmount(student, term);
+        const totalPaid = getTotalPaid(student);
+        
+        if (outstanding === 0) return 'paid';
+        if (totalPaid > 0) return 'partial';
+        return 'unpaid';
+    }
+
+    function setupSearchFilters() {
+        const term1Search = document.getElementById('term1Search');
+        const term2Search = document.getElementById('term2Search');
+        
+        if (term1Search) {
+            term1Search.addEventListener('input', (e) => {
+                const filterEl = document.getElementById('term1Filter');
+                filterStudents('term1', e.target.value, filterEl ? filterEl.value : 'all');
+            });
+        }
+        
+        if (term2Search) {
+            term2Search.addEventListener('input', (e) => {
+                const filterEl = document.getElementById('term2Filter');
+                filterStudents('term2', e.target.value, filterEl ? filterEl.value : 'all');
+            });
+        }
+    }
+
+    function applyFilter(term) {
+        const searchEl = document.getElementById(`${term}Search`);
+        const filterEl = document.getElementById(`${term}Filter`);
+        const searchTerm = searchEl ? searchEl.value : '';
+        const filterType = filterEl ? filterEl.value : 'all';
+        filterStudents(term, searchTerm, filterType);
+    }
+
+    function filterStudents(term, searchTerm, filterType) {
+        const table = document.getElementById(`${term}StudentsTable`);
+        if (!table) return;
+        
+        const rows = table.querySelectorAll('tr');
+        
+        rows.forEach(row => {
+            if (row.querySelector('.empty-state')) return;
+            
+            const name = row.children[1]?.textContent.toLowerCase() || '';
+            const year = row.children[3]?.textContent.toLowerCase() || '';
+            const status = row.children[8]?.textContent.toLowerCase() || '';
+            
+            // Search filter
+            const matchesSearch = name.includes(searchTerm.toLowerCase()) || 
+                                year.includes(searchTerm.toLowerCase());
+            
+            // Type filter
+            let matchesFilter = true;
+            if (filterType !== 'all') {
+                switch (filterType) {
+                    case 'paid':
+                        matchesFilter = status.includes('paid') && !status.includes('partial');
+                        break;
+                    case 'partial':
+                        matchesFilter = status.includes('partial');
+                        break;
+                    case 'unpaid':
+                        matchesFilter = status.includes('unpaid');
+                        break;
+                    case 'outstanding':
+                        const outstanding = parseFloat(row.children[7]?.textContent.replace('£', '') || '0');
+                        matchesFilter = outstanding > 0;
+                        break;
+                    case 'bank':
+                    case 'cash':
+                        matchesFilter = true; // Simplified for now
+                        break;
+                    default:
+                        matchesFilter = true;
+                }
+            }
+            
+            row.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
+        });
+    }
+
+    // Modal Functions
+    function showAddStudent() {
+        currentStudentId = null;
+        
+        const modalTitle = document.getElementById('modalTitle');
+        if (modalTitle) {
+            modalTitle.textContent = `Add Student - ${currentTerm === 'term1' ? 'Term 1' : 'Term 2'}`;
+        }
+        
+        // Reset form
+        const studentForm = document.getElementById('studentForm');
+        if (studentForm) {
+            studentForm.reset();
+        }
+        resetPaymentsContainer();
+        
+        const modal = document.getElementById('studentModal');
+        if (modal) {
+            modal.classList.add('active');
+        }
+    }
+
+    function editStudent(studentId, term) {
+        const students = term === 'term1' ? window.term1Students : window.term2Students;
+        const student = students.find(s => s.id === studentId);
+        
+        if (!student) return;
+        
+        currentTerm = term;
+        currentStudentId = studentId;
+        
+        const modalTitle = document.getElementById('modalTitle');
+        if (modalTitle) {
+            modalTitle.textContent = `Edit Student - ${term === 'term1' ? 'Term 1' : 'Term 2'}`;
+        }
+        
+        // Fill form fields
+        const studentFirstName = document.getElementById('studentFirstName');
+        const studentLastName = document.getElementById('studentLastName');
+        const studentDOB = document.getElementById('studentDOB');
+        const studentYear = document.getElementById('studentYear');
+        const studentFee = document.getElementById('studentFee');
+        const studentVAT = document.getElementById('studentVAT');
+        const studentComments = document.getElementById('studentComments');
+        
+        if (studentFirstName) studentFirstName.value = student.firstName || '';
+        if (studentLastName) studentLastName.value = student.lastName || '';
+        if (studentDOB) studentDOB.value = student.dob || '';
+        if (studentYear) studentYear.value = student.year || '';
+        if (studentFee) studentFee.value = student.setFee || 0;
+        if (studentVAT) studentVAT.value = student.vat || 0;
+        if (studentComments) studentComments.value = student.comments || '';
+        
+        // Fill discount
+        if (student.discount) {
+            const discountType = document.getElementById('discountType');
+            const discountValue = document.getElementById('discountValue');
+            const siblingNames = document.getElementById('siblingNames');
+            
+            if (discountType) discountType.value = student.discount.type || 'none';
+            if (discountValue) discountValue.value = student.discount.value || 0;
+            if (siblingNames) siblingNames.value = student.discount.siblingNames || '';
+        }
+        
+        // Fill payments
+        resetPaymentsContainer();
+        if (student.payments && student.payments.length > 0) {
+            student.payments.forEach((payment, index) => {
+                if (index > 0) addPaymentEntry();
+                
+                const container = document.getElementById('paymentsContainer');
+                if (container) {
+                    const entries = container.querySelectorAll('.payment-entry');
+                    const entry = entries[index];
+                    
+                    if (entry) {
+                        const amountInput = entry.querySelector('input[name="paymentAmount[]"]');
+                        const invoiceInput = entry.querySelector('input[name="paymentInvoice[]"]');
+                        const dateInput = entry.querySelector('input[name="paymentDate[]"]');
+                        const methodSelect = entry.querySelector('select[name="paymentMethod[]"]');
+                        
+                        if (amountInput) amountInput.value = payment.amount || '';
+                        if (invoiceInput) invoiceInput.value = payment.invoice || '';
+                        if (dateInput) dateInput.value = payment.date || '';
+                        if (methodSelect) methodSelect.value = payment.method || '';
+                    }
+                }
+            });
+        }
+        
+        const modal = document.getElementById('studentModal');
+        if (modal) {
+            modal.classList.add('active');
+        }
+    }
+
+    function deleteStudent(studentId, term) {
+        const students = term === 'term1' ? window.term1Students : window.term2Students;
+        const student = students.find(s => s.id === studentId);
+        
+        if (!student) return;
+        
+        if (!confirm(`Are you sure you want to delete ${student.firstName} ${student.lastName}?`)) {
+            return;
+        }
+        
+        if (term === 'term1') {
+            window.term1Students = window.term1Students.filter(s => s.id !== studentId);
+        } else {
+            window.term2Students = window.term2Students.filter(s => s.id !== studentId);
+        }
+        
+        saveLocalData();
+        saveToFirebase(term);
+        updateAllUI();
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    }
+
+    function addPaymentEntry() {
+        const container = document.getElementById('paymentsContainer');
+        if (!container) return;
+        
+        const newEntry = document.createElement('div');
+        newEntry.className = 'payment-entry';
+        newEntry.innerHTML = `
+            <div class="form-group">
+                <label class="form-label">Amount (£)</label>
+                <input type="number" step="0.01" class="form-input" name="paymentAmount[]">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Invoice No.</label>
+                <input type="text" class="form-input" name="paymentInvoice[]">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Date</label>
+                <input type="date" class="form-input" name="paymentDate[]">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Method</label>
+                <select class="form-select" name="paymentMethod[]">
+                    <option value="">Select Method</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Card">Card</option>
+                    <option value="Cheque">Cheque</option>
+                </select>
+            </div>
+        `;
+        container.appendChild(newEntry);
+    }
+
+    function resetPaymentsContainer() {
+        const container = document.getElementById('paymentsContainer');
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="payment-entry">
+                <div class="form-group">
+                    <label class="form-label">Amount (£)</label>
+                    <input type="number" step="0.01" class="form-input" name="paymentAmount[]">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Invoice No.</label>
+                    <input type="text" class="form-input" name="paymentInvoice[]">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-input" name="paymentDate[]">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Method</label>
+                    <select class="form-select" name="paymentMethod[]">
+                        <option value="">Select Method</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Card">Card</option>
+                        <option value="Cheque">Cheque</option>
+                    </select>
+                </div>
+            </div>
+        `;
+    }
+
+    function saveStudent(event) {
+        event.preventDefault();
+        
+        const studentData = {
+            id: currentStudentId || Date.now().toString(),
+            firstName: document.getElementById('studentFirstName')?.value || '',
+            lastName: document.getElementById('studentLastName')?.value || '',
+            dob: document.getElementById('studentDOB')?.value || '',
+            year: document.getElementById('studentYear')?.value || '',
+            setFee: parseFloat(document.getElementById('studentFee')?.value) || 0,
+            vat: parseFloat(document.getElementById('studentVAT')?.value) || 0,
+            comments: document.getElementById('studentComments')?.value || '',
+            discount: {
+                type: document.getElementById('discountType')?.value || 'none',
+                value: parseFloat(document.getElementById('discountValue')?.value) || 0,
+                siblingNames: document.getElementById('siblingNames')?.value || ''
+            },
+            payments: [],
+            term: currentTerm,
+            createdAt: currentStudentId ? undefined : new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        // Collect payments
+        const amountInputs = document.querySelectorAll('input[name="paymentAmount[]"]');
+        const invoiceInputs = document.querySelectorAll('input[name="paymentInvoice[]"]');
+        const dateInputs = document.querySelectorAll('input[name="paymentDate[]"]');
+        const methodSelects = document.querySelectorAll('select[name="paymentMethod[]"]');
+
+        for (let i = 0; i < amountInputs.length; i++) {
+            const amount = parseFloat(amountInputs[i].value);
+            if (amount && amount > 0) {
+                studentData.payments.push({
+                    amount: amount,
+                    invoice: invoiceInputs[i].value,
+                    date: dateInputs[i].value,
+                    method: methodSelects[i].value
+                });
+            }
+        }
+
+        // Save to appropriate term
+        if (currentTerm === 'term1') {
+            if (currentStudentId) {
+                const index = window.term1Students.findIndex(s => s.id === currentStudentId);
+                if (index !== -1) {
+                    window.term1Students[index] = { ...window.term1Students[index], ...studentData };
+                }
+            } else {
+                window.term1Students.push(studentData);
+            }
+        } else {
+            if (currentStudentId) {
+                const index = window.term2Students.findIndex(s => s.id === currentStudentId);
+                if (index !== -1) {
+                    window.term2Students[index] = { ...window.term2Students[index], ...studentData };
+                }
+            } else {
+                window.term2Students.push(studentData);
+            }
+        }
+
+        saveLocalData();
+        saveToFirebase(currentTerm);
+        updateAllUI();
+        closeModal('studentModal');
+    }
+
+    // CSV Import Functions
+    function setupFileUpload() {
+        const uploadArea = document.querySelector('.file-upload-area');
+        const fileInput = document.getElementById('csvFileInput');
+        
+        if (!uploadArea || !fileInput) return;
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleCSVUpload({ target: { files } });
+            }
+        });
+    }
+
+    function showImportModal() {
+        const modal = document.getElementById('importModal');
+        if (modal) {
+            modal.classList.add('active');
+        }
+    }
+
+    function handleCSVUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        if (!file.name.toLowerCase().endsWith('.csv')) {
+            alert('Please upload a CSV file');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                csvData = parseCSV(e.target.result);
+                const importBtn = document.getElementById('importBtn');
+                if (importBtn) {
+                    importBtn.disabled = false;
+                }
+                
+                // Update upload area to show file selected
+                const uploadArea = document.querySelector('.file-upload-area');
+                if (uploadArea) {
+                    uploadArea.innerHTML = `
+                        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.6;">✅</div>
+                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">${file.name}</div>
+                        <div style="color: var(--text-secondary);">${csvData.length} rows found</div>
+                    `;
+                }
+            } catch (error) {
+                alert('Error reading CSV file: ' + error.message);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function parseCSV(csvText) {
+        const lines = csvText.split('\n').filter(line => line.trim());
+        if (lines.length < 2) throw new Error('CSV must have header and data rows');
+        
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+        const data = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',');
+            if (values.length !== headers.length) continue;
+            
+            const row = {};
+            headers.forEach((header, index) => {
+                row[header] = values[index].trim();
+            });
+            data.push(row);
+        }
+        
+        return data;
+    }
+
+    function processCSVImport() {
+        if (!csvData) {
+            alert('No CSV data to import');
+            return;
+        }
+        
+        const termEl = document.getElementById('importTerm');
+        const term = termEl ? termEl.value : 'term1';
+        let importedCount = 0;
+        
+        csvData.forEach(row => {
+            try {
+                const studentData = {
+                    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                    firstName: row['student name'] || row['first name'] || '',
+                    lastName: row['last name'] || '',
+                    dob: row['dob'] || row['date of birth'] || '',
+                    year: row['school year'] || row['year'] || '',
+                    setFee: parseFloat(row['set fee'] || row['fee'] || 0),
+                    vat: parseFloat(row['vat amount'] || row['vat'] || 0),
+                    comments: '',
+                    discount: { type: 'none', value: 0, siblingNames: '' },
+                    payments: [],
+                    term: term,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                
+                if (studentData.firstName && studentData.lastName) {
+                    if (term === 'term1') {
+                        window.term1Students.push(studentData);
+                    } else {
+                        window.term2Students.push(studentData);
+                    }
+                    importedCount++;
+                }
+            } catch (error) {
+                console.error('Error importing row:', error);
+            }
+        });
+        
+        saveLocalData();
+        saveToFirebase(term);
+        updateAllUI();
+        closeModal('importModal');
+        
+        alert(`Successfully imported ${importedCount} students to ${term === 'term1' ? 'Term 1' : 'Term 2'}`);
+    }
+
+    // Export Functions
+    function exportDetailedReport(term) {
+        const students = term === 'term1' ? window.term1Students : window.term2Students;
+        const reportNotesEl = document.getElementById('reportNotes');
+        const reportNotes = reportNotesEl ? reportNotesEl.value : '';
+        
+        if (students.length === 0) {
+            alert('No data to export');
+            return;
+        }
+
+        let csv = 'Student Fees Detailed Report\n';
+        csv += `Term: ${term === 'term1' ? 'Term 1' : 'Term 2'} (2025-2026)\n`;
+        csv += `Generated: ${new Date().toLocaleDateString('en-GB')}\n`;
+        if (reportNotes) csv += `Notes: ${reportNotes}\n`;
+        csv += '\n';
+
+        csv += 'No,First Name,Last Name,DOB,Year,Set Fee,VAT,Sibling Discount,Total Fee,';
+        csv += 'Paid 1,Inv 1,Date 1,Method 1,Paid 2,Inv 2,Date 2,Method 2,';
+        csv += 'Paid 3,Inv 3,Date 3,Method 3,Paid 4,Inv 4,Date 4,Method 4,';
+        csv += 'Total Paid,Outstanding,Status,Comments\n';
+
+        students.forEach((student, index) => {
+            const discount = calculateDiscount(student);
+            const totalFee = (student.setFee || 0) + (student.vat || 0) - discount;
+            const totalPaid = getTotalPaid(student);
+            const outstanding = getOutstandingAmount(student, term);
+            const status = getPaymentStatus(student, term);
+            const payments = student.payments || [];
+
+            let row = [
+                index + 1,
+                `"${student.firstName || ''}"`,
+                `"${student.lastName || ''}"`,
+                student.dob || '',
+                student.year || '',
+                (student.setFee || 0).toFixed(2),
+                (student.vat || 0).toFixed(2),
+                discount.toFixed(2),
+                totalFee.toFixed(2)
+            ];
+
+            // Add up to 4 payments
+            for (let i = 0; i < 4; i++) {
+                if (payments[i]) {
+                    row.push(
+                        (payments[i].amount || 0).toFixed(2),
+                        `"${payments[i].invoice || ''}"`,
+                        payments[i].date || '',
+                        `"${payments[i].method || ''}"`
+                    );
+                } else {
+                    row.push('', '', '', '');
+                }
+            }
+
+            row.push(
+                totalPaid.toFixed(2),
+                outstanding.toFixed(2),
+                status,
+                `"${student.comments || ''}"`
+            );
+
+            csv += row.join(',') + '\n';
+        });
+
+        downloadCSV(csv, `${term}_detailed_report_${new Date().toISOString().split('T')[0]}.csv`);
+    }
+
+    function exportOutstandingReport(type) {
+        let students = [];
+        let filename = '';
+        
+        if (type === 'term1') {
+            students = window.term1Students.filter(s => getOutstandingAmount(s, 'term1') > 0);
+            filename = 'term1_outstanding';
+        } else if (type === 'term2') {
+            students = window.term2Students.filter(s => getOutstandingAmount(s, 'term2') > 0);
+            filename = 'term2_outstanding';
+        } else {
+            students = [...window.term1Students, ...window.term2Students]
+                .filter(s => getOutstandingAmount(s, s.term || 'term1') > 0);
+            filename = 'overall_outstanding';
+        }
+        
+        if (students.length === 0) {
+            alert('No outstanding balances found');
+            return;
+        }
+
+        const reportNotesEl = document.getElementById('reportNotes');
+        const reportNotes = reportNotesEl ? reportNotesEl.value : '';
+        
+        let csv = 'Outstanding Fees Report\n';
+        csv += `Type: ${type === 'overall' ? 'Overall' : (type === 'term1' ? 'Term 1' : 'Term 2')}\n`;
+        csv += `Generated: ${new Date().toLocaleDateString('en-GB')}\n`;
+        if (reportNotes) csv += `Notes: ${reportNotes}\n`;
+        csv += '\n';
+
+        csv += 'No,Name,Year,Term,Set Fee,VAT,Discount,Total Paid,Outstanding,Last Payment Date\n';
+
+        students.forEach((student, index) => {
+            const discount = calculateDiscount(student);
+            const totalPaid = getTotalPaid(student);
+            const outstanding = getOutstandingAmount(student, student.term || 'term1');
+            const lastPayment = student.payments && student.payments.length > 0 ? 
+                student.payments[student.payments.length - 1].date : '';
+
+            const row = [
+                index + 1,
+                `"${student.firstName} ${student.lastName}"`,
+                student.year || '',
+                student.term || 'term1',
+                (student.setFee || 0).toFixed(2),
+                (student.vat || 0).toFixed(2),
+                discount.toFixed(2),
+                totalPaid.toFixed(2),
+                outstanding.toFixed(2),
+                lastPayment
+            ];
+
+            csv += row.join(',') + '\n';
+        });
+
+        downloadCSV(csv, `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
+    }
+
+    function exportSummaryReport() {
+        const reportNotesEl = document.getElementById('reportNotes');
+        const reportNotes = reportNotesEl ? reportNotesEl.value : '';
+        
+        let csv = 'Financial Summary Report\n';
+        csv += `Academic Year: 2025-2026\n`;
+        csv += `Generated: ${new Date().toLocaleDateString('en-GB')}\n`;
+        if (reportNotes) csv += `Notes: ${reportNotes}\n`;
+        csv += '\n';
+
+        // Term 1 Summary
+        const t1TotalFees = window.term1Students.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
+        const t1TotalDiscount = window.term1Students.reduce((sum, s) => sum + calculateDiscount(s), 0);
+        const t1TotalPaid = window.term1Students.reduce((sum, s) => sum + getTotalPaid(s), 0);
+        const t1Outstanding = window.term1Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term1'), 0);
+
+        csv += 'TERM 1 SUMMARY\n';
+        csv += `Students Enrolled,${window.term1Students.length}\n`;
+        csv += `Total Fees Set,£${t1TotalFees.toFixed(2)}\n`;
+        csv += `Total Discounts,£${t1TotalDiscount.toFixed(2)}\n`;
+        csv += `Net Fees,£${(t1TotalFees - t1TotalDiscount).toFixed(2)}\n`;
+        csv += `Total Collected,£${t1TotalPaid.toFixed(2)}\n`;
+        csv += `Outstanding,£${t1Outstanding.toFixed(2)}\n`;
+        csv += `Collection Rate,${t1TotalFees > 0 ? ((t1TotalPaid / (t1TotalFees - t1TotalDiscount)) * 100).toFixed(1) : 0}%\n`;
+        csv += '\n';
+
+        // Term 2 Summary
+        const t2TotalFees = window.term2Students.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
+        const t2TotalDiscount = window.term2Students.reduce((sum, s) => sum + calculateDiscount(s), 0);
+        const t2TotalPaid = window.term2Students.reduce((sum, s) => sum + getTotalPaid(s), 0);
+        const t2Outstanding = window.term2Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term2'), 0);
+
+        csv += 'TERM 2 SUMMARY\n';
+        csv += `Students Enrolled,${window.term2Students.length}\n`;
+        csv += `Total Fees Set,£${t2TotalFees.toFixed(2)}\n`;
+        csv += `Total Discounts,£${t2TotalDiscount.toFixed(2)}\n`;
+        csv += `Net Fees,£${(t2TotalFees - t2TotalDiscount).toFixed(2)}\n`;
+        csv += `Total Collected,£${t2TotalPaid.toFixed(2)}\n`;
+        csv += `Outstanding,£${t2Outstanding.toFixed(2)}\n`;
+        csv += `Collection Rate,${t2TotalFees > 0 ? ((t2TotalPaid / (t2TotalFees - t2TotalDiscount)) * 100).toFixed(1) : 0}%\n`;
+        csv += '\n';
+
+        // Overall Summary
+        csv += 'OVERALL SUMMARY\n';
+        csv += `Total Students,${window.term1Students.length + window.term2Students.length}\n`;
+        csv += `Total Revenue,£${(t1TotalPaid + t2TotalPaid).toFixed(2)}\n`;
+        csv += `Total Outstanding,£${(t1Outstanding + t2Outstanding).toFixed(2)}\n`;
+        csv += `Overall Collection Rate,${(t1TotalFees + t2TotalFees) > 0 ? (((t1TotalPaid + t2TotalPaid) / (t1TotalFees + t2TotalFees - t1TotalDiscount - t2TotalDiscount)) * 100).toFixed(1) : 0}%\n`;
+
+        downloadCSV(csv, `financial_summary_${new Date().toISOString().split('T')[0]}.csv`);
+    }
+
+    function exportPaymentMethodReport() {
+        const allPayments = [...window.term1Students, ...window.term2Students]
+            .flatMap(s => s.payments || []);
+        
+        const paymentMethods = {};
+        allPayments.forEach(payment => {
+            const method = payment.method || 'Unknown';
+            if (!paymentMethods[method]) {
+                paymentMethods[method] = { count: 0, total: 0 };
+            }
+            paymentMethods[method].count++;
+            paymentMethods[method].total += payment.amount || 0;
+        });
+
+        const reportNotesEl = document.getElementById('reportNotes');
+        const reportNotes = reportNotesEl ? reportNotesEl.value : '';
+        
+        let csv = 'Payment Methods Report\n';
+        csv += `Generated: ${new Date().toLocaleDateString('en-GB')}\n`;
+        if (reportNotes) csv += `Notes: ${reportNotes}\n`;
+        csv += '\n';
+
+        csv += 'Payment Method,Number of Payments,Total Amount,Average Payment\n';
+
+        Object.entries(paymentMethods).forEach(([method, data]) => {
+            const average = data.count > 0 ? data.total / data.count : 0;
+            csv += `"${method}",${data.count},£${data.total.toFixed(2)},£${average.toFixed(2)}\n`;
+        });
+
+        downloadCSV(csv, `payment_methods_${new Date().toISOString().split('T')[0]}.csv`);
+    }
+
+    function downloadCSV(csvContent, filename) {
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // Analytics Functions
+    function updateAnalytics() {
+        updateAnalyticsStats();
+        renderPaymentChart();
+        renderYearGroupStats();
+        renderPaymentMethodsChart();
+        renderOutstandingByYear();
+    }
+
+    function updateAnalyticsStats() {
+        // Collection trend calculation
+        const currentRevenue = [...window.term1Students, ...window.term2Students]
+            .reduce((sum, s) => sum + getTotalPaid(s), 0);
+        
+        // Average payment time (simplified calculation)
+        const allPayments = [...window.term1Students, ...window.term2Students]
+            .flatMap(s => s.payments || [])
+            .filter(p => p.date);
+        
+        const avgDays = allPayments.length > 0 ? 
+            Math.round(allPayments.map(p => {
+                const paymentDate = new Date(p.date);
+                const enrollDate = new Date(); // Simplified
+                return Math.abs(paymentDate - enrollDate) / (1000 * 60 * 60 * 24);
+            }).reduce((sum, days) => sum + days, 0) / allPayments.length) : 0;
+
+        // Top payment method
+        const paymentMethods = {};
+        allPayments.forEach(p => {
+            paymentMethods[p.method] = (paymentMethods[p.method] || 0) + 1;
+        });
+        const topMethod = Object.keys(paymentMethods).reduce((a, b) => 
+            paymentMethods[a] > paymentMethods[b] ? a : b, 'None');
+
+        // Discount usage
+        const studentsWithDiscount = [...window.term1Students, ...window.term2Students]
+            .filter(s => s.discount && s.discount.type !== 'none').length;
+        const totalStudents = window.term1Students.length + window.term2Students.length;
+        const discountPercentage = totalStudents > 0 ? 
+            Math.round((studentsWithDiscount / totalStudents) * 100) : 0;
+
+        const collectionTrendEl = document.getElementById('collectionTrend');
+        const avgPaymentTimeEl = document.getElementById('avgPaymentTime');
+        const topPaymentMethodEl = document.getElementById('topPaymentMethod');
+        const discountUsageEl = document.getElementById('discountUsage');
+
+        if (collectionTrendEl) collectionTrendEl.textContent = '+15%'; // Placeholder
+        if (avgPaymentTimeEl) avgPaymentTimeEl.textContent = avgDays + ' days';
+        if (topPaymentMethodEl) topPaymentMethodEl.textContent = topMethod;
+        if (discountUsageEl) discountUsageEl.textContent = discountPercentage + '%';
+    }
+
+    function renderPaymentChart() {
+        const chartDiv = document.getElementById('paymentChart');
+        if (!chartDiv) return;
+        
+        chartDiv.innerHTML = `
+            <div style="display: flex; align-items: end; gap: 8px; height: 200px; margin-bottom: 16px;">
+                ${generatePaymentBars()}
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary);">
+                <span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span>
+            </div>
+        `;
+    }
+
+    function generatePaymentBars() {
+        const months = [
+            { amount: 15000, height: '60%' },
+            { amount: 22000, height: '90%' },
+            { amount: 18000, height: '70%' },
+            { amount: 25000, height: '100%' },
+            { amount: 20000, height: '80%' },
+            { amount: 12000, height: '50%' }
+        ];
+
+        return months.map(month => `
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                <div style="background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%); 
+                           width: 100%; height: ${month.height}; border-radius: 4px 4px 0 0; margin-bottom: 8px;"></div>
+                <div style="font-size: 10px; color: var(--text-secondary);">£${(month.amount/1000).toFixed(0)}k</div>
+            </div>
+        `).join('');
+    }
+
+    function renderYearGroupStats() {
+        const yearGroups = {};
+        [...window.term1Students, ...window.term2Students].forEach(student => {
+            const year = student.year || 'Unknown';
+            if (!yearGroups[year]) {
+                yearGroups[year] = { count: 0, totalFees: 0, outstanding: 0 };
+            }
+            yearGroups[year].count++;
+            yearGroups[year].totalFees += (student.setFee || 0) + (student.vat || 0);
+            yearGroups[year].outstanding += getOutstandingAmount(student, student.term || 'term1');
+        });
+
+        const statsHTML = Object.entries(yearGroups)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([year, stats]) => `
+                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                    <div>
+                        <div style="font-weight: 600;">Year ${year}</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">${stats.count} students</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 600;">£${stats.totalFees.toFixed(0)}</div>
+                        <div style="font-size: 12px; color: var(--danger);">£${stats.outstanding.toFixed(0)} due</div>
+                    </div>
+                </div>
+            `).join('');
+
+        const yearGroupStatsEl = document.getElementById('yearGroupStats');
+        if (yearGroupStatsEl) {
+            yearGroupStatsEl.innerHTML = statsHTML || '<p style="color: var(--text-secondary);">No data available</p>';
+        }
+    }
+
+    function renderPaymentMethodsChart() {
+        const methods = {};
+        [...window.term1Students, ...window.term2Students]
+            .flatMap(s => s.payments || [])
+            .forEach(payment => {
+                const method = payment.method || 'Unknown';
+                methods[method] = (methods[method] || 0) + (payment.amount || 0);
+            });
+
+        const total = Object.values(methods).reduce((sum, amount) => sum + amount, 0);
+        
+        const chartHTML = Object.entries(methods)
+            .sort(([,a], [,b]) => b - a)
+            .map(([method, amount]) => {
+                const percentage = total > 0 ? (amount / total * 100) : 0;
+                return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600;">${method}</div>
+                            <div style="background: var(--border); height: 8px; border-radius: 4px; margin-top: 4px;">
+                                <div style="background: linear-gradient(90deg, var(--primary), var(--primary-dark)); 
+                                           height: 100%; width: ${percentage}%; border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-left: 16px; text-align: right;">
+                            <div style="font-weight: 600;">£${amount.toFixed(0)}</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">${percentage.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        const paymentMethodsChartEl = document.getElementById('paymentMethodsChart');
+        if (paymentMethodsChartEl) {
+            paymentMethodsChartEl.innerHTML = chartHTML || '<p style="color: var(--text-secondary);">No payment data</p>';
+        }
+    }
+
+    function renderOutstandingByYear() {
+        const yearOutstanding = {};
+        [...window.term1Students, ...window.term2Students].forEach(student => {
+            const year = student.year || 'Unknown';
+            const outstanding = getOutstandingAmount(student, student.term || 'term1');
+            yearOutstanding[year] = (yearOutstanding[year] || 0) + outstanding;
+        });
+
+        const maxOutstanding = Math.max(...Object.values(yearOutstanding));
+        
+        const chartHTML = Object.entries(yearOutstanding)
+            .filter(([, amount]) => amount > 0)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([year, amount]) => {
+                const height = maxOutstanding > 0 ? (amount / maxOutstanding * 100) : 0;
+                return `
+                    <div style="display: flex; align-items: end; margin-bottom: 16px;">
+                        <div style="width: 60px; font-size: 14px; font-weight: 600;">Year ${year}</div>
+                        <div style="flex: 1; margin-left: 12px;">
+                            <div style="background: var(--border); height: 20px; border-radius: 10px;">
+                                <div style="background: linear-gradient(90deg, var(--danger), #DC3545); 
+                                           height: 100%; width: ${height}%; border-radius: 10px;"></div>
+                            </div>
+                        </div>
+                        <div style="width: 80px; text-align: right; margin-left: 12px; font-weight: 600; color: var(--danger);">
+                            £${amount.toFixed(0)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        const outstandingByYearEl = document.getElementById('outstandingByYear');
+        if (outstandingByYearEl) {
+            outstandingByYearEl.innerHTML = chartHTML || '<p style="color: var(--text-secondary);">No outstanding amounts</p>';
+        }
+    }
+
+    // Event Listeners
+    window.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal')) {
+            e.target.classList.remove('active');
+        }
+    });
+
+    window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.querySelector('.modal.active');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+    });
+
+    console.log('Student Fees App initialized successfully');
+</script>
+</body>
+</html>
