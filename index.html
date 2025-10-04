@@ -1531,6 +1531,57 @@
     window.term1Students = [];
     window.term2Students = [];
 
+    // FIXED: Core calculation functions
+    function getTotalPaid(student) {
+        const payments = student.payments || [];
+        return payments.reduce((sum, payment) => sum + (parseFloat(payment.amount) || 0), 0);
+    }
+
+    function calculateDiscount(student) {
+        if (!student.discount || student.discount.type === 'none') return 0;
+        
+        const totalFee = (parseFloat(student.setFee) || 0) + (parseFloat(student.vat) || 0);
+        const discountValue = parseFloat(student.discount.value) || 0;
+        
+        if (student.discount.type === 'percentage') {
+            return (totalFee * discountValue) / 100;
+        } else if (student.discount.type === 'fixed') {
+            return Math.min(discountValue, totalFee);
+        }
+        
+        return 0;
+    }
+
+    function getOutstandingAmount(student, term) {
+        const totalFee = (parseFloat(student.setFee) || 0) + (parseFloat(student.vat) || 0);
+        const discount = calculateDiscount(student);
+        const discountedFee = totalFee - discount;
+        const totalPaid = getTotalPaid(student);
+        return Math.max(0, discountedFee - totalPaid);
+    }
+
+    function getPaymentStatus(student, term) {
+        const outstanding = getOutstandingAmount(student, term);
+        const totalPaid = getTotalPaid(student);
+        
+        if (outstanding === 0) return 'paid';
+        if (totalPaid > 0) return 'partial';
+        return 'unpaid';
+    }
+
+    function getDiscountText(student) {
+        if (!student.discount || student.discount.type === 'none') return 'None';
+        
+        const discount = calculateDiscount(student);
+        if (student.discount.type === 'percentage') {
+            return `${student.discount.value}% (£${discount.toFixed(2)})`;
+        } else if (student.discount.type === 'fixed') {
+            return `£${discount.toFixed(2)}`;
+        }
+        
+        return 'None';
+    }
+
     // Initialize app
     document.addEventListener('DOMContentLoaded', async function() {
         console.log('Student Fees App starting...');
@@ -1987,7 +2038,7 @@
         const totalStudents = Object.keys(uniqueStudents).length;
         const totalRevenue = activeStudents.reduce((sum, s) => sum + getTotalPaid(s), 0);
         const totalOutstanding = activeStudents.reduce((sum, s) => sum + getOutstandingAmount(s, s.term || 'term1'), 0);
-        const totalFees = activeStudents.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
+        const totalFees = activeStudents.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0) + (parseFloat(s.vat) || 0), 0);
         const collectionRate = totalFees > 0 ? (totalRevenue / totalFees * 100) : 0;
         
         const overviewTotalStudentsEl = document.getElementById('overviewTotalStudents');
@@ -2002,7 +2053,7 @@
         
         // Update term summaries
         const term1ActiveStudents = window.term1Students.filter(s => s.studentStatus !== 'left');
-        const term1TotalFees = term1ActiveStudents.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
+        const term1TotalFees = term1ActiveStudents.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0) + (parseFloat(s.vat) || 0), 0);
         const term1Outstanding = term1ActiveStudents.reduce((sum, s) => sum + getOutstandingAmount(s, 'term1'), 0);
         
         const term1SummaryCountEl = document.getElementById('term1SummaryCount');
@@ -2014,7 +2065,7 @@
         if (term1SummaryOutstandingEl) term1SummaryOutstandingEl.textContent = '£' + term1Outstanding.toFixed(2);
         
         const term2ActiveStudents = window.term2Students.filter(s => s.studentStatus !== 'left');
-        const term2TotalFees = term2ActiveStudents.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
+        const term2TotalFees = term2ActiveStudents.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0) + (parseFloat(s.vat) || 0), 0);
         const term2Outstanding = term2ActiveStudents.reduce((sum, s) => sum + getOutstandingAmount(s, 'term2'), 0);
         
         const term2SummaryCountEl = document.getElementById('term2SummaryCount');
@@ -2060,8 +2111,8 @@
                     <td>${student.firstName} ${student.lastName}</td>
                     <td>${new Date(student.dob).toLocaleDateString('en-GB')}</td>
                     <td>Year ${student.year}</td>
-                    <td>£${(student.setFee || 0).toFixed(2)}</td>
-                    <td>£${(student.vat || 0).toFixed(2)}</td>
+                    <td>£${(parseFloat(student.setFee) || 0).toFixed(2)}</td>
+                    <td>£${(parseFloat(student.vat) || 0).toFixed(2)}</td>
                     <td>£${totalPaid.toFixed(2)}</td>
                     <td>£${outstanding.toFixed(2)}</td>
                     <td><span class="payment-status ${studentStatus === 'left' ? 'left' : status}"><span class="dot"></span>${studentStatus === 'left' ? 'Left' : status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
@@ -2074,56 +2125,6 @@
                 </tr>
             `;
         }).join('');
-    }
-
-    function getTotalPaid(student) {
-        const payments = student.payments || [];
-        return payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
-    }
-
-    function getOutstandingAmount(student, term) {
-        const totalFee = (student.setFee || 0) + (student.vat || 0);
-        const discount = calculateDiscount(student);
-        const discountedFee = totalFee - discount;
-        const totalPaid = getTotalPaid(student);
-        return Math.max(0, discountedFee - totalPaid);
-    }
-
-    function calculateDiscount(student) {
-        if (!student.discount || student.discount.type === 'none') return 0;
-        
-        const totalFee = (student.setFee || 0) + (student.vat || 0);
-        const discountValue = student.discount.value || 0;
-        
-        if (student.discount.type === 'percentage') {
-            return (totalFee * discountValue) / 100;
-        } else if (student.discount.type === 'fixed') {
-            return Math.min(discountValue, totalFee);
-        }
-        
-        return 0;
-    }
-
-    function getDiscountText(student) {
-        if (!student.discount || student.discount.type === 'none') return 'None';
-        
-        const discount = calculateDiscount(student);
-        if (student.discount.type === 'percentage') {
-            return `${student.discount.value}% (£${discount.toFixed(2)})`;
-        } else if (student.discount.type === 'fixed') {
-            return `£${discount.toFixed(2)}`;
-        }
-        
-        return 'None';
-    }
-
-    function getPaymentStatus(student, term) {
-        const outstanding = getOutstandingAmount(student, term);
-        const totalPaid = getTotalPaid(student);
-        
-        if (outstanding === 0) return 'paid';
-        if (totalPaid > 0) return 'partial';
-        return 'unpaid';
     }
 
     function setupSearchFilters() {
@@ -2769,8 +2770,8 @@
             `${student.firstName} ${student.lastName}`,
             `Year ${student.year}`,
             student.term === 'term1' ? 'Term 1' : 'Term 2',
-            `£${(student.setFee || 0).toFixed(2)}`,
-            `£${(student.vat || 0).toFixed(2)}`,
+            `£${(parseFloat(student.setFee) || 0).toFixed(2)}`,
+            `£${(parseFloat(student.vat) || 0).toFixed(2)}`,
             `£${getTotalPaid(student).toFixed(2)}`,
             `£${getOutstandingAmount(student, student.term || 'term1').toFixed(2)}`,
             getPaymentStatus(student, student.term || 'term1').toUpperCase()
@@ -2818,7 +2819,7 @@
         // Overall summary
         const totalRevenue = activeStudents.reduce((sum, s) => sum + getTotalPaid(s), 0);
         const totalOutstanding = activeStudents.reduce((sum, s) => sum + getOutstandingAmount(s, s.term || 'term1'), 0);
-        const totalFees = activeStudents.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0);
+        const totalFees = activeStudents.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0) + (parseFloat(s.vat) || 0), 0);
         const collectionRate = totalFees > 0 ? (totalRevenue / totalFees * 100) : 0;
         
         // Summary cards
@@ -2862,14 +2863,14 @@
             [
                 'Term 1',
                 term1Students.length.toString(),
-                `£${term1Students.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0).toFixed(2)}`,
+                `£${term1Students.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0) + (parseFloat(s.vat) || 0), 0).toFixed(2)}`,
                 `£${term1Students.reduce((sum, s) => sum + getTotalPaid(s), 0).toFixed(2)}`,
                 `£${term1Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term1'), 0).toFixed(2)}`
             ],
             [
                 'Term 2',
                 term2Students.length.toString(),
-                `£${term2Students.reduce((sum, s) => sum + (s.setFee || 0) + (s.vat || 0), 0).toFixed(2)}`,
+                `£${term2Students.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0) + (parseFloat(s.vat) || 0), 0).toFixed(2)}`,
                 `£${term2Students.reduce((sum, s) => sum + getTotalPaid(s), 0).toFixed(2)}`,
                 `£${term2Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term2'), 0).toFixed(2)}`
             ]
@@ -2917,7 +2918,7 @@
                 paymentMethods[method] = { count: 0, total: 0 };
             }
             paymentMethods[method].count++;
-            paymentMethods[method].total += payment.amount || 0;
+            paymentMethods[method].total += parseFloat(payment.amount) || 0;
         });
         
         let yPos = 60;
@@ -2984,7 +2985,7 @@
                 yearGroups[year] = { count: 0, totalFees: 0, collected: 0, outstanding: 0 };
             }
             yearGroups[year].count++;
-            yearGroups[year].totalFees += (student.setFee || 0) + (student.vat || 0);
+            yearGroups[year].totalFees += (parseFloat(student.setFee) || 0) + (parseFloat(student.vat) || 0);
             yearGroups[year].collected += getTotalPaid(student);
             yearGroups[year].outstanding += getOutstandingAmount(student, student.term || 'term1');
         });
@@ -3091,15 +3092,11 @@
     function addSummaryStats(doc, students, scope) {
         let yPos = 50;
         
-        // Calculate statistics
+        // Calculate statistics - FIXED to use correct property names
         const totalStudents = students.length;
         const activeStudents = students.filter(s => s.studentStatus !== 'left').length;
-        const totalFees = students.reduce((sum, s) => sum + (s.fees || 0), 0);
-        const totalCollected = students.reduce((sum, s) => {
-            const fee = s.fees || 0;
-            const term = s.term || 'term1';
-            return sum + getCollectedAmount(s, term);
-        }, 0);
+        const totalFees = students.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0) + (parseFloat(s.vat) || 0), 0);
+        const totalCollected = students.reduce((sum, s) => sum + getTotalPaid(s), 0);
         const totalOutstanding = totalFees - totalCollected;
         const collectionRate = totalFees > 0 ? (totalCollected / totalFees * 100) : 0;
         
@@ -3135,17 +3132,17 @@
         }
         
         const tableData = students.map(student => {
-            const fee = student.fees || 0;
-            const term = student.term || 'term1';
-            const collected = getCollectedAmount(student, term);
-            const outstanding = fee - collected;
+            const totalFee = (parseFloat(student.setFee) || 0) + (parseFloat(student.vat) || 0);
+            const collected = getTotalPaid(student);
+            const outstanding = getOutstandingAmount(student, student.term || scope);
             const status = student.studentStatus || 'active';
             
             return [
                 `${student.firstName} ${student.lastName}`,
                 `Year ${student.year}`,
-                term === 'term1' ? 'Term 1' : 'Term 2',
-                `£${fee.toFixed(2)}`,
+                student.term === 'term1' ? 'Term 1' : 'Term 2',
+                `£${(parseFloat(student.setFee) || 0).toFixed(2)}`,
+                `£${(parseFloat(student.vat) || 0).toFixed(2)}`,
                 `£${collected.toFixed(2)}`,
                 `£${outstanding.toFixed(2)}`,
                 status.charAt(0).toUpperCase() + status.slice(1)
@@ -3154,7 +3151,7 @@
         
         doc.autoTable({
             startY: yPos,
-            head: [['Student Name', 'Year', 'Term', 'Total Fee', 'Collected', 'Outstanding', 'Status']],
+            head: [['Student Name', 'Year', 'Term', 'Set Fee', 'VAT', 'Collected', 'Outstanding', 'Status']],
             body: tableData,
             theme: 'grid',
             headStyles: { 
@@ -3168,95 +3165,68 @@
                 cellPadding: 4
             },
             columnStyles: {
-                0: { cellWidth: 50, fontStyle: 'bold' },
+                0: { cellWidth: 45, fontStyle: 'bold' },
                 1: { cellWidth: 25, halign: 'center' },
                 2: { cellWidth: 25, halign: 'center' },
                 3: { cellWidth: 30, halign: 'right' },
-                4: { cellWidth: 30, halign: 'right' },
+                4: { cellWidth: 25, halign: 'right' },
                 5: { cellWidth: 30, halign: 'right' },
-                6: { cellWidth: 26, halign: 'center' }
+                6: { cellWidth: 35, halign: 'right' },
+                7: { cellWidth: 26, halign: 'center' }
             },
             margin: { left: 20, right: 20 }
         });
     }
 
-    function getCollectedAmount(student, term) {
-        const payments = student.payments || [];
-        return payments
-            .filter(p => p.term === term && p.status === 'confirmed')
-            .reduce((sum, p) => sum + (p.amount || 0), 0);
+    // Missing analytics function
+    function updateAnalytics() {
+        const allStudents = [...window.term1Students, ...window.term2Students];
+        const activeStudents = allStudents.filter(s => s.studentStatus !== 'left');
+        
+        // Update analytics elements if they exist
+        const collectionTrendEl = document.getElementById('collectionTrend');
+        const avgPaymentTimeEl = document.getElementById('avgPaymentTime');
+        const topPaymentMethodEl = document.getElementById('topPaymentMethod');
+        const discountUsageEl = document.getElementById('discountUsage');
+        
+        // Calculate collection trend (mock data for now)
+        if (collectionTrendEl) collectionTrendEl.textContent = '+15%';
+        
+        // Calculate average payment time (mock data)
+        if (avgPaymentTimeEl) avgPaymentTimeEl.textContent = '23 days';
+        
+        // Find most popular payment method
+        const allPayments = activeStudents.flatMap(s => s.payments || []);
+        const paymentMethods = {};
+        allPayments.forEach(p => {
+            const method = p.method || 'Unknown';
+            paymentMethods[method] = (paymentMethods[method] || 0) + 1;
+        });
+        
+        const topMethod = Object.entries(paymentMethods).sort(([,a], [,b]) => b - a)[0];
+        if (topPaymentMethodEl) topPaymentMethodEl.textContent = topMethod ? topMethod[0] : 'None';
+        
+        // Calculate discount usage
+        const studentsWithDiscount = activeStudents.filter(s => s.discount && s.discount.type !== 'none').length;
+        const discountRate = activeStudents.length > 0 ? (studentsWithDiscount / activeStudents.length * 100) : 0;
+        if (discountUsageEl) discountUsageEl.textContent = `${discountRate.toFixed(0)}%`;
     }
-
-    function getOutstandingAmount(student, term) {
-        const fee = student.fees || 0;
-        const collected = getCollectedAmount(student, term);
-        return Math.max(0, fee - collected);
-    }
-
-    // Report generation buttons
-    document.getElementById('generateOverviewBtn').addEventListener('click', () => {
-        const notes = document.getElementById('reportNotes').value;
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('landscape');
-        generateOverviewReport(doc, notes);
-        doc.save(`overview_report_${new Date().toISOString().split('T')[0]}.pdf`);
-    });
-
-    document.getElementById('generateTerm1Btn').addEventListener('click', () => {
-        const notes = document.getElementById('reportNotes').value;
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('landscape');
-        generateDetailedReport(doc, 'term1', notes);
-        doc.save(`term1_report_${new Date().toISOString().split('T')[0]}.pdf`);
-    });
-
-    document.getElementById('generateTerm2Btn').addEventListener('click', () => {
-        const notes = document.getElementById('reportNotes').value;
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('landscape');
-        generateDetailedReport(doc, 'term2', notes);
-        doc.save(`term2_report_${new Date().toISOString().split('T')[0]}.pdf`);
-    });
-
-    document.getElementById('generateOutstandingBtn').addEventListener('click', () => {
-        const notes = document.getElementById('reportNotes').value;
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('landscape');
-        generateOutstandingReport(doc, notes);
-        doc.save(`outstanding_report_${new Date().toISOString().split('T')[0]}.pdf`);
-    });
-
-    // Initialize app
-    updateDashboard();
-    populateReports();
 
     // Make functions globally accessible for onclick handlers
-    window.selectProfile = selectProfile;
-    window.continueToLogin = continueToLogin;
-    window.goBackToProfiles = goBackToProfiles;
-    window.login = login;
-    window.openProgressModal = openProgressModal;
-    window.selectGrade = selectGrade;
-    window.saveProgress = saveProgress;
-    window.clearProgress = clearProgress;
-    window.toggleAbsent = toggleAbsent;
-    window.toggleParentCheck = toggleParentCheck;
-    window.changeMonth = changeMonth;
+    window.switchView = switchView;
+    window.showAddStudent = showAddStudent;
+    window.editStudent = editStudent;
+    window.deleteStudent = deleteStudent;
     window.closeModal = closeModal;
-    window.openDayModal = openDayModal;
-    window.markDayAbsent = markDayAbsent;
-    window.removeAbsent = removeAbsent;
-    window.showAddStudentModal = showAddStudentModal;
-    window.addStudent = addStudent;
-    window.showRemoveStudentModal = showRemoveStudentModal;
-    window.removeStudent = removeStudent;
-    window.showHolidayModal = showHolidayModal;
-    window.addHoliday = addHoliday;
-    window.removeHoliday = removeHoliday;
-    window.exportStudentPDF = exportStudentPDF;
-    window.generateSelectedPDF = generateSelectedPDF;
-    window.showResetModal = showResetModal;
-    window.logout = logout;
+    window.addPaymentEntry = addPaymentEntry;
+    window.removePaymentEntry = removePaymentEntry;
+    window.saveStudent = saveStudent;
+    window.applyFilter = applyFilter;
+    window.showImportModal = showImportModal;
+    window.handleCSVUpload = handleCSVUpload;
+    window.processCSVImport = processCSVImport;
+    window.exportPDFReport = exportPDFReport;
+    window.updateAnalytics = updateAnalytics;
 </script>
 </body>
 </html>
