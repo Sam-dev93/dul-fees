@@ -1007,6 +1007,55 @@
         gap: 4px;
         flex-wrap: nowrap;
         overflow-x: auto;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .action-buttons .btn-sm {
+        padding: 8px 12px;
+        font-size: 12px;
+        border-radius: 8px;
+        margin: 0;
+        white-space: nowrap;
+        flex-shrink: 0;
+        min-width: auto;
+    }
+
+/* Ensure buttons stay in one line on mobile */
+    @media (max-width: 768px) {
+        .action-buttons {
+            flex-direction: row !important; /* Override the existing mobile rule */
+            gap: 2px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .action-buttons .btn-sm {
+            padding: 6px 8px;
+            font-size: 11px;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .table td:last-child {
+            width: 240px;
+            min-width: 240px;
+            padding: 8px;
+        }
+    }
+
+    /* For very small screens */
+    @media (max-width: 480px) {
+        .action-buttons .btn-sm {
+            padding: 4px 6px;
+            font-size: 10px;
+            min-width: 45px;
+        }
+        
+        .table td:last-child {
+            width: 200px;
+            min-width: 200px;
+        }
     }
 
     /* Mobile Optimizations */
@@ -2114,16 +2163,16 @@
         }
     }
 
+    // Updated year change function
     function changeAcademicYear(newYear) {
         if (newYear === currentAcademicYear) return;
         
         if (confirm(`Switch to academic year ${newYear}? This will save current data and load data for the selected year.`)) {
-            // Save current year data before switching
+            // Save current year data
             saveLocalData();
-            if (currentUser && isOnline) {
-                saveToFirebase(currentAcademicYear, 'term1');
-                saveToFirebase(currentAcademicYear, 'term2');
-            }
+            
+            // Clean up old listeners FIRST
+            cleanupListeners();
             
             // Switch to new year
             currentAcademicYear = newYear;
@@ -2134,10 +2183,15 @@
             updateAcademicYearUI();
             updateAllUI();
             
-            // Close year selector modal
+            // Set up new listeners AFTER a delay
+            setTimeout(() => {
+                if (currentUser && isOnline) {
+                    setupRealtimeSync();
+                }
+            }, 1000);
+            
             closeModal('yearSelectorModal');
             
-            // Show success message
             setTimeout(() => {
                 alert(`Successfully switched to academic year ${newYear}`);
             }, 500);
@@ -2180,15 +2234,19 @@
         if (currentUser && isOnline) {
             loadFromFirebase(year);
         }
+        
+        // Update UI after loading
+        updateAllUI();
     }
 
     function loadFromFirebase(year) {
         if (!currentUser || !isOnline) return;
         
         const db = firebase.firestore();
+        const yearKey = year.replace('-', '_'); // Convert 2025-2026 to 2025_2026
         
         // Load Term 1 data for specific year
-        db.collection('studentFees').doc(`term1_${year.replace('-', '_')}`).get()
+        db.collection('studentFees').doc(`term1_${yearKey}`).get()
             .then((doc) => {
                 if (doc.exists) {
                     const data = doc.data();
@@ -2205,7 +2263,7 @@
             });
         
         // Load Term 2 data for specific year
-        db.collection('studentFees').doc(`term2_${year.replace('-', '_')}`).get()
+        db.collection('studentFees').doc(`term2_${yearKey}`).get()
             .then((doc) => {
                 if (doc.exists) {
                     const data = doc.data();
@@ -2431,38 +2489,21 @@
                     currentUser = user;
                     console.log('User authenticated:', user.uid);
                     
-                    if (unsubscribeTerm1) unsubscribeTerm1();
-                    if (unsubscribeTerm2) unsubscribeTerm2();
-                    
+                    // Set up listeners first
                     setupRealtimeSync();
                     
+                    // Then sync data (with delay to avoid conflicts)
                     if (isOnline) {
                         updateSyncStatus('syncing');
-                        syncFromFirebase().then(function() {
-                            resolve();
-                        }).catch(function(error) {
-                            reject(error);
-                        });
+                        setTimeout(() => {
+                            syncFromFirebase().then(() => resolve()).catch(reject);
+                        }, 1000); // 1 second delay
                     } else {
                         resolve();
                     }
                 } else {
-                    currentUser = null;
-                    console.log('User not authenticated');
-                    
-                    if (unsubscribeTerm1) unsubscribeTerm1();
-                    if (unsubscribeTerm2) unsubscribeTerm2();
-                    
-                    if (isOnline) {
-                        signInUser().then(function() {
-                            resolve();
-                        }).catch(function(error) {
-                            reject(error);
-                        });
-                    } else {
-                        handleOfflineMode();
-                        resolve();
-                    }
+                    // Handle signed out state
+                    resolve();
                 }
             } catch (error) {
                 reject(error);
@@ -2470,8 +2511,21 @@
         });
     }
 
+    // Add tracking to prevent multiple listener setups
+    let isListenerSetup = false;
+    let currentListenerYear = null;
+
     function setupRealtimeSync() {
-        console.log('Setting up realtime sync...');
+        // Prevent multiple setups for the same year
+        if (isListenerSetup && currentListenerYear === currentAcademicYear) {
+            console.log('Realtime sync already set up for year:', currentAcademicYear);
+            return;
+        }
+        
+        console.log('Setting up realtime sync for year:', currentAcademicYear);
+        
+        // Clean up existing listeners
+        cleanupListeners();
         
         const db = firebase.firestore();
         const yearKey = currentAcademicYear.replace('-', '_');
@@ -2480,23 +2534,18 @@
         unsubscribeTerm1 = db.collection('studentFees')
             .doc(`term1_${yearKey}`)
             .onSnapshot(
-                { includeMetadataChanges: true },
+                { includeMetadataChanges: false }, // IMPORTANT: Disable metadata changes
                 (doc) => {
-                    console.log('Term 1 snapshot received, fromCache:', doc.metadata.fromCache);
+                    console.log(`Term 1 snapshot for ${currentAcademicYear}:`, doc.exists);
                     
-                    if (doc.exists && !doc.metadata.fromCache) {
+                    if (doc.exists) {
                         const data = doc.data();
                         if (data && data.students) {
-                            console.log('Updating Term 1 from server data');
                             window.term1Students = data.students;
                             saveLocalDataForYear(currentAcademicYear);
                             updateAllUI();
+                            updateSyncStatus('synced');
                         }
-                    }
-                    
-                    if (!doc.metadata.hasPendingWrites && !doc.metadata.fromCache) {
-                        updateSyncStatus('synced');
-                        isSyncing = false;
                     }
                 },
                 (error) => {
@@ -2509,17 +2558,17 @@
         unsubscribeTerm2 = db.collection('studentFees')
             .doc(`term2_${yearKey}`)
             .onSnapshot(
-                { includeMetadataChanges: true },
+                { includeMetadataChanges: false }, // IMPORTANT: Disable metadata changes
                 (doc) => {
-                    console.log('Term 2 snapshot received, fromCache:', doc.metadata.fromCache);
+                    console.log(`Term 2 snapshot for ${currentAcademicYear}:`, doc.exists);
                     
-                    if (doc.exists && !doc.metadata.fromCache) {
+                    if (doc.exists) {
                         const data = doc.data();
                         if (data && data.students) {
-                            console.log('Updating Term 2 from server data');
                             window.term2Students = data.students;
                             saveLocalDataForYear(currentAcademicYear);
                             updateAllUI();
+                            updateSyncStatus('synced');
                         }
                     }
                 },
@@ -2528,7 +2577,30 @@
                     updateSyncStatus('offline');
                 }
             );
+        
+        // Mark as set up
+        isListenerSetup = true;
+        currentListenerYear = currentAcademicYear;
+        console.log('Realtime listeners established for:', currentAcademicYear);
     }
+
+    function cleanupListeners() {
+        if (unsubscribeTerm1) {
+            console.log('Cleaning up Term 1 listener');
+            unsubscribeTerm1();
+            unsubscribeTerm1 = null;
+        }
+        
+        if (unsubscribeTerm2) {
+            console.log('Cleaning up Term 2 listener');
+            unsubscribeTerm2();
+            unsubscribeTerm2 = null;
+        }
+        
+        isListenerSetup = false;
+        currentListenerYear = null;
+    }
+
 
     function syncFromFirebase() {
         return new Promise(function(resolve, reject) {
@@ -2541,32 +2613,39 @@
             updateSyncStatus('syncing');
             
             try {
-                console.log('Syncing from Firebase...');
+                console.log('Starting sync from Firebase...');
                 
                 const db = firebase.firestore();
                 const yearKey = currentAcademicYear.replace('-', '_');
                 
-                // Get Term 1 data
-                db.collection('studentFees').doc(`term1_${yearKey}`).get({ source: 'server' }).then(function(term1Doc) {
+                // Use Promise.all to load both terms simultaneously
+                Promise.all([
+                    db.collection('studentFees').doc(`term1_${yearKey}`).get({ source: 'server' }),
+                    db.collection('studentFees').doc(`term2_${yearKey}`).get({ source: 'server' })
+                ]).then(function([term1Doc, term2Doc]) {
+                    let dataChanged = false;
+                    
                     if (term1Doc.exists) {
                         const data = term1Doc.data();
                         if (data && data.students) {
                             window.term1Students = data.students;
+                            dataChanged = true;
                         }
                     }
                     
-                    // Get Term 2 data
-                    return db.collection('studentFees').doc(`term2_${yearKey}`).get({ source: 'server' });
-                }).then(function(term2Doc) {
                     if (term2Doc.exists) {
                         const data = term2Doc.data();
                         if (data && data.students) {
                             window.term2Students = data.students;
+                            dataChanged = true;
                         }
                     }
                     
-                    saveLocalDataForYear(currentAcademicYear);
-                    updateAllUI();
+                    if (dataChanged) {
+                        saveLocalDataForYear(currentAcademicYear);
+                        updateAllUI();
+                    }
+                    
                     updateSyncStatus('synced');
                     console.log('Sync completed successfully');
                     isSyncing = false;
@@ -2600,7 +2679,7 @@
             
             try {
                 const students = term === 'term1' ? window.term1Students : window.term2Students;
-                const yearKey = year.replace('-', '_');
+                const yearKey = year.replace('-', '_'); // Convert 2025-2026 to 2025_2026
                 const docId = `${term}_${yearKey}`;
                 
                 const db = firebase.firestore();
