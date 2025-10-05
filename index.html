@@ -453,9 +453,9 @@
     .modal-content {
         background: var(--card-bg);
         border-radius: 24px;
-        padding: 32px;
+        padding: 24px;
         width: 100%;
-        max-width: 700px;
+        max-width: 900px;
         max-height: 90vh;
         overflow-y: auto;
         animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -476,11 +476,13 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 32px;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border);
     }
 
     .modal-header h2 {
-        font-size: 28px;
+        font-size: 24px;
         font-weight: 700;
         letter-spacing: -0.5px;
     }
@@ -505,15 +507,15 @@
     }
 
     .form-group {
-        margin-bottom: 24px;
+        margin-bottom: 16px;
     }
 
     .form-label {
         display: block;
         font-weight: 600;
-        margin-bottom: 10px;
+        margin-bottom: 6px;
         color: var(--text-secondary);
-        font-size: 14px;
+        font-size: 12px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
@@ -522,18 +524,18 @@
     .form-select,
     .form-textarea {
         width: 100%;
-        padding: 16px 18px;
+        padding: 12px 14px;
         border: 1.5px solid var(--border);
-        border-radius: 14px;
+        border-radius: 12px;
         background: var(--card-bg-elevated);
         color: var(--text-primary);
-        font-size: 17px;
+        font-size: 15px;
         font-family: inherit;
         transition: all 0.2s;
     }
 
     .form-textarea {
-        min-height: 120px;
+        min-height: 80px;
         resize: vertical;
     }
 
@@ -543,7 +545,7 @@
         outline: none;
         border-color: var(--primary);
         background: var(--card-bg);
-        box-shadow: 0 0 0 4px rgba(16, 163, 127, 0.1);
+        box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.1);
     }
 
     .form-grid {
@@ -552,47 +554,118 @@
         gap: 16px;
     }
 
-    .payments-section {
-        margin-top: 32px;
-        padding-top: 24px;
-        border-top: 1px solid var(--border);
-    }
-
-    .payments-section h3 {
-        font-size: 20px;
-        font-weight: 700;
-        margin-bottom: 20px;
-        color: var(--text-primary);
-    }
-
-    .payment-entry {
+    .form-grid-3 {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 16px;
-        align-items: end;
-        padding: 20px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    .form-grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+
+    .section {
         background: var(--card-bg-elevated);
         border-radius: 16px;
-        margin-bottom: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
         border: 1px solid var(--border);
-        position: relative;
     }
 
-    .payment-entry .delete-payment {
-        position: absolute;
-        top: 8px;
-        right: 8px;
+    .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: var(--text-primary);
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .status-options {
+        display: flex;
+        gap: 24px;
+        align-items: center;
+    }
+
+    .status-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .status-option input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary);
+    }
+
+    .status-option label {
+        font-size: 14px;
+        color: var(--text-primary);
+        cursor: pointer;
+    }
+
+    .payment-row {
+        display: grid;
+        grid-template-columns: 80px 100px 140px 120px 40px;
+        gap: 12px;
+        align-items: end;
+        padding: 12px;
+        background: var(--card-bg);
+        border-radius: 12px;
+        margin-bottom: 8px;
+        border: 1px solid var(--border);
+    }
+
+    .payment-row .form-group {
+        margin-bottom: 0;
+    }
+
+    .payment-row .form-input,
+    .payment-row .form-select {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .payment-row .form-label {
+        font-size: 11px;
+        margin-bottom: 4px;
+    }
+
+    .delete-payment {
         background: var(--danger);
         color: white;
         border: none;
-        border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        font-size: 12px;
+        border-radius: 6px;
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .delete-payment:hover {
+        background: #dc2626;
+    }
+
+    .add-payment-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+        margin-top: 8px;
     }
 
     .loading {
@@ -738,63 +811,33 @@
         display: none;
     }
 
-    .sibling-discount {
-        background: var(--card-bg-elevated);
-        border-radius: 16px;
-        padding: 20px;
-        margin-top: 20px;
-        border: 1px solid var(--border);
-    }
-
-    .sibling-discount h4 {
-        font-size: 16px;
-        font-weight: 700;
-        margin-bottom: 16px;
-        color: var(--text-primary);
-    }
-
-    .sibling-discount-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 16px;
-    }
-
-    .student-status-section {
-        background: var(--card-bg-elevated);
-        border-radius: 16px;
-        padding: 20px;
-        margin-top: 20px;
-        border: 1px solid var(--border);
-    }
-
-    .student-status-section h4 {
-        font-size: 16px;
-        font-weight: 700;
-        margin-bottom: 16px;
-        color: var(--text-primary);
-    }
-
-    .status-option {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 12px;
-    }
-
-    .status-option input[type="radio"] {
-        width: 18px;
-        height: 18px;
-        accent-color: var(--primary);
-    }
-
-    .status-option label {
-        font-size: 14px;
-        color: var(--text-primary);
-        cursor: pointer;
-    }
-
     /* Mobile Optimizations */
     @media (max-width: 768px) {
+        .modal-content {
+            padding: 20px;
+            margin: 10px;
+            max-height: 95vh;
+        }
+
+        .form-grid-3 {
+            grid-template-columns: 1fr;
+        }
+
+        .form-grid-4 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .payment-row {
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .status-options {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
         .header {
             padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 16px;
         }
@@ -838,34 +881,11 @@
             font-size: 14px;
         }
 
-        .payment-entry {
-            grid-template-columns: 1fr;
-            gap: 12px;
-            padding: 16px;
-        }
-
-        .form-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .modal-content {
-            padding: 24px;
-            margin: 16px;
-            border-radius: 20px;
-        }
-
         .fab {
             bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
             right: 16px;
             width: 56px;
             height: 56px;
-        }
-    }
-
-    /* Desktop-specific optimizations */
-    @media (min-width: 1200px) {
-        .stats-grid {
-            grid-template-columns: repeat(4, 1fr);
         }
     }
 
@@ -1346,56 +1366,69 @@
                 <button class="close-btn" onclick="closeModal('studentModal')">&times;</button>
             </div>
             <form id="studentForm" onsubmit="saveStudent(event)">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">First Name</label>
-                        <input type="text" class="form-input" id="studentFirstName" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Last Name</label>
-                        <input type="text" class="form-input" id="studentLastName" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Date of Birth</label>
-                        <input type="date" class="form-input" id="studentDOB" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Year Group</label>
-                        <select class="form-select" id="studentYear" required>
-                            <option value="">Select Year</option>
-                            <option value="7">Year 7</option>
-                            <option value="8">Year 8</option>
-                            <option value="9">Year 9</option>
-                            <option value="10">Year 10</option>
-                            <option value="11">Year 11</option>
-                            <option value="16+">16+</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Set Fee (£)</label>
-                        <input type="number" step="0.01" class="form-input" id="studentFee" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">VAT (£)</label>
-                        <input type="number" step="0.01" class="form-input" id="studentVAT" value="0">
+                <!-- Basic Info Section -->
+                <div class="section">
+                    <div class="section-title">Student Information</div>
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-input" id="studentFirstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-input" id="studentLastName" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date of Birth</label>
+                            <input type="date" class="form-input" id="studentDOB" required>
+                        </div>
                     </div>
                 </div>
 
-                <div class="student-status-section">
-                    <h4>Student Status</h4>
-                    <div class="status-option">
-                        <input type="radio" id="statusActive" name="studentStatus" value="active" checked>
-                        <label for="statusActive">Active Student</label>
-                    </div>
-                    <div class="status-option">
-                        <input type="radio" id="statusLeft" name="studentStatus" value="left">
-                        <label for="statusLeft">Student Left</label>
+                <!-- Fees Section -->
+                <div class="section">
+                    <div class="section-title">Fees & Year</div>
+                    <div class="form-grid-4">
+                        <div class="form-group">
+                            <label class="form-label">Year Group</label>
+                            <select class="form-select" id="studentYear" required>
+                                <option value="">Select Year</option>
+                                <option value="7">Year 7</option>
+                                <option value="8">Year 8</option>
+                                <option value="9">Year 9</option>
+                                <option value="10">Year 10</option>
+                                <option value="11">Year 11</option>
+                                <option value="16+">16+</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Set Fee (£)</label>
+                            <input type="number" step="0.01" class="form-input" id="studentFee" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">VAT (£)</label>
+                            <input type="number" step="0.01" class="form-input" id="studentVAT" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Student Status</label>
+                            <div class="status-options">
+                                <div class="status-option">
+                                    <input type="radio" id="statusActive" name="studentStatus" value="active" checked>
+                                    <label for="statusActive">Active</label>
+                                </div>
+                                <div class="status-option">
+                                    <input type="radio" id="statusLeft" name="studentStatus" value="left">
+                                    <label for="statusLeft">Left</label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="sibling-discount">
-                    <h4>Sibling Discount</h4>
-                    <div class="sibling-discount-grid">
+                <!-- Discount Section -->
+                <div class="section">
+                    <div class="section-title">Sibling Discount</div>
+                    <div class="form-grid-3">
                         <div class="form-group">
                             <label class="form-label">Discount Type</label>
                             <select class="form-select" id="discountType">
@@ -1415,10 +1448,11 @@
                     </div>
                 </div>
 
-                <div class="payments-section">
-                    <h3>Payments</h3>
+                <!-- Payments Section -->
+                <div class="section">
+                    <div class="section-title">Payments</div>
                     <div id="paymentsContainer">
-                        <div class="payment-entry">
+                        <div class="payment-row">
                             <div class="form-group">
                                 <label class="form-label">Amount (£)</label>
                                 <input type="number" step="0.01" class="form-input" name="paymentAmount[]">
@@ -1441,19 +1475,25 @@
                                     <option value="Cheque">Cheque</option>
                                 </select>
                             </div>
+                            <div>
+                                <button type="button" class="delete-payment" onclick="removePaymentEntry(this)" style="visibility: hidden;">&times;</button>
+                            </div>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="addPaymentEntry()">
+                    <button type="button" class="add-payment-btn" onclick="addPaymentEntry()">
                         + Add Payment
                     </button>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Comments</label>
-                    <textarea class="form-input form-textarea" id="studentComments" placeholder="Any additional notes..."></textarea>
+                <!-- Comments Section -->
+                <div class="section">
+                    <div class="section-title">Comments</div>
+                    <div class="form-group">
+                        <textarea class="form-textarea" id="studentComments" placeholder="Any additional notes..."></textarea>
+                    </div>
                 </div>
 
-                <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 32px;">
+                <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('studentModal')">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save Student</button>
                 </div>
@@ -2359,7 +2399,7 @@
                 
                 const container = document.getElementById('paymentsContainer');
                 if (container) {
-                    const entries = container.querySelectorAll('.payment-entry');
+                    const entries = container.querySelectorAll('.payment-row');
                     const entry = entries[index];
                     
                     if (entry) {
@@ -2416,9 +2456,8 @@
         if (!container) return;
         
         const newEntry = document.createElement('div');
-        newEntry.className = 'payment-entry';
+        newEntry.className = 'payment-row';
         newEntry.innerHTML = `
-            <button type="button" class="delete-payment" onclick="removePaymentEntry(this)">×</button>
             <div class="form-group">
                 <label class="form-label">Amount (£)</label>
                 <input type="number" step="0.01" class="form-input" name="paymentAmount[]">
@@ -2441,16 +2480,19 @@
                     <option value="Cheque">Cheque</option>
                 </select>
             </div>
+            <div>
+                <button type="button" class="delete-payment" onclick="removePaymentEntry(this)">&times;</button>
+            </div>
         `;
         container.appendChild(newEntry);
     }
 
     function removePaymentEntry(button) {
-        const entry = button.closest('.payment-entry');
+        const entry = button.closest('.payment-row');
         const container = document.getElementById('paymentsContainer');
         
         // Don't remove if it's the only payment entry
-        if (container.querySelectorAll('.payment-entry').length > 1) {
+        if (container.querySelectorAll('.payment-row').length > 1) {
             entry.remove();
         } else {
             // Clear the fields instead
@@ -2465,7 +2507,7 @@
         if (!container) return;
         
         container.innerHTML = `
-            <div class="payment-entry">
+            <div class="payment-row">
                 <div class="form-group">
                     <label class="form-label">Amount (£)</label>
                     <input type="number" step="0.01" class="form-input" name="paymentAmount[]">
@@ -2487,6 +2529,9 @@
                         <option value="Card">Card</option>
                         <option value="Cheque">Cheque</option>
                     </select>
+                </div>
+                <div>
+                    <button type="button" class="delete-payment" onclick="removePaymentEntry(this)" style="visibility: hidden;">&times;</button>
                 </div>
             </div>
         `;
