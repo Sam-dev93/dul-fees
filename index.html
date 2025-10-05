@@ -130,20 +130,28 @@
     .nav-tabs {
         background: var(--card-bg);
         border-bottom: 0.5px solid var(--border);
-        padding: 0 24px;
+        padding: 0 16px;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        position: sticky;
+        top: 0;
+        z-index: 90;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
     }
 
     .nav-tabs-inner {
         max-width: 1200px;
         margin: 0 auto;
         display: flex;
-        gap: 8px;
+        gap: 4px;
+        min-width: max-content;
+        flex: 1;
     }
 
     .nav-tab {
-        padding: 16px 24px;
+        padding: 12px 16px;
         background: none;
         border: none;
         color: var(--text-secondary);
@@ -154,6 +162,7 @@
         white-space: nowrap;
         font-size: 16px;
         position: relative;
+        flex-shrink: 0;
     }
 
     .nav-tab.active {
@@ -460,6 +469,7 @@
         overflow-y: auto;
         animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin: auto;
     }
 
     @keyframes fadeIn {
@@ -468,7 +478,7 @@
     }
 
     @keyframes slideUp {
-        from { transform: translateY(100px) scale(0.95); opacity: 0; }
+        from { transform: translateY(50px) scale(0.95); opacity: 0; }
         to { transform: translateY(0) scale(1); opacity: 1; }
     }
 
@@ -476,13 +486,13 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 24px;
-        padding-bottom: 16px;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
         border-bottom: 1px solid var(--border);
     }
 
     .modal-header h2 {
-        font-size: 24px;
+        font-size: 22px;
         font-weight: 700;
         letter-spacing: -0.5px;
     }
@@ -507,15 +517,15 @@
     }
 
     .form-group {
-        margin-bottom: 16px;
+        margin-bottom: 14px;
     }
 
     .form-label {
         display: block;
         font-weight: 600;
-        margin-bottom: 6px;
+        margin-bottom: 5px;
         color: var(--text-secondary);
-        font-size: 12px;
+        font-size: 11px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
@@ -524,18 +534,18 @@
     .form-select,
     .form-textarea {
         width: 100%;
-        padding: 12px 14px;
+        padding: 10px 12px;
         border: 1.5px solid var(--border);
-        border-radius: 12px;
+        border-radius: 10px;
         background: var(--card-bg-elevated);
         color: var(--text-primary);
-        font-size: 15px;
+        font-size: 14px;
         font-family: inherit;
         transition: all 0.2s;
     }
 
     .form-textarea {
-        min-height: 80px;
+        min-height: 60px;
         resize: vertical;
     }
 
@@ -1031,7 +1041,6 @@
                         <option value="left">Left Students</option>
                         <option value="outstanding">Outstanding Only</option>
                     </select>
-                    <button class="btn btn-secondary" onclick="showImportModal()">Import CSV</button>
                 </div>
 
                 <div class="table-container">
@@ -1105,7 +1114,6 @@
                         <option value="left">Left Students</option>
                         <option value="outstanding">Outstanding Only</option>
                     </select>
-                    <button class="btn btn-secondary" onclick="showImportModal()">Import CSV</button>
                 </div>
 
                 <div class="table-container">
@@ -1165,6 +1173,33 @@
                         <div class="label">Collection Rate</div>
                         <div class="value" id="overviewCollectionRate">0%</div>
                         <div class="description">Fees collected</div>
+                    </div>
+                </div>
+
+                <!-- VAT Summary Section -->
+                <div style="margin: 32px 0;">
+                    <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">VAT Summary</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                        <div class="stat-card">
+                            <div class="label">Total VAT Set</div>
+                            <div class="value" id="overviewTotalVATSet">£0</div>
+                            <div class="description">VAT on all fees</div>
+                        </div>
+                        <div class="stat-card paid">
+                            <div class="label">VAT Collected</div>
+                            <div class="value" id="overviewVATCollected">£0</div>
+                            <div class="description">VAT received from payments</div>
+                        </div>
+                        <div class="stat-card outstanding">
+                            <div class="label">VAT Outstanding</div>
+                            <div class="value" id="overviewVATOutstanding">£0</div>
+                            <div class="description">VAT still to collect</div>
+                        </div>
+                        <div class="stat-card warning">
+                            <div class="label">VAT Liability</div>
+                            <div class="value" id="overviewVATLiability">£0</div>
+                            <div class="description">Total VAT owed to HMRC</div>
+                        </div>
                     </div>
                 </div>
 
@@ -1242,6 +1277,15 @@
                         <button class="pdf-btn" onclick="exportPDFReport('all', 'outstanding')" id="outstandingBtn">
                             <div class="pdf-loading" id="outstandingSpinner"></div>
                             📄 Generate Outstanding PDF
+                        </button>
+                    </div>
+
+                    <div class="pdf-export-card">
+                        <h3>💳 VAT Summary Report</h3>
+                        <p>Complete VAT breakdown for HMRC compliance and accounting purposes</p>
+                        <button class="pdf-btn" onclick="exportPDFReport('all', 'vat')" id="vatBtn">
+                            <div class="pdf-loading" id="vatSpinner"></div>
+                            📄 Generate VAT PDF
                         </button>
                     </div>
 
@@ -1351,12 +1395,24 @@
         </main>
     </div>
 
-    <button class="fab" onclick="showAddStudent()">
+    <button class="fab" onclick="showFabMenu()">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
     </button>
+
+    <!-- Fab Menu -->
+    <div id="fabMenu" class="fab-menu" style="display: none;">
+        <div class="fab-menu-item" onclick="showAddStudent(); hideFabMenu();">
+            <div class="fab-menu-icon">👤</div>
+            <div class="fab-menu-text">Add Student</div>
+        </div>
+        <div class="fab-menu-item" onclick="showImportModal(); hideFabMenu();">
+            <div class="fab-menu-icon">📄</div>
+            <div class="fab-menu-text">Import CSV</div>
+        </div>
+    </div>
 
     <!-- Add/Edit Student Modal -->
     <div id="studentModal" class="modal">
@@ -2151,6 +2207,29 @@
         const totalFees = activeStudents.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0) + (parseFloat(s.vat) || 0), 0);
         const collectionRate = totalFees > 0 ? (totalRevenue / totalFees * 100) : 0;
         
+        // VAT Calculations - Fixed logic: payments fill set fee first, then VAT
+        const totalVATSet = activeStudents.reduce((sum, s) => sum + (parseFloat(s.vat) || 0), 0);
+        const vatCollected = activeStudents.reduce((sum, s) => {
+            const payments = s.payments || [];
+            const totalPaid = payments.reduce((pSum, p) => pSum + (parseFloat(p.amount) || 0), 0);
+            const setFee = parseFloat(s.setFee) || 0;
+            const vatAmount = parseFloat(s.vat) || 0;
+            
+            if (vatAmount <= 0) return sum;
+            
+            // Payments fill set fee first, then VAT
+            if (totalPaid <= setFee) {
+                // Payment hasn't covered set fee yet, no VAT collected
+                return sum;
+            } else {
+                // Payment exceeds set fee, calculate VAT collected
+                const excessPayment = totalPaid - setFee;
+                const vatCollectedForStudent = Math.min(excessPayment, vatAmount);
+                return sum + vatCollectedForStudent;
+            }
+        }, 0);
+        const vatOutstanding = totalVATSet - vatCollected;
+        
         const overviewTotalStudentsEl = document.getElementById('overviewTotalStudents');
         const overviewTotalRevenueEl = document.getElementById('overviewTotalRevenue');
         const overviewTotalOutstandingEl = document.getElementById('overviewTotalOutstanding');
@@ -2160,6 +2239,17 @@
         if (overviewTotalRevenueEl) overviewTotalRevenueEl.textContent = '£' + totalRevenue.toFixed(2);
         if (overviewTotalOutstandingEl) overviewTotalOutstandingEl.textContent = '£' + totalOutstanding.toFixed(2);
         if (overviewCollectionRateEl) overviewCollectionRateEl.textContent = collectionRate.toFixed(1) + '%';
+        
+        // Update VAT elements
+        const overviewTotalVATSetEl = document.getElementById('overviewTotalVATSet');
+        const overviewVATCollectedEl = document.getElementById('overviewVATCollected');
+        const overviewVATOutstandingEl = document.getElementById('overviewVATOutstanding');
+        const overviewVATLiabilityEl = document.getElementById('overviewVATLiability');
+        
+        if (overviewTotalVATSetEl) overviewTotalVATSetEl.textContent = '£' + totalVATSet.toFixed(2);
+        if (overviewVATCollectedEl) overviewVATCollectedEl.textContent = '£' + vatCollected.toFixed(2);
+        if (overviewVATOutstandingEl) overviewVATOutstandingEl.textContent = '£' + vatOutstanding.toFixed(2);
+        if (overviewVATLiabilityEl) overviewVATLiabilityEl.textContent = '£' + totalVATSet.toFixed(2); // Total VAT owed to HMRC
         
         // Update term summaries
         const term1ActiveStudents = window.term1Students.filter(s => s.studentStatus !== 'left');
@@ -2790,6 +2880,9 @@
                 case 'outstanding':
                     generateOutstandingReport(doc, reportNotes);
                     break;
+                case 'vat':
+                    generateVATReport(doc, reportNotes);
+                    break;
                 case 'summary':
                     generateSummaryReport(doc, reportNotes);
                     break;
@@ -2846,6 +2939,177 @@
         addStudentTable(doc, students, scope);
         
         // Footer
+        addPDFFooter(doc);
+    }
+
+    function generateVATReport(doc, notes) {
+        addPDFHeader(doc, 'VAT Summary Report', notes);
+        
+        const allStudents = [...window.term1Students, ...window.term2Students];
+        const activeStudents = allStudents.filter(s => s.studentStatus !== 'left');
+        
+        let yPos = 60;
+        
+        // Calculate VAT figures - Fixed logic: payments fill set fee first, then VAT
+        const totalVATSet = activeStudents.reduce((sum, s) => sum + (parseFloat(s.vat) || 0), 0);
+        const vatCollected = activeStudents.reduce((sum, s) => {
+            const payments = s.payments || [];
+            const totalPaid = payments.reduce((pSum, p) => pSum + (parseFloat(p.amount) || 0), 0);
+            const setFee = parseFloat(s.setFee) || 0;
+            const vatAmount = parseFloat(s.vat) || 0;
+            
+            if (vatAmount <= 0) return sum;
+            
+            // Payments fill set fee first, then VAT
+            if (totalPaid <= setFee) {
+                return sum; // No VAT collected yet
+            } else {
+                const excessPayment = totalPaid - setFee;
+                const vatCollectedForStudent = Math.min(excessPayment, vatAmount);
+                return sum + vatCollectedForStudent;
+            }
+        }, 0);
+        const vatOutstanding = totalVATSet - vatCollected;
+        
+        // VAT Summary Cards
+        doc.setFillColor(99, 102, 241);
+        doc.rect(20, yPos, 60, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text('Total VAT Set', 50, yPos + 15, { align: 'center' });
+        doc.setFontSize(16);
+        doc.text(`£${totalVATSet.toFixed(2)}`, 50, yPos + 30, { align: 'center' });
+        
+        doc.setFillColor(34, 197, 94);
+        doc.rect(88, yPos, 60, 40, 'F');
+        doc.setFontSize(12);
+        doc.text('VAT Collected', 118, yPos + 15, { align: 'center' });
+        doc.setFontSize(16);
+        doc.text(`£${vatCollected.toFixed(2)}`, 118, yPos + 30, { align: 'center' });
+        
+        doc.setFillColor(255, 149, 0);
+        doc.rect(156, yPos, 60, 40, 'F');
+        doc.setFontSize(12);
+        doc.text('VAT Outstanding', 186, yPos + 15, { align: 'center' });
+        doc.setFontSize(16);
+        doc.text(`£${vatOutstanding.toFixed(2)}`, 186, yPos + 30, { align: 'center' });
+        
+        doc.setFillColor(239, 68, 68);
+        doc.rect(224, yPos, 52, 40, 'F');
+        doc.setFontSize(12);
+        doc.text('VAT Liability', 250, yPos + 15, { align: 'center' });
+        doc.setFontSize(16);
+        doc.text(`£${totalVATSet.toFixed(2)}`, 250, yPos + 30, { align: 'center' });
+        
+        yPos += 55;
+        
+        // VAT breakdown by term
+        const term1Students = window.term1Students.filter(s => s.studentStatus !== 'left');
+        const term2Students = window.term2Students.filter(s => s.studentStatus !== 'left');
+        
+        const term1VAT = term1Students.reduce((sum, s) => sum + (parseFloat(s.vat) || 0), 0);
+        const term2VAT = term2Students.reduce((sum, s) => sum + (parseFloat(s.vat) || 0), 0);
+        
+        const termVATData = [
+            ['Term 1', term1Students.length.toString(), `£${term1VAT.toFixed(2)}`],
+            ['Term 2', term2Students.length.toString(), `£${term2VAT.toFixed(2)}`],
+            ['TOTAL', activeStudents.length.toString(), `£${totalVATSet.toFixed(2)}`]
+        ];
+        
+        doc.autoTable({
+            startY: yPos,
+            head: [['Term', 'Students', 'Total VAT']],
+            body: termVATData,
+            theme: 'grid',
+            headStyles: { 
+                fillColor: [99, 102, 241],
+                textColor: [255, 255, 255],
+                fontSize: 12,
+                fontStyle: 'bold'
+            },
+            bodyStyles: { 
+                fontSize: 11,
+                cellPadding: 8
+            },
+            columnStyles: {
+                0: { cellWidth: 80, fontStyle: 'bold' },
+                1: { cellWidth: 80, halign: 'center' },
+                2: { cellWidth: 80, halign: 'right' }
+            },
+            margin: { left: 20, right: 20 }
+        });
+        
+        yPos = doc.lastAutoTable.finalY + 20;
+        
+        // VAT breakdown by student (for students with VAT) - Fixed logic
+        const studentsWithVAT = activeStudents.filter(s => (parseFloat(s.vat) || 0) > 0);
+        
+        if (studentsWithVAT.length > 0) {
+            const studentVATData = studentsWithVAT.map(student => {
+                const vatAmount = parseFloat(student.vat) || 0;
+                const setFee = parseFloat(student.setFee) || 0;
+                const totalPaid = getTotalPaid(student);
+                
+                // Calculate VAT collected: payments fill set fee first, then VAT
+                let vatCollectedForStudent = 0;
+                if (totalPaid > setFee) {
+                    const excessPayment = totalPaid - setFee;
+                    vatCollectedForStudent = Math.min(excessPayment, vatAmount);
+                }
+                const vatOutstandingForStudent = vatAmount - vatCollectedForStudent;
+                
+                return [
+                    `${student.firstName} ${student.lastName}`,
+                    student.term === 'term1' ? 'Term 1' : 'Term 2',
+                    `£${vatAmount.toFixed(2)}`,
+                    `£${vatCollectedForStudent.toFixed(2)}`,
+                    `£${vatOutstandingForStudent.toFixed(2)}`
+                ];
+            });
+            
+            doc.autoTable({
+                startY: yPos,
+                head: [['Student Name', 'Term', 'VAT Set', 'VAT Collected', 'VAT Outstanding']],
+                body: studentVATData,
+                theme: 'grid',
+                headStyles: { 
+                    fillColor: [99, 102, 241],
+                    textColor: [255, 255, 255],
+                    fontSize: 10,
+                    fontStyle: 'bold'
+                },
+                bodyStyles: { 
+                    fontSize: 9,
+                    cellPadding: 4
+                },
+                columnStyles: {
+                    0: { cellWidth: 60, fontStyle: 'bold' },
+                    1: { cellWidth: 30, halign: 'center' },
+                    2: { cellWidth: 35, halign: 'right' },
+                    3: { cellWidth: 40, halign: 'right' },
+                    4: { cellWidth: 40, halign: 'right' }
+                },
+                margin: { left: 20, right: 20 }
+            });
+        }
+        
+        // Add compliance note
+        yPos = doc.lastAutoTable ? doc.lastAutoTable.finalY + 30 : yPos + 30;
+        
+        doc.setFillColor(254, 249, 195);
+        doc.rect(20, yPos, 256, 30, 'F');
+        doc.setDrawColor(251, 191, 36);
+        doc.rect(20, yPos, 256, 30, 'S');
+        
+        doc.setTextColor(146, 64, 14);
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text('HMRC COMPLIANCE NOTE:', 30, yPos + 12);
+        doc.setFont(undefined, 'normal');
+        doc.text('VAT liability is based on fees invoiced to students, regardless of payment status.', 30, yPos + 20);
+        doc.text('Consult your accountant for VAT return filing and timing requirements.', 30, yPos + 26);
+        
         addPDFFooter(doc);
     }
 
@@ -3158,54 +3422,56 @@
     }
 
     function addPDFHeader(doc, title, notes) {
-        // Header background
-        doc.setFillColor(24, 24, 24);
-        doc.rect(0, 0, 297, 35, 'F');
-        
-        // Green stripe
+        // Modern gradient header
         doc.setFillColor(16, 163, 127);
-        doc.rect(0, 0, 297, 3, 'F');
+        doc.rect(0, 0, 297, 40, 'F');
+        
+        // Subtle accent stripe
+        doc.setFillColor(13, 122, 95);
+        doc.rect(0, 0, 297, 4, 'F');
         
         // Title
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(18);
+        doc.setFontSize(22);
         doc.setFont(undefined, 'bold');
-        doc.text(title, 148, 15, { align: 'center' });
+        doc.text(title, 148, 20, { align: 'center' });
         
         // Academic year and date
-        doc.setFontSize(10);
+        doc.setFontSize(11);
         doc.setFont(undefined, 'normal');
-        doc.text(`Academic Year: 2024/25`, 20, 25);
-        doc.text(`Generated: ${new Date().toLocaleDateString()}`, 277, 25, { align: 'right' });
+        doc.text(`Academic Year: 2025-2026`, 25, 30);
+        doc.text(`Generated: ${new Date().toLocaleDateString('en-GB')}`, 272, 30, { align: 'right' });
         
         // Notes if provided
         if (notes && notes.trim()) {
-            doc.setTextColor(200, 200, 200);
-            doc.text(`Notes: ${notes}`, 20, 30);
+            doc.setTextColor(245, 245, 245);
+            doc.setFontSize(10);
+            doc.text(`Notes: ${notes.substring(0, 80)}`, 25, 36);
         }
         
         // Reset text color for body
-        doc.setTextColor(0, 0, 0);
+        doc.setTextColor(60, 60, 60);
     }
 
     function addPDFFooter(doc) {
         const pageHeight = doc.internal.pageSize.height;
         
-        // Footer line
-        doc.setDrawColor(200, 200, 200);
-        doc.setLineWidth(0.5);
-        doc.line(20, pageHeight - 25, 277, pageHeight - 25);
+        // Clean footer line
+        doc.setDrawColor(16, 163, 127);
+        doc.setLineWidth(1);
+        doc.line(25, pageHeight - 20, 272, pageHeight - 20);
         
         // Footer text
-        doc.setTextColor(128, 128, 128);
-        doc.setFontSize(8);
-        doc.text('Generated by Student Fees Tracker', 20, pageHeight - 15);
-        doc.text(`Page 1`, 277, pageHeight - 15, { align: 'right' });
-        doc.text(`© ${new Date().getFullYear()} School Management System`, 148, pageHeight - 8, { align: 'center' });
+        doc.setTextColor(120, 120, 120);
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        doc.text('Student Fees Management System', 25, pageHeight - 12);
+        doc.text(`Page 1`, 272, pageHeight - 12, { align: 'right' });
+        doc.text(`© ${new Date().getFullYear()} School Administration`, 148, pageHeight - 6, { align: 'center' });
     }
 
     function addSummaryStats(doc, students, scope) {
-        let yPos = 50;
+        let yPos = 55;
         
         // Calculate statistics
         const totalStudents = students.length;
@@ -3215,26 +3481,26 @@
         const totalOutstanding = totalFees - totalCollected;
         const collectionRate = totalFees > 0 ? (totalCollected / totalFees * 100) : 0;
         
-        // Summary box
+        // Modern summary box
         doc.setFillColor(248, 250, 252);
-        doc.rect(20, yPos, 256, 35, 'F');
-        doc.setDrawColor(220, 220, 220);
-        doc.rect(20, yPos, 256, 35, 'S');
+        doc.roundedRect(25, yPos, 247, 32, 3, 3, 'F');
+        doc.setDrawColor(16, 163, 127);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(25, yPos, 247, 32, 3, 3, 'S');
         
         // Summary content
-        doc.setTextColor(31, 41, 55);
-        doc.setFontSize(12);
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(14);
         doc.setFont(undefined, 'bold');
-        doc.text('SUMMARY STATISTICS', 148, yPos + 10, { align: 'center' });
+        doc.text('SUMMARY OVERVIEW', 148, yPos + 12, { align: 'center' });
         
         doc.setFontSize(10);
         doc.setFont(undefined, 'normal');
-        doc.text(`Total Students: ${totalStudents}`, 30, yPos + 20);
-        doc.text(`Active Students: ${activeStudents}`, 30, yPos + 28);
-        doc.text(`Total Fees: £${totalFees.toFixed(2)}`, 150, yPos + 20);
-        doc.text(`Collected: £${totalCollected.toFixed(2)}`, 150, yPos + 28);
-        doc.text(`Outstanding: £${totalOutstanding.toFixed(2)}`, 250, yPos + 20);
-        doc.text(`Collection Rate: ${collectionRate.toFixed(1)}%`, 250, yPos + 28);
+        doc.text(`Students: ${activeStudents}/${totalStudents}`, 35, yPos + 22);
+        doc.text(`Total Fees: £${totalFees.toFixed(2)}`, 100, yPos + 22);
+        doc.text(`Collected: £${totalCollected.toFixed(2)}`, 170, yPos + 22);
+        doc.text(`Outstanding: £${totalOutstanding.toFixed(2)}`, 240, yPos + 22);
+        doc.text(`Collection Rate: ${collectionRate.toFixed(1)}%`, 148, yPos + 28, { align: 'center' });
     }
 
     function addStudentTable(doc, students, scope) {
@@ -3342,6 +3608,31 @@
     window.processCSVImport = processCSVImport;
     window.exportPDFReport = exportPDFReport;
     window.updateAnalytics = updateAnalytics;
+    
+    // Fab menu functions
+    window.showFabMenu = function() {
+        const fabMenu = document.getElementById('fabMenu');
+        if (fabMenu) {
+            fabMenu.style.display = 'block';
+        }
+    };
+    
+    window.hideFabMenu = function() {
+        const fabMenu = document.getElementById('fabMenu');
+        if (fabMenu) {
+            fabMenu.style.display = 'none';
+        }
+    };
+    
+    // Close fab menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const fabMenu = document.getElementById('fabMenu');
+        const fab = document.querySelector('.fab');
+        
+        if (fabMenu && fab && !fabMenu.contains(event.target) && !fab.contains(event.target)) {
+            fabMenu.style.display = 'none';
+        }
+    });
 </script>
 </body>
 </html>
