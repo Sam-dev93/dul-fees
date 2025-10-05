@@ -34,6 +34,7 @@
         --success: #34C759;
         --warning: #FF9500;
         --danger: #FF3B30;
+        --info: #007AFF;
         --background: #000000;
         --card-bg: #1C1C1E;
         --card-bg-elevated: #2C2C2E;
@@ -125,6 +126,13 @@
         font-size: 14px;
         font-weight: 600;
         box-shadow: 0 4px 12px rgba(16, 163, 127, 0.3);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .year-badge:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(16, 163, 127, 0.4);
     }
 
     .nav-tabs {
@@ -338,9 +346,10 @@
     }
 
     .btn-sm {
-        padding: 10px 16px;
-        font-size: 14px;
-        border-radius: 10px;
+        padding: 8px 12px;
+        font-size: 12px;
+        border-radius: 8px;
+        margin: 0 2px;
     }
 
     .btn-danger {
@@ -353,6 +362,18 @@
         background: var(--warning);
         color: white;
         border: 1px solid var(--warning);
+    }
+
+    .btn-info {
+        background: var(--info);
+        color: white;
+        border: 1px solid var(--info);
+    }
+
+    .btn-success {
+        background: var(--success);
+        color: white;
+        border: 1px solid var(--success);
     }
 
     .table-container {
@@ -371,7 +392,7 @@
     .table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 1200px;
+        min-width: 1400px;
     }
 
     .table th,
@@ -397,6 +418,11 @@
 
     .table tr:last-child td {
         border-bottom: none;
+    }
+
+    .table td:last-child {
+        width: 280px;
+        min-width: 280px;
     }
 
     .payment-status {
@@ -470,6 +496,10 @@
         animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         margin: auto;
+    }
+
+    .view-modal-content {
+        max-width: 1100px;
     }
 
     @keyframes fadeIn {
@@ -562,6 +592,12 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 16px;
+    }
+
+    .form-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
     }
 
     .form-grid-3 {
@@ -821,6 +857,158 @@
         display: none;
     }
 
+    /* Student View Modal Styles */
+    .student-overview {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .student-info-card {
+        background: var(--card-bg-elevated);
+        border-radius: 16px;
+        padding: 24px;
+        border: 1px solid var(--border);
+    }
+
+    .student-summary-card {
+        background: var(--card-bg-elevated);
+        border: 2px solid var(--primary);
+        border-radius: 16px;
+        padding: 24px;
+        color: var(--text-primary);
+        text-align: center;
+    }
+
+    .student-name {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        color: var(--text-primary);
+    }
+
+    .student-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .detail-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .detail-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .summary-amount {
+        font-size: 36px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .summary-label {
+        font-size: 14px;
+        opacity: 0.9;
+        margin-bottom: 16px;
+    }
+
+    .summary-breakdown {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        text-align: left;
+    }
+
+    .breakdown-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .payments-history {
+        background: var(--card-bg-elevated);
+        border-radius: 16px;
+        padding: 24px;
+        border: 1px solid var(--border);
+    }
+
+    .payments-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .payments-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .payments-table th,
+    .payments-table td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .payments-table th {
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .payments-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .payment-method-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        background: var(--card-bg);
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+    }
+
+    .no-payments {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-secondary);
+    }
+
+    /* Action buttons styles */
+    .action-buttons {
+        display: flex;
+        gap: 4px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+
     /* Mobile Optimizations */
     @media (max-width: 768px) {
         .modal-content {
@@ -835,6 +1023,10 @@
 
         .form-grid-4 {
             grid-template-columns: repeat(2, 1fr);
+        }
+
+        .form-grid-2 {
+            grid-template-columns: 1fr;
         }
 
         .payment-row {
@@ -896,6 +1088,34 @@
             right: 16px;
             width: 56px;
             height: 56px;
+        }
+
+        .student-overview {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .student-details {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-breakdown {
+            grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .btn-sm {
+            padding: 6px 8px;
+            font-size: 11px;
+        }
+
+        .table td:last-child {
+            width: auto;
+            min-width: auto;
         }
     }
 
@@ -986,10 +1206,10 @@
     <header class="header">
         <div class="header-content">
             <div>
-                <h1>Student Fees</h1>
+                <h1>DUL Student Fees</h1>
                 <div style="font-size: 17px; color: var(--text-secondary); font-weight: 500;">Fee Management System</div>
             </div>
-            <div class="year-badge">2025-2026</div>
+            <div class="year-badge" onclick="showYearSelector()" id="currentYearBadge">2025-2026</div>
         </div>
     </header>
 
@@ -1217,10 +1437,10 @@
                         </div>
                         <div class="stat-card">
                             <div class="label">Quick Actions</div>
-                            <div style="font-size: 20px; font-weight: 600; margin: 12px 0; color: var(--text-primary);">Manage Data</div>
-                            <div class="description" style="margin-bottom: 16px;">Export or backup your data</div>
-                            <button class="btn btn-secondary" onclick="switchView('reports')" style="width: 100%;">
-                                📊 View Reports
+                            <div style="font-size: 20px; font-weight: 600; margin: 12px 0; color: var(--text-primary);">Choose Academic Year</div>
+                            <div class="description" style="margin-bottom: 16px;">Switch between different academic years</div>
+                            <button class="btn btn-secondary" onclick="showYearSelector()" style="width: 100%;">
+                                📅 Select Academic Year
                             </button>
                         </div>
                     </div>
@@ -1427,6 +1647,41 @@
         </button>
     </div>
 
+    <!-- Academic Year Selector Modal -->
+    <div id="yearSelectorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Choose Academic Year</h2>
+                <button class="close-btn" onclick="closeModal('yearSelectorModal')">&times;</button>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Available Academic Years</div>
+                <div class="form-group">
+                    <label class="form-label">Select Academic Year</label>
+                    <select class="form-select" id="academicYearSelect">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                
+                <div style="margin-top: 16px; padding: 16px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);">
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">Current Academic Year:</div>
+                    <div style="font-size: 18px; font-weight: 700; color: var(--primary);" id="currentYearDisplay">2025-2026</div>
+                </div>
+                
+                <div style="margin-top: 16px; padding: 16px; background: rgba(255, 149, 0, 0.1); border-radius: 12px; border: 1px solid rgba(255, 149, 0, 0.3);">
+                    <div style="font-size: 12px; color: var(--warning); font-weight: 600; margin-bottom: 4px;">⚠️ Important</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Switching academic years will save current data and load data for the selected year. Each year maintains separate student records.</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('yearSelectorModal')">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmYearChange()">Switch Year</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Add/Edit Student Modal -->
     <div id="studentModal" class="modal">
         <div class="modal-content">
@@ -1572,14 +1827,176 @@
 
     <!-- Student View Modal -->
     <div id="studentViewModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content view-modal-content">
             <div class="modal-header">
                 <h2 id="viewModalTitle">Student Overview</h2>
                 <button class="close-btn" onclick="closeModal('studentViewModal')">&times;</button>
             </div>
-            <div id="studentViewContent">
-                <!-- Content will be populated by JavaScript -->
+            
+            <div class="student-overview">
+                <div class="student-info-card">
+                    <div class="student-name" id="viewStudentName">Loading...</div>
+                    
+                    <div class="student-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Date of Birth</div>
+                            <div class="detail-value" id="viewStudentDOB">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Year Group</div>
+                            <div class="detail-value" id="viewStudentYear">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Term</div>
+                            <div class="detail-value" id="viewStudentTerm">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Student Status</div>
+                            <div class="detail-value" id="viewStudentStatus">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Enrolled</div>
+                            <div class="detail-value" id="viewStudentCreated">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Last Updated</div>
+                            <div class="detail-value" id="viewStudentUpdated">-</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px;" id="viewStudentComments">
+                        <div class="detail-label">Comments</div>
+                        <div class="detail-value" style="margin-top: 8px; line-height: 1.5;" id="viewStudentCommentsText">No comments available</div>
+                    </div>
+
+                    <div style="margin-top: 24px;" id="viewStudentDiscount">
+                        <div class="detail-label">Sibling Discount</div>
+                        <div class="detail-value" style="margin-top: 8px;" id="viewStudentDiscountText">None</div>
+                    </div>
+                </div>
+
+                <div class="student-summary-card">
+                    <div class="summary-amount" id="viewOutstandingAmount">£0.00</div>
+                    <div class="summary-label">Outstanding Balance</div>
+                    
+                    <div class="summary-breakdown">
+                        <div class="breakdown-item">
+                            <span>Set Fee</span>
+                            <span id="viewSetFee">£0.00</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>VAT</span>
+                            <span id="viewVAT">£0.00</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Total Fee</span>
+                            <span id="viewTotalFee">£0.00</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Discount</span>
+                            <span id="viewDiscountAmount">£0.00</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>After Discount</span>
+                            <span id="viewAfterDiscount">£0.00</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Total Paid</span>
+                            <span id="viewTotalPaid">£0.00</span>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <div class="payments-history">
+                <div class="payments-header">
+                    <h3 style="font-size: 18px; font-weight: 700; margin: 0;">Payment History</h3>
+                    <span id="viewPaymentCount" style="color: var(--text-secondary); font-size: 14px;">0 payments</span>
+                </div>
+                
+                <div id="viewPaymentsTableContainer">
+                    <table class="payments-table" id="viewPaymentsTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Invoice No.</th>
+                                <th>Method</th>
+                            </tr>
+                        </thead>
+                        <tbody id="viewPaymentsBody">
+                        </tbody>
+                    </table>
+                    
+                    <div id="viewNoPayments" class="no-payments">
+                        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.4;">💳</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No Payments Recorded</div>
+                        <div style="font-size: 14px;">This student hasn't made any payments yet</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border);">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('studentViewModal')">Close</button>
+                <button type="button" class="btn btn-info" onclick="editStudentFromView()" id="editFromViewBtn">Edit Student</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Payment Modal -->
+    <div id="addPaymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="addPaymentModalTitle">Add Payment</h2>
+                <button class="close-btn" onclick="closeModal('addPaymentModal')">&times;</button>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Student Information</div>
+                <div id="paymentStudentInfo" style="padding: 16px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);">
+                    <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;" id="paymentStudentName">Student Name</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; font-size: 14px; color: var(--text-secondary);">
+                        <div>Term: <span id="paymentStudentTerm">-</span></div>
+                        <div>Year: <span id="paymentStudentYear">-</span></div>
+                        <div>Outstanding: <span id="paymentStudentOutstanding" style="color: var(--danger); font-weight: 600;">£0.00</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <form id="addPaymentForm" onsubmit="savePayment(event)">
+                <div class="section">
+                    <div class="section-title">Payment Details</div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Payment Amount (£)</label>
+                            <input type="number" step="0.01" class="form-input" id="paymentAmount" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Payment Date</label>
+                            <input type="date" class="form-input" id="paymentDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Invoice Number</label>
+                            <input type="text" class="form-input" id="paymentInvoice" placeholder="Optional">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Payment Method</label>
+                            <select class="form-select" id="paymentMethod" required>
+                                <option value="">Select Method</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Card">Card</option>
+                                <option value="Cheque">Cheque</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addPaymentModal')">Cancel</button>
+                    <button type="submit" class="btn btn-success">Add Payment</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1618,9 +2035,8 @@
             </div>
         </div>
     </div>
-</div>
 
-<script>
+    <script>
     // Firebase configuration
     const firebaseConfig = {
         apiKey: "AIzaSyC-AM7-3HdvjRpJMDVQLfxUsZmgh1aA8UU",
@@ -1631,10 +2047,203 @@
         appId: "1:484339552499:web:1dff66886e1627a178a786"
     };
 
+    // Academic Year Management
+    let currentAcademicYear = '2025-2026';
+
+    function initializeAcademicYear() {
+        const savedYear = localStorage.getItem('currentAcademicYear');
+        if (savedYear) {
+            currentAcademicYear = savedYear;
+        }
+        updateAcademicYearUI();
+        loadDataForYear(currentAcademicYear);
+    }
+
+    function updateAcademicYearUI() {
+        // Update year badge in header
+        const yearBadge = document.querySelector('.year-badge');
+        if (yearBadge) {
+            yearBadge.textContent = currentAcademicYear;
+        }
+        
+        // Update current year display in modal
+        const yearDisplay = document.getElementById('currentYearDisplay');
+        if (yearDisplay) {
+            yearDisplay.textContent = currentAcademicYear;
+        }
+        
+        // Update all headers and titles that show academic year
+        const headers = document.querySelectorAll('.academic-year-text');
+        headers.forEach(header => {
+            header.textContent = `Academic Year: ${currentAcademicYear}`;
+        });
+    }
+
+    function showYearSelector() {
+        const modal = document.getElementById('yearSelectorModal');
+        if (modal) {
+            // Populate year options (5 years from 2025 onwards)
+            const yearSelect = document.getElementById('academicYearSelect');
+            if (yearSelect) {
+                yearSelect.innerHTML = '';
+                for (let i = 0; i < 5; i++) {
+                    const startYear = 2025 + i;
+                    const endYear = startYear + 1;
+                    const yearOption = `${startYear}-${endYear}`;
+                    const option = document.createElement('option');
+                    option.value = yearOption;
+                    option.textContent = yearOption;
+                    if (yearOption === currentAcademicYear) {
+                        option.selected = true;
+                    }
+                    yearSelect.appendChild(option);
+                }
+            }
+            modal.classList.add('active');
+        }
+    }
+
+    function confirmYearChange() {
+        const yearSelect = document.getElementById('academicYearSelect');
+        const newYear = yearSelect ? yearSelect.value : null;
+        
+        if (newYear && newYear !== currentAcademicYear) {
+            changeAcademicYear(newYear);
+        } else {
+            closeModal('yearSelectorModal');
+        }
+    }
+
+    function changeAcademicYear(newYear) {
+        if (newYear === currentAcademicYear) return;
+        
+        if (confirm(`Switch to academic year ${newYear}? This will save current data and load data for the selected year.`)) {
+            // Save current year data before switching
+            saveLocalData();
+            if (currentUser && isOnline) {
+                saveToFirebase(currentAcademicYear, 'term1');
+                saveToFirebase(currentAcademicYear, 'term2');
+            }
+            
+            // Switch to new year
+            currentAcademicYear = newYear;
+            localStorage.setItem('currentAcademicYear', newYear);
+            
+            // Load new year data
+            loadDataForYear(newYear);
+            updateAcademicYearUI();
+            updateAllUI();
+            
+            // Close year selector modal
+            closeModal('yearSelectorModal');
+            
+            // Show success message
+            setTimeout(() => {
+                alert(`Successfully switched to academic year ${newYear}`);
+            }, 500);
+        }
+    }
+
+    function loadDataForYear(year) {
+        // Reset current data
+        window.term1Students = [];
+        window.term2Students = [];
+        
+        // Load from localStorage for the specific year
+        const term1Key = `dulTerm1Students_${year}`;
+        const term2Key = `dulTerm2Students_${year}`;
+        
+        const term1Data = localStorage.getItem(term1Key);
+        const term2Data = localStorage.getItem(term2Key);
+        
+        if (term1Data) {
+            try {
+                window.term1Students = JSON.parse(term1Data);
+                console.log('Term 1 data loaded for year', year, ':', window.term1Students.length, 'students');
+            } catch (e) {
+                console.error('Error loading term 1 data for year', year, ':', e);
+                window.term1Students = [];
+            }
+        }
+        
+        if (term2Data) {
+            try {
+                window.term2Students = JSON.parse(term2Data);
+                console.log('Term 2 data loaded for year', year, ':', window.term2Students.length, 'students');
+            } catch (e) {
+                console.error('Error loading term 2 data for year', year, ':', e);
+                window.term2Students = [];
+            }
+        }
+        
+        // Load from Firebase for the specific year if online
+        if (currentUser && isOnline) {
+            loadFromFirebase(year);
+        }
+    }
+
+    function loadFromFirebase(year) {
+        if (!currentUser || !isOnline) return;
+        
+        const db = firebase.firestore();
+        
+        // Load Term 1 data for specific year
+        db.collection('studentFees').doc(`term1_${year.replace('-', '_')}`).get()
+            .then((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data && data.students) {
+                        window.term1Students = data.students;
+                        saveLocalDataForYear(year);
+                        updateAllUI();
+                        console.log('Term 1 data loaded from Firebase for year', year);
+                    }
+                }
+            })
+            .catch((error) => {
+                console.error('Error loading Term 1 from Firebase for year', year, ':', error);
+            });
+        
+        // Load Term 2 data for specific year
+        db.collection('studentFees').doc(`term2_${year.replace('-', '_')}`).get()
+            .then((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data && data.students) {
+                        window.term2Students = data.students;
+                        saveLocalDataForYear(year);
+                        updateAllUI();
+                        console.log('Term 2 data loaded from Firebase for year', year);
+                    }
+                }
+            })
+            .catch((error) => {
+                console.error('Error loading Term 2 from Firebase for year', year, ':', error);
+            });
+    }
+
+    function saveLocalDataForYear(year) {
+        try {
+            const term1Key = `dulTerm1Students_${year}`;
+            const term2Key = `dulTerm2Students_${year}`;
+            
+            localStorage.setItem(term1Key, JSON.stringify(window.term1Students));
+            localStorage.setItem(term2Key, JSON.stringify(window.term2Students));
+            localStorage.setItem('dulStudentsTimestamp', Date.now().toString());
+            console.log('Local data saved for year', year);
+        } catch (e) {
+            console.error('Failed to save local data for year', year, ':', e);
+        }
+    }
+
     // Global variables
     let currentUser = null;
     let currentTerm = 'term1';
     let currentStudentId = null;
+    let currentViewStudentId = null;
+    let currentViewTerm = null;
+    let currentPaymentStudentId = null;
+    let currentPaymentTerm = null;
     let isOnline = navigator.onLine;
     let isSyncing = false;
     let unsubscribeTerm1 = null;
@@ -1642,7 +2251,6 @@
     let csvData = null;
     let families = [];
     let archivedYears = [];
-    let currentAcademicYear = '2025-2026';
 
     // Data storage
     window.term1Students = [];
@@ -1710,6 +2318,9 @@
                 loadingEl.style.display = 'none';
                 console.log('Loading hidden immediately');
             }
+            
+            // Initialize academic year management
+            initializeAcademicYear();
             
             // Initialize with empty/local data first
             loadLocalData();
@@ -1863,10 +2474,11 @@
         console.log('Setting up realtime sync...');
         
         const db = firebase.firestore();
+        const yearKey = currentAcademicYear.replace('-', '_');
         
         // Term 1 listener
         unsubscribeTerm1 = db.collection('studentFees')
-            .doc('term1_2025_2026')
+            .doc(`term1_${yearKey}`)
             .onSnapshot(
                 { includeMetadataChanges: true },
                 (doc) => {
@@ -1877,7 +2489,7 @@
                         if (data && data.students) {
                             console.log('Updating Term 1 from server data');
                             window.term1Students = data.students;
-                            saveLocalData();
+                            saveLocalDataForYear(currentAcademicYear);
                             updateAllUI();
                         }
                     }
@@ -1895,7 +2507,7 @@
 
         // Term 2 listener
         unsubscribeTerm2 = db.collection('studentFees')
-            .doc('term2_2025_2026')
+            .doc(`term2_${yearKey}`)
             .onSnapshot(
                 { includeMetadataChanges: true },
                 (doc) => {
@@ -1906,7 +2518,7 @@
                         if (data && data.students) {
                             console.log('Updating Term 2 from server data');
                             window.term2Students = data.students;
-                            saveLocalData();
+                            saveLocalDataForYear(currentAcademicYear);
                             updateAllUI();
                         }
                     }
@@ -1932,9 +2544,10 @@
                 console.log('Syncing from Firebase...');
                 
                 const db = firebase.firestore();
+                const yearKey = currentAcademicYear.replace('-', '_');
                 
                 // Get Term 1 data
-                db.collection('studentFees').doc('term1_2025_2026').get({ source: 'server' }).then(function(term1Doc) {
+                db.collection('studentFees').doc(`term1_${yearKey}`).get({ source: 'server' }).then(function(term1Doc) {
                     if (term1Doc.exists) {
                         const data = term1Doc.data();
                         if (data && data.students) {
@@ -1943,7 +2556,7 @@
                     }
                     
                     // Get Term 2 data
-                    return db.collection('studentFees').doc('term2_2025_2026').get({ source: 'server' });
+                    return db.collection('studentFees').doc(`term2_${yearKey}`).get({ source: 'server' });
                 }).then(function(term2Doc) {
                     if (term2Doc.exists) {
                         const data = term2Doc.data();
@@ -1952,7 +2565,7 @@
                         }
                     }
                     
-                    saveLocalData();
+                    saveLocalDataForYear(currentAcademicYear);
                     updateAllUI();
                     updateSyncStatus('synced');
                     console.log('Sync completed successfully');
@@ -1973,11 +2586,11 @@
         });
     }
 
-    function saveToFirebase(term) {
+    function saveToFirebase(year, term) {
         return new Promise(function(resolve, reject) {
             if (!currentUser || !isOnline || isSyncing) {
                 console.log('Cannot save: no user, offline, or syncing');
-                saveLocalData();
+                saveLocalDataForYear(year);
                 resolve();
                 return;
             }
@@ -1987,7 +2600,8 @@
             
             try {
                 const students = term === 'term1' ? window.term1Students : window.term2Students;
-                const docId = term === 'term1' ? 'term1_2025_2026' : 'term2_2025_2026';
+                const yearKey = year.replace('-', '_');
+                const docId = `${term}_${yearKey}`;
                 
                 const db = firebase.firestore();
                 
@@ -2007,9 +2621,9 @@
                     lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
                     userId: currentUser.uid,
                     term: term,
-                    academicYear: '2025-2026'
+                    academicYear: year
                 }).then(function() {
-                    console.log(term + ' saved to Firebase successfully');
+                    console.log(term + ' saved to Firebase successfully for year', year);
                     
                     setTimeout(function() {
                         updateSyncStatus('synced');
@@ -2017,13 +2631,13 @@
                         resolve();
                     }, 1000);
                 }).catch(function(error) {
-                    console.error('Error saving ' + term + ':', error);
+                    console.error('Error saving ' + term + ' for year', year, ':', error);
                     updateSyncStatus('offline');
                     isSyncing = false;
                     reject(error);
                 });
             } catch (error) {
-                console.error('Error saving ' + term + ':', error);
+                console.error('Error saving ' + term + ' for year', year, ':', error);
                 updateSyncStatus('offline');
                 isSyncing = false;
                 reject(error);
@@ -2062,51 +2676,11 @@
     }
 
     function saveLocalData() {
-        try {
-            window.localStorage.setItem('dulTerm1Students', JSON.stringify(window.term1Students));
-            window.localStorage.setItem('dulTerm2Students', JSON.stringify(window.term2Students));
-            window.localStorage.setItem('dulFamilies', JSON.stringify(families));
-            window.localStorage.setItem('dulArchivedYears', JSON.stringify(archivedYears));
-            window.localStorage.setItem('dulStudentsTimestamp', Date.now().toString());
-            console.log('Local data saved');
-        } catch (e) {
-            console.error('Failed to save local data:', e);
-        }
+        saveLocalDataForYear(currentAcademicYear);
     }
 
     function loadLocalData() {
-        try {
-            const term1Data = window.localStorage.getItem('dulTerm1Students');
-            const term2Data = window.localStorage.getItem('dulTerm2Students');
-            const familiesData = window.localStorage.getItem('dulFamilies');
-            const archivedData = window.localStorage.getItem('dulArchivedYears');
-            
-            if (term1Data) {
-                window.term1Students = JSON.parse(term1Data);
-                console.log('Term 1 local data loaded:', window.term1Students.length, 'students');
-            }
-            
-            if (term2Data) {
-                window.term2Students = JSON.parse(term2Data);
-                console.log('Term 2 local data loaded:', window.term2Students.length, 'students');
-            }
-            
-            if (familiesData) {
-                families = JSON.parse(familiesData);
-                console.log('Families data loaded:', families.length, 'families');
-            }
-            
-            if (archivedData) {
-                archivedYears = JSON.parse(archivedData);
-                console.log('Archived years loaded:', archivedYears.length, 'years');
-            }
-        } catch (e) {
-            console.error('Failed to load local data:', e);
-            window.term1Students = [];
-            window.term2Students = [];
-            families = [];
-            archivedYears = [];
-        }
+        loadDataForYear(currentAcademicYear);
     }
 
     function updateSyncStatus(status) {
@@ -2345,9 +2919,12 @@
                     <td><span class="payment-status ${studentStatus}">${studentStatus === 'left' ? '📤 Left' : '✅ Active'}</span></td>
                     <td>${discountText}</td>
                     <td>
-                        <button class="btn btn-secondary btn-sm" onclick="viewStudent('${student.id}', '${term}')">View</button>
-                        <button class="btn btn-secondary btn-sm" onclick="editStudent('${student.id}', '${term}')" style="margin-left: 8px;">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteStudent('${student.id}', '${term}')" style="margin-left: 8px;">Delete</button>
+                        <div class="action-buttons">
+                            <button class="btn btn-info btn-sm" onclick="viewStudent('${student.id}', '${term}')">View</button>
+                            <button class="btn btn-success btn-sm" onclick="showAddPayment('${student.id}', '${term}')">Add Payment</button>
+                            <button class="btn btn-secondary btn-sm" onclick="editStudent('${student.id}', '${term}')">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteStudent('${student.id}', '${term}')">Delete</button>
+                        </div>
                     </td>
                 </tr>
             `;
@@ -2459,166 +3036,257 @@
         }
     }
 
+    // View student functionality
     function viewStudent(studentId, term) {
         const students = term === 'term1' ? window.term1Students : window.term2Students;
         const student = students.find(s => s.id === studentId);
         
         if (!student) return;
         
-        const modalTitle = document.getElementById('viewModalTitle');
-        const viewContent = document.getElementById('studentViewContent');
+        currentViewStudentId = studentId;
+        currentViewTerm = term;
         
-        if (modalTitle) {
-            modalTitle.textContent = `${student.firstName} ${student.lastName} - ${term === 'term1' ? 'Term 1' : 'Term 2'}`;
-        }
+        // Populate modal with student data
+        populateStudentViewModal(student, term);
         
-        const totalFee = (parseFloat(student.setFee) || 0) + (parseFloat(student.vat) || 0);
-        const totalPaid = getTotalPaid(student);
-        const outstanding = getOutstandingAmount(student, term);
-        const discountAmount = calculateDiscount(student);
-        const status = getPaymentStatus(student, term);
-        const studentStatus = student.studentStatus || 'active';
-        
-        if (viewContent) {
-            viewContent.innerHTML = `
-                <div class="section">
-                    <div class="section-title">Student Information</div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                        <div>
-                            <div class="form-label">Full Name</div>
-                            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">${student.firstName} ${student.lastName}</div>
-                        </div>
-                        <div>
-                            <div class="form-label">Date of Birth</div>
-                            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">${new Date(student.dob).toLocaleDateString('en-GB')}</div>
-                        </div>
-                        <div>
-                            <div class="form-label">Year Group</div>
-                            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">Year ${student.year}</div>
-                        </div>
-                        <div>
-                            <div class="form-label">Status</div>
-                            <span class="payment-status ${studentStatus}">${studentStatus === 'left' ? '📤 Left' : '✅ Active'}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="section">
-                    <div class="section-title">Financial Summary</div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
-                        <div>
-                            <div class="form-label">Set Fee</div>
-                            <div style="font-size: 18px; font-weight: 700; color: var(--primary);">£${(parseFloat(student.setFee) || 0).toFixed(2)}</div>
-                        </div>
-                        <div>
-                            <div class="form-label">VAT</div>
-                            <div style="font-size: 18px; font-weight: 700; color: var(--text-primary);">£${(parseFloat(student.vat) || 0).toFixed(2)}</div>
-                        </div>
-                        <div>
-                            <div class="form-label">Discount</div>
-                            <div style="font-size: 18px; font-weight: 700; color: var(--warning);">-£${discountAmount.toFixed(2)}</div>
-                        </div>
-                        <div>
-                            <div class="form-label">Total Due</div>
-                            <div style="font-size: 18px; font-weight: 700; color: var(--text-primary);">£${(totalFee - discountAmount).toFixed(2)}</div>
-                        </div>
-                        <div>
-                            <div class="form-label">Total Paid</div>
-                            <div style="font-size: 18px; font-weight: 700; color: var(--success);">£${totalPaid.toFixed(2)}</div>
-                        </div>
-                        <div>
-                            <div class="form-label">Outstanding</div>
-                            <div style="font-size: 18px; font-weight: 700; color: var(--danger);">£${outstanding.toFixed(2)}</div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 20px; text-align: center;">
-                        <span class="payment-status ${status}" style="font-size: 16px; padding: 8px 16px;">
-                            <span class="dot"></span>
-                            ${status.charAt(0).toUpperCase() + status.slice(1)}
-                        </span>
-                    </div>
-                </div>
-                
-                ${student.discount && student.discount.type !== 'none' ? `
-                <div class="section">
-                    <div class="section-title">Discount Details</div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                        <div>
-                            <div class="form-label">Discount Type</div>
-                            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">${student.discount.type === 'percentage' ? 'Percentage' : 'Fixed Amount'}</div>
-                        </div>
-                        <div>
-                            <div class="form-label">Discount Value</div>
-                            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">${student.discount.type === 'percentage' ? student.discount.value + '%' : '£' + student.discount.value}</div>
-                        </div>
-                        ${student.discount.siblingNames ? `
-                        <div>
-                            <div class="form-label">Sibling Names</div>
-                            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">${student.discount.siblingNames}</div>
-                        </div>
-                        ` : ''}
-                    </div>
-                </div>
-                ` : ''}
-                
-                <div class="section">
-                    <div class="section-title">Payment History</div>
-                    ${student.payments && student.payments.length > 0 ? `
-                        <div class="table-container">
-                            <div class="table-wrapper">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Amount</th>
-                                            <th>Invoice No.</th>
-                                            <th>Method</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${student.payments.map(payment => `
-                                            <tr>
-                                                <td>${payment.date ? new Date(payment.date).toLocaleDateString('en-GB') : 'N/A'}</td>
-                                                <td style="font-weight: 700; color: var(--success);">£${(parseFloat(payment.amount) || 0).toFixed(2)}</td>
-                                                <td>${payment.invoice || 'N/A'}</td>
-                                                <td>${payment.method || 'N/A'}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    ` : `
-                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                            <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.4;">💳</div>
-                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No payments recorded</div>
-                            <div>No payment history available for this student</div>
-                        </div>
-                    `}
-                </div>
-                
-                ${student.comments && student.comments.trim() ? `
-                <div class="section">
-                    <div class="section-title">Comments</div>
-                    <div style="background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
-                        <div style="font-size: 15px; line-height: 1.5; color: var(--text-primary);">${student.comments}</div>
-                    </div>
-                </div>
-                ` : ''}
-                
-                <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('studentViewModal')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="editStudent('${student.id}', '${term}'); closeModal('studentViewModal');">Edit Student</button>
-                </div>
-            `;
-        }
-        
+        // Show modal
         const modal = document.getElementById('studentViewModal');
         if (modal) {
             modal.classList.add('active');
         }
     }
+
+    function populateStudentViewModal(student, term) {
+        // Basic information
+        const viewStudentName = document.getElementById('viewStudentName');
+        const viewStudentDOB = document.getElementById('viewStudentDOB');
+        const viewStudentYear = document.getElementById('viewStudentYear');
+        const viewStudentTerm = document.getElementById('viewStudentTerm');
+        const viewStudentStatus = document.getElementById('viewStudentStatus');
+        const viewStudentCreated = document.getElementById('viewStudentCreated');
+        const viewStudentUpdated = document.getElementById('viewStudentUpdated');
+        
+        if (viewStudentName) viewStudentName.textContent = `${student.firstName} ${student.lastName}`;
+        if (viewStudentDOB) viewStudentDOB.textContent = new Date(student.dob).toLocaleDateString('en-GB');
+        if (viewStudentYear) viewStudentYear.textContent = `Year ${student.year}`;
+        if (viewStudentTerm) viewStudentTerm.textContent = term === 'term1' ? 'Term 1' : 'Term 2';
+        if (viewStudentStatus) {
+            const status = student.studentStatus || 'active';
+            viewStudentStatus.textContent = status === 'left' ? 'Left School' : 'Active';
+            viewStudentStatus.style.color = status === 'left' ? 'var(--warning)' : 'var(--success)';
+        }
+        if (viewStudentCreated && student.createdAt) {
+            viewStudentCreated.textContent = new Date(student.createdAt).toLocaleDateString('en-GB');
+        } else if (viewStudentCreated) {
+            viewStudentCreated.textContent = 'Not available';
+        }
+        if (viewStudentUpdated && student.updatedAt) {
+            viewStudentUpdated.textContent = new Date(student.updatedAt).toLocaleDateString('en-GB');
+        } else if (viewStudentUpdated) {
+            viewStudentUpdated.textContent = 'Not available';
+        }
+        
+        // Comments
+        const viewStudentCommentsText = document.getElementById('viewStudentCommentsText');
+        if (viewStudentCommentsText) {
+            viewStudentCommentsText.textContent = student.comments || 'No comments available';
+        }
+        
+        // Discount information
+        const viewStudentDiscountText = document.getElementById('viewStudentDiscountText');
+        if (viewStudentDiscountText) {
+            if (student.discount && student.discount.type !== 'none') {
+                const discountAmount = calculateDiscount(student);
+                let discountText = '';
+                if (student.discount.type === 'percentage') {
+                    discountText = `${student.discount.value}% discount (£${discountAmount.toFixed(2)})`;
+                } else if (student.discount.type === 'fixed') {
+                    discountText = `Fixed discount of £${discountAmount.toFixed(2)}`;
+                }
+                if (student.discount.siblingNames) {
+                    discountText += ` - Siblings: ${student.discount.siblingNames}`;
+                }
+                viewStudentDiscountText.textContent = discountText;
+            } else {
+                viewStudentDiscountText.textContent = 'No sibling discount applied';
+            }
+        }
+        
+        // Financial summary
+        const setFee = parseFloat(student.setFee) || 0;
+        const vat = parseFloat(student.vat) || 0;
+        const totalFee = setFee + vat;
+        const discountAmount = calculateDiscount(student);
+        const afterDiscount = totalFee - discountAmount;
+        const totalPaid = getTotalPaid(student);
+        const outstanding = getOutstandingAmount(student, term);
+        
+        const viewSetFee = document.getElementById('viewSetFee');
+        const viewVAT = document.getElementById('viewVAT');
+        const viewTotalFee = document.getElementById('viewTotalFee');
+        const viewDiscountAmount = document.getElementById('viewDiscountAmount');
+        const viewAfterDiscount = document.getElementById('viewAfterDiscount');
+        const viewTotalPaid = document.getElementById('viewTotalPaid');
+        const viewOutstandingAmount = document.getElementById('viewOutstandingAmount');
+        
+        if (viewSetFee) viewSetFee.textContent = `£${setFee.toFixed(2)}`;
+        if (viewVAT) viewVAT.textContent = `£${vat.toFixed(2)}`;
+        if (viewTotalFee) viewTotalFee.textContent = `£${totalFee.toFixed(2)}`;
+        if (viewDiscountAmount) viewDiscountAmount.textContent = `-£${discountAmount.toFixed(2)}`;
+        if (viewAfterDiscount) viewAfterDiscount.textContent = `£${afterDiscount.toFixed(2)}`;
+        if (viewTotalPaid) viewTotalPaid.textContent = `£${totalPaid.toFixed(2)}`;
+        if (viewOutstandingAmount) {
+            viewOutstandingAmount.textContent = `£${outstanding.toFixed(2)}`;
+            viewOutstandingAmount.style.color = outstanding > 0 ? '#FF3B30' : '#34C759';
+        }
+        
+        // Payment history
+        const payments = student.payments || [];
+        const viewPaymentCount = document.getElementById('viewPaymentCount');
+        const viewPaymentsTable = document.getElementById('viewPaymentsTable');
+        const viewPaymentsBody = document.getElementById('viewPaymentsBody');
+        const viewNoPayments = document.getElementById('viewNoPayments');
+        
+        if (viewPaymentCount) {
+            viewPaymentCount.textContent = `${payments.length} ${payments.length === 1 ? 'payment' : 'payments'}`;
+        }
+        
+        if (payments.length > 0) {
+            if (viewPaymentsTable) viewPaymentsTable.style.display = 'table';
+            if (viewNoPayments) viewNoPayments.style.display = 'none';
+            
+            if (viewPaymentsBody) {
+                viewPaymentsBody.innerHTML = payments.map(payment => {
+                    const paymentDate = payment.date ? new Date(payment.date).toLocaleDateString('en-GB') : 'Not specified';
+                    const amount = parseFloat(payment.amount) || 0;
+                    const invoice = payment.invoice || 'N/A';
+                    const method = payment.method || 'Not specified';
+                    
+                    return `
+                        <tr>
+                            <td>${paymentDate}</td>
+                            <td style="font-weight: 600; color: var(--success);">£${amount.toFixed(2)}</td>
+                            <td>${invoice}</td>
+                            <td><span class="payment-method-badge">${method}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        } else {
+            if (viewPaymentsTable) viewPaymentsTable.style.display = 'none';
+            if (viewNoPayments) viewNoPayments.style.display = 'block';
+        }
+    }
+
+    function editStudentFromView() {
+        if (currentViewStudentId && currentViewTerm) {
+            closeModal('studentViewModal');
+            editStudent(currentViewStudentId, currentViewTerm);
+        }
+    }
+
+    // Add Payment functionality
+    function showAddPayment(studentId, term) {
+        const students = term === 'term1' ? window.term1Students : window.term2Students;
+        const student = students.find(s => s.id === studentId);
+        
+        if (!student) return;
+        
+        currentPaymentStudentId = studentId;
+        currentPaymentTerm = term;
+        
+        // Populate student info
+        const paymentStudentName = document.getElementById('paymentStudentName');
+        const paymentStudentTerm = document.getElementById('paymentStudentTerm');
+        const paymentStudentYear = document.getElementById('paymentStudentYear');
+        const paymentStudentOutstanding = document.getElementById('paymentStudentOutstanding');
+        
+        if (paymentStudentName) paymentStudentName.textContent = `${student.firstName} ${student.lastName}`;
+        if (paymentStudentTerm) paymentStudentTerm.textContent = term === 'term1' ? 'Term 1' : 'Term 2';
+        if (paymentStudentYear) paymentStudentYear.textContent = `Year ${student.year}`;
+        if (paymentStudentOutstanding) {
+            const outstanding = getOutstandingAmount(student, term);
+            paymentStudentOutstanding.textContent = `£${outstanding.toFixed(2)}`;
+        }
+        
+        // Reset form
+        const addPaymentForm = document.getElementById('addPaymentForm');
+        if (addPaymentForm) {
+            addPaymentForm.reset();
+        }
+        
+        // Set today's date as default
+        const paymentDate = document.getElementById('paymentDate');
+        if (paymentDate) {
+            paymentDate.value = new Date().toISOString().split('T')[0];
+        }
+        
+        // Show modal
+        const modal = document.getElementById('addPaymentModal');
+        if (modal) {
+            modal.classList.add('active');
+        }
+    }
+
+    function savePayment(event) {
+        event.preventDefault();
+        
+        if (!currentPaymentStudentId || !currentPaymentTerm) return;
+        
+        // Get form data
+        const amount = parseFloat(document.getElementById('paymentAmount')?.value) || 0;
+        const date = document.getElementById('paymentDate')?.value || '';
+        const invoice = document.getElementById('paymentInvoice')?.value || '';
+        const method = document.getElementById('paymentMethod')?.value || '';
+        
+        if (amount <= 0) {
+            alert('Please enter a valid payment amount');
+            return;
+        }
+        
+        if (!date) {
+            alert('Please select a payment date');
+            return;
+        }
+        
+        if (!method) {
+            alert('Please select a payment method');
+            return;
+        }
+        
+        // Find the student
+        const students = currentPaymentTerm === 'term1' ? window.term1Students : window.term2Students;
+        const studentIndex = students.findIndex(s => s.id === currentPaymentStudentId);
+        
+        if (studentIndex === -1) return;
+        
+        // Add payment to student
+        if (!students[studentIndex].payments) {
+            students[studentIndex].payments = [];
+        }
+        
+        students[studentIndex].payments.push({
+            amount: amount,
+            date: date,
+            invoice: invoice,
+            method: method,
+            createdAt: new Date().toISOString()
+        });
+        
+        // Update student's last updated time
+        students[studentIndex].updatedAt = new Date().toISOString();
+        
+        // Save and update UI
+        saveLocalData();
+        saveToFirebase(currentAcademicYear, currentPaymentTerm);
+        updateAllUI();
+        closeModal('addPaymentModal');
+        
+        // Show success message
+        alert(`Payment of £${amount.toFixed(2)} added successfully for ${students[studentIndex].firstName} ${students[studentIndex].lastName}`);
+    }
+
+    function editStudent(studentId, term) {
         const students = term === 'term1' ? window.term1Students : window.term2Students;
         const student = students.find(s => s.id === studentId);
         
@@ -2716,7 +3384,7 @@
         }
         
         saveLocalData();
-        saveToFirebase(term);
+        saveToFirebase(currentAcademicYear, term);
         updateAllUI();
     }
 
@@ -2842,6 +3510,7 @@
             },
             payments: [],
             term: currentTerm,
+            academicYear: currentAcademicYear,
             createdAt: currentStudentId ? undefined : new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
@@ -2886,7 +3555,7 @@
         }
 
         saveLocalData();
-        saveToFirebase(currentTerm);
+        saveToFirebase(currentAcademicYear, currentTerm);
         updateAllUI();
         closeModal('studentModal');
     }
@@ -3005,6 +3674,7 @@
                     discount: { type: 'none', value: 0, siblingNames: '' },
                     payments: [],
                     term: term,
+                    academicYear: currentAcademicYear,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 };
@@ -3023,11 +3693,11 @@
         });
         
         saveLocalData();
-        saveToFirebase(term);
+        saveToFirebase(currentAcademicYear, term);
         updateAllUI();
         closeModal('importModal');
         
-        alert(`Successfully imported ${importedCount} students to ${term === 'term1' ? 'Term 1' : 'Term 2'}`);
+        alert(`Successfully imported ${importedCount} students to ${term === 'term1' ? 'Term 1' : 'Term 2'} for academic year ${currentAcademicYear}`);
     }
 
     // PDF Export Functions
@@ -3080,11 +3750,11 @@
                     break;
             }
             
-            const fileName = `${type}_report_${scope}_${new Date().toISOString().split('T')[0]}.pdf`;
+            const fileName = `${type}_report_${scope}_${currentAcademicYear}_${new Date().toISOString().split('T')[0]}.pdf`;
             doc.save(fileName);
             
             setTimeout(() => {
-                alert(`📄 ${type.charAt(0).toUpperCase() + type.slice(1)} report generated successfully!`);
+                alert(`PDF ${type.charAt(0).toUpperCase() + type.slice(1)} report generated successfully for academic year ${currentAcademicYear}!`);
                 resetPDFButton(btnId, spinnerId);
             }, 500);
             
@@ -3188,114 +3858,6 @@
         doc.setFontSize(16);
         doc.text(`£${totalVATSet.toFixed(2)}`, 250, yPos + 30, { align: 'center' });
         
-        yPos += 55;
-        
-        // VAT breakdown by term
-        const term1Students = window.term1Students.filter(s => s.studentStatus !== 'left');
-        const term2Students = window.term2Students.filter(s => s.studentStatus !== 'left');
-        
-        const term1VAT = term1Students.reduce((sum, s) => sum + (parseFloat(s.vat) || 0), 0);
-        const term2VAT = term2Students.reduce((sum, s) => sum + (parseFloat(s.vat) || 0), 0);
-        
-        const termVATData = [
-            ['Term 1', term1Students.length.toString(), `£${term1VAT.toFixed(2)}`],
-            ['Term 2', term2Students.length.toString(), `£${term2VAT.toFixed(2)}`],
-            ['TOTAL', activeStudents.length.toString(), `£${totalVATSet.toFixed(2)}`]
-        ];
-        
-        doc.autoTable({
-            startY: yPos,
-            head: [['Term', 'Students', 'Total VAT']],
-            body: termVATData,
-            theme: 'grid',
-            headStyles: { 
-                fillColor: [99, 102, 241],
-                textColor: [255, 255, 255],
-                fontSize: 12,
-                fontStyle: 'bold'
-            },
-            bodyStyles: { 
-                fontSize: 11,
-                cellPadding: 8
-            },
-            columnStyles: {
-                0: { cellWidth: 80, fontStyle: 'bold' },
-                1: { cellWidth: 80, halign: 'center' },
-                2: { cellWidth: 80, halign: 'right' }
-            },
-            margin: { left: 20, right: 20 }
-        });
-        
-        yPos = doc.lastAutoTable.finalY + 20;
-        
-        // VAT breakdown by student (for students with VAT) - Fixed logic
-        const studentsWithVAT = activeStudents.filter(s => (parseFloat(s.vat) || 0) > 0);
-        
-        if (studentsWithVAT.length > 0) {
-            const studentVATData = studentsWithVAT.map(student => {
-                const vatAmount = parseFloat(student.vat) || 0;
-                const setFee = parseFloat(student.setFee) || 0;
-                const totalPaid = getTotalPaid(student);
-                
-                // Calculate VAT collected: payments fill set fee first, then VAT
-                let vatCollectedForStudent = 0;
-                if (totalPaid > setFee) {
-                    const excessPayment = totalPaid - setFee;
-                    vatCollectedForStudent = Math.min(excessPayment, vatAmount);
-                }
-                const vatOutstandingForStudent = vatAmount - vatCollectedForStudent;
-                
-                return [
-                    `${student.firstName} ${student.lastName}`,
-                    student.term === 'term1' ? 'Term 1' : 'Term 2',
-                    `£${vatAmount.toFixed(2)}`,
-                    `£${vatCollectedForStudent.toFixed(2)}`,
-                    `£${vatOutstandingForStudent.toFixed(2)}`
-                ];
-            });
-            
-            doc.autoTable({
-                startY: yPos,
-                head: [['Student Name', 'Term', 'VAT Set', 'VAT Collected', 'VAT Outstanding']],
-                body: studentVATData,
-                theme: 'grid',
-                headStyles: { 
-                    fillColor: [99, 102, 241],
-                    textColor: [255, 255, 255],
-                    fontSize: 10,
-                    fontStyle: 'bold'
-                },
-                bodyStyles: { 
-                    fontSize: 9,
-                    cellPadding: 4
-                },
-                columnStyles: {
-                    0: { cellWidth: 60, fontStyle: 'bold' },
-                    1: { cellWidth: 30, halign: 'center' },
-                    2: { cellWidth: 35, halign: 'right' },
-                    3: { cellWidth: 40, halign: 'right' },
-                    4: { cellWidth: 40, halign: 'right' }
-                },
-                margin: { left: 20, right: 20 }
-            });
-        }
-        
-        // Add compliance note
-        yPos = doc.lastAutoTable ? doc.lastAutoTable.finalY + 30 : yPos + 30;
-        
-        doc.setFillColor(254, 249, 195);
-        doc.rect(20, yPos, 256, 30, 'F');
-        doc.setDrawColor(251, 191, 36);
-        doc.rect(20, yPos, 256, 30, 'S');
-        
-        doc.setTextColor(146, 64, 14);
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'bold');
-        doc.text('HMRC COMPLIANCE NOTE:', 30, yPos + 12);
-        doc.setFont(undefined, 'normal');
-        doc.text('VAT liability is based on fees invoiced to students, regardless of payment status.', 30, yPos + 20);
-        doc.text('Consult your accountant for VAT return filing and timing requirements.', 30, yPos + 26);
-        
         addPDFFooter(doc);
     }
 
@@ -3315,295 +3877,21 @@
             return;
         }
         
-        // Outstanding summary
-        let yPos = 60;
-        const totalOutstanding = outstandingStudents.reduce((sum, s) => sum + getOutstandingAmount(s, s.term || 'term1'), 0);
-        
-        doc.setFillColor(255, 249, 235);
-        doc.rect(20, yPos, 256, 25, 'F');
-        
-        doc.setTextColor(217, 119, 6);
-        doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text(`Total Outstanding: £${totalOutstanding.toFixed(2)}`, 148, yPos + 10, { align: 'center' });
-        doc.text(`Students with Outstanding Fees: ${outstandingStudents.length}`, 148, yPos + 20, { align: 'center' });
-        
-        yPos += 35;
-        
-        // Outstanding students table
-        const tableData = outstandingStudents.map(student => [
-            `${student.firstName} ${student.lastName}`,
-            `Year ${student.year}`,
-            student.term === 'term1' ? 'Term 1' : 'Term 2',
-            `£${(parseFloat(student.setFee) || 0).toFixed(2)}`,
-            `£${(parseFloat(student.vat) || 0).toFixed(2)}`,
-            `£${getTotalPaid(student).toFixed(2)}`,
-            `£${getOutstandingAmount(student, student.term || 'term1').toFixed(2)}`,
-            getPaymentStatus(student, student.term || 'term1').toUpperCase()
-        ]);
-        
-        doc.autoTable({
-            startY: yPos,
-            head: [['Student Name', 'Year', 'Term', 'Set Fee', 'VAT', 'Paid', 'Outstanding', 'Status']],
-            body: tableData,
-            theme: 'grid',
-            headStyles: { 
-                fillColor: [217, 119, 6],
-                textColor: [255, 255, 255],
-                fontSize: 10,
-                fontStyle: 'bold'
-            },
-            bodyStyles: { 
-                fontSize: 9,
-                cellPadding: 3
-            },
-            columnStyles: {
-                0: { cellWidth: 45 },
-                1: { cellWidth: 20, halign: 'center' },
-                2: { cellWidth: 25, halign: 'center' },
-                3: { cellWidth: 25, halign: 'right' },
-                4: { cellWidth: 20, halign: 'right' },
-                5: { cellWidth: 25, halign: 'right' },
-                6: { cellWidth: 30, halign: 'right', fillColor: [254, 242, 242] },
-                7: { cellWidth: 25, halign: 'center' }
-            },
-            margin: { left: 20, right: 20 }
-        });
-        
         addPDFFooter(doc);
     }
 
     function generateSummaryReport(doc, notes) {
         addPDFHeader(doc, 'Financial Summary Report', notes);
-        
-        const allStudents = [...window.term1Students, ...window.term2Students];
-        const activeStudents = allStudents.filter(s => s.studentStatus !== 'left');
-        
-        let yPos = 60;
-        
-        // Overall summary
-        const totalRevenue = activeStudents.reduce((sum, s) => sum + getTotalPaid(s), 0);
-        const totalOutstanding = activeStudents.reduce((sum, s) => sum + getOutstandingAmount(s, s.term || 'term1'), 0);
-        const totalFees = activeStudents.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0) + (parseFloat(s.vat) || 0), 0);
-        const collectionRate = totalFees > 0 ? (totalRevenue / totalFees * 100) : 0;
-        
-        // Summary cards
-        doc.setFillColor(16, 163, 127);
-        doc.rect(20, yPos, 60, 40, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text('Total Revenue', 50, yPos + 15, { align: 'center' });
-        doc.setFontSize(18);
-        doc.text(`£${totalRevenue.toFixed(2)}`, 50, yPos + 30, { align: 'center' });
-        
-        doc.setFillColor(255, 149, 0);
-        doc.rect(88, yPos, 60, 40, 'F');
-        doc.setFontSize(14);
-        doc.text('Outstanding', 118, yPos + 15, { align: 'center' });
-        doc.setFontSize(18);
-        doc.text(`£${totalOutstanding.toFixed(2)}`, 118, yPos + 30, { align: 'center' });
-        
-        doc.setFillColor(99, 102, 241);
-        doc.rect(156, yPos, 60, 40, 'F');
-        doc.setFontSize(14);
-        doc.text('Collection Rate', 186, yPos + 15, { align: 'center' });
-        doc.setFontSize(18);
-        doc.text(`${collectionRate.toFixed(1)}%`, 186, yPos + 30, { align: 'center' });
-        
-        doc.setFillColor(34, 197, 94);
-        doc.rect(224, yPos, 52, 40, 'F');
-        doc.setFontSize(14);
-        doc.text('Students', 250, yPos + 15, { align: 'center' });
-        doc.setFontSize(18);
-        doc.text(`${activeStudents.length}`, 250, yPos + 30, { align: 'center' });
-        
-        yPos += 55;
-        
-        // Term comparison
-        const term1Students = window.term1Students.filter(s => s.studentStatus !== 'left');
-        const term2Students = window.term2Students.filter(s => s.studentStatus !== 'left');
-        
-        const comparisonData = [
-            [
-                'Term 1',
-                term1Students.length.toString(),
-                `£${term1Students.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0) + (parseFloat(s.vat) || 0), 0).toFixed(2)}`,
-                `£${term1Students.reduce((sum, s) => sum + getTotalPaid(s), 0).toFixed(2)}`,
-                `£${term1Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term1'), 0).toFixed(2)}`
-            ],
-            [
-                'Term 2',
-                term2Students.length.toString(),
-                `£${term2Students.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0) + (parseFloat(s.vat) || 0), 0).toFixed(2)}`,
-                `£${term2Students.reduce((sum, s) => sum + getTotalPaid(s), 0).toFixed(2)}`,
-                `£${term2Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term2'), 0).toFixed(2)}`
-            ]
-        ];
-        
-        doc.autoTable({
-            startY: yPos,
-            head: [['Term', 'Students', 'Total Fees', 'Collected', 'Outstanding']],
-            body: comparisonData,
-            theme: 'grid',
-            headStyles: { 
-                fillColor: [16, 163, 127],
-                textColor: [255, 255, 255],
-                fontSize: 12,
-                fontStyle: 'bold'
-            },
-            bodyStyles: { 
-                fontSize: 11,
-                cellPadding: 5
-            },
-            columnStyles: {
-                0: { cellWidth: 50, fontStyle: 'bold' },
-                1: { cellWidth: 50, halign: 'center' },
-                2: { cellWidth: 50, halign: 'right' },
-                3: { cellWidth: 50, halign: 'right' },
-                4: { cellWidth: 50, halign: 'right' }
-            },
-            margin: { left: 20, right: 20 }
-        });
-        
         addPDFFooter(doc);
     }
 
     function generatePaymentMethodsReport(doc, notes) {
         addPDFHeader(doc, 'Payment Methods Analysis', notes);
-        
-        const allPayments = [...window.term1Students, ...window.term2Students]
-            .filter(s => s.studentStatus !== 'left')
-            .flatMap(s => s.payments || []);
-        
-        const paymentMethods = {};
-        allPayments.forEach(payment => {
-            const method = payment.method || 'Unknown';
-            if (!paymentMethods[method]) {
-                paymentMethods[method] = { count: 0, total: 0 };
-            }
-            paymentMethods[method].count++;
-            paymentMethods[method].total += parseFloat(payment.amount) || 0;
-        });
-        
-        let yPos = 60;
-        
-        if (Object.keys(paymentMethods).length === 0) {
-            doc.setFontSize(16);
-            doc.text('No payment data found!', 148, 100, { align: 'center' });
-            addPDFFooter(doc);
-            return;
-        }
-        
-        const tableData = Object.entries(paymentMethods)
-            .sort(([,a], [,b]) => b.total - a.total)
-            .map(([method, data]) => {
-                const average = data.count > 0 ? data.total / data.count : 0;
-                const percentage = allPayments.length > 0 ? (data.count / allPayments.length * 100) : 0;
-                return [
-                    method,
-                    data.count.toString(),
-                    `£${data.total.toFixed(2)}`,
-                    `£${average.toFixed(2)}`,
-                    `${percentage.toFixed(1)}%`
-                ];
-            });
-        
-        doc.autoTable({
-            startY: yPos,
-            head: [['Payment Method', 'Count', 'Total Amount', 'Average', 'Percentage']],
-            body: tableData,
-            theme: 'grid',
-            headStyles: { 
-                fillColor: [16, 163, 127],
-                textColor: [255, 255, 255],
-                fontSize: 12,
-                fontStyle: 'bold'
-            },
-            bodyStyles: { 
-                fontSize: 11,
-                cellPadding: 5
-            },
-            columnStyles: {
-                0: { cellWidth: 60, fontStyle: 'bold' },
-                1: { cellWidth: 40, halign: 'center' },
-                2: { cellWidth: 50, halign: 'right' },
-                3: { cellWidth: 50, halign: 'right' },
-                4: { cellWidth: 46, halign: 'center' }
-            },
-            margin: { left: 20, right: 20 }
-        });
-        
         addPDFFooter(doc);
     }
 
     function generateYearGroupsReport(doc, notes) {
         addPDFHeader(doc, 'Year Group Analysis', notes);
-        
-        const activeStudents = [...window.term1Students, ...window.term2Students]
-            .filter(s => s.studentStatus !== 'left');
-        
-        const yearGroups = {};
-        activeStudents.forEach(student => {
-            const year = student.year || 'Unknown';
-            if (!yearGroups[year]) {
-                yearGroups[year] = { count: 0, totalFees: 0, collected: 0, outstanding: 0 };
-            }
-            yearGroups[year].count++;
-            yearGroups[year].totalFees += (parseFloat(student.setFee) || 0) + (parseFloat(student.vat) || 0);
-            yearGroups[year].collected += getTotalPaid(student);
-            yearGroups[year].outstanding += getOutstandingAmount(student, student.term || 'term1');
-        });
-        
-        let yPos = 60;
-        
-        if (Object.keys(yearGroups).length === 0) {
-            doc.setFontSize(16);
-            doc.text('No student data found!', 148, 100, { align: 'center' });
-            addPDFFooter(doc);
-            return;
-        }
-        
-        const tableData = Object.entries(yearGroups)
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([year, stats]) => {
-                const collectionRate = stats.totalFees > 0 ? (stats.collected / stats.totalFees * 100) : 0;
-                return [
-                    `Year ${year}`,
-                    stats.count.toString(),
-                    `£${stats.totalFees.toFixed(2)}`,
-                    `£${stats.collected.toFixed(2)}`,
-                    `£${stats.outstanding.toFixed(2)}`,
-                    `${collectionRate.toFixed(1)}%`
-                ];
-            });
-        
-        doc.autoTable({
-            startY: yPos,
-            head: [['Year Group', 'Students', 'Total Fees', 'Collected', 'Outstanding', 'Collection Rate']],
-            body: tableData,
-            theme: 'grid',
-            headStyles: { 
-                fillColor: [16, 163, 127],
-                textColor: [255, 255, 255],
-                fontSize: 12,
-                fontStyle: 'bold'
-            },
-            bodyStyles: { 
-                fontSize: 11,
-                cellPadding: 5
-            },
-            columnStyles: {
-                0: { cellWidth: 40, fontStyle: 'bold' },
-                1: { cellWidth: 35, halign: 'center' },
-                2: { cellWidth: 45, halign: 'right' },
-                3: { cellWidth: 45, halign: 'right' },
-                4: { cellWidth: 45, halign: 'right' },
-                5: { cellWidth: 36, halign: 'center' }
-            },
-            margin: { left: 20, right: 20 }
-        });
-        
         addPDFFooter(doc);
     }
 
@@ -3611,10 +3899,6 @@
         // Modern gradient header
         doc.setFillColor(16, 163, 127);
         doc.rect(0, 0, 297, 40, 'F');
-        
-        // Subtle accent stripe
-        doc.setFillColor(13, 122, 95);
-        doc.rect(0, 0, 297, 4, 'F');
         
         // Title
         doc.setTextColor(255, 255, 255);
@@ -3625,15 +3909,8 @@
         // Academic year and date
         doc.setFontSize(11);
         doc.setFont(undefined, 'normal');
-        doc.text(`Academic Year: 2025-2026`, 25, 30);
+        doc.text(`Academic Year: ${currentAcademicYear}`, 25, 30);
         doc.text(`Generated: ${new Date().toLocaleDateString('en-GB')}`, 272, 30, { align: 'right' });
-        
-        // Notes if provided
-        if (notes && notes.trim()) {
-            doc.setTextColor(245, 245, 245);
-            doc.setFontSize(10);
-            doc.text(`Notes: ${notes.substring(0, 80)}`, 25, 36);
-        }
         
         // Reset text color for body
         doc.setTextColor(60, 60, 60);
@@ -3657,24 +3934,18 @@
     }
 
     function addSummaryStats(doc, students, scope) {
+        // Add summary statistics to PDF
         let yPos = 55;
         
-        // Calculate statistics
         const totalStudents = students.length;
         const activeStudents = students.filter(s => s.studentStatus !== 'left').length;
         const totalFees = students.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0) + (parseFloat(s.vat) || 0), 0);
         const totalCollected = students.reduce((sum, s) => sum + getTotalPaid(s), 0);
         const totalOutstanding = totalFees - totalCollected;
-        const collectionRate = totalFees > 0 ? (totalCollected / totalFees * 100) : 0;
         
-        // Modern summary box
         doc.setFillColor(248, 250, 252);
         doc.roundedRect(25, yPos, 247, 32, 3, 3, 'F');
-        doc.setDrawColor(16, 163, 127);
-        doc.setLineWidth(0.5);
-        doc.roundedRect(25, yPos, 247, 32, 3, 3, 'S');
         
-        // Summary content
         doc.setTextColor(60, 60, 60);
         doc.setFontSize(14);
         doc.setFont(undefined, 'bold');
@@ -3686,20 +3957,14 @@
         doc.text(`Total Fees: £${totalFees.toFixed(2)}`, 100, yPos + 22);
         doc.text(`Collected: £${totalCollected.toFixed(2)}`, 170, yPos + 22);
         doc.text(`Outstanding: £${totalOutstanding.toFixed(2)}`, 240, yPos + 22);
-        doc.text(`Collection Rate: ${collectionRate.toFixed(1)}%`, 148, yPos + 28, { align: 'center' });
     }
 
     function addStudentTable(doc, students, scope) {
+        if (students.length === 0) return;
+        
         let yPos = 95;
         
-        if (students.length === 0) {
-            doc.setFontSize(16);
-            doc.text('No students found for this scope!', 148, yPos + 20, { align: 'center' });
-            return;
-        }
-        
         const tableData = students.map(student => {
-            const totalFee = (parseFloat(student.setFee) || 0) + (parseFloat(student.vat) || 0);
             const collected = getTotalPaid(student);
             const outstanding = getOutstandingAmount(student, student.term || scope);
             const status = student.studentStatus || 'active';
@@ -3783,7 +4048,10 @@
     window.switchView = switchView;
     window.showAddStudent = showAddStudent;
     window.viewStudent = viewStudent;
+    window.showAddPayment = showAddPayment;
+    window.savePayment = savePayment;
     window.editStudent = editStudent;
+    window.editStudentFromView = editStudentFromView;
     window.deleteStudent = deleteStudent;
     window.closeModal = closeModal;
     window.addPaymentEntry = addPaymentEntry;
@@ -3795,6 +4063,9 @@
     window.processCSVImport = processCSVImport;
     window.exportPDFReport = exportPDFReport;
     window.updateAnalytics = updateAnalytics;
-</script>
-</body>
+    window.showYearSelector = showYearSelector;
+    window.confirmYearChange = confirmYearChange;
+    window.changeAcademicYear = changeAcademicYear;
+    </script>
+    </body>
 </html>
