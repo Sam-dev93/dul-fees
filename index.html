@@ -1203,6 +1203,29 @@
                     </div>
                 </div>
 
+                <!-- Import CSV Section -->
+                <div style="margin: 32px 0;">
+                    <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Import Student Data</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+                        <div class="stat-card">
+                            <div class="label">CSV Import</div>
+                            <div style="font-size: 20px; font-weight: 600; margin: 12px 0; color: var(--text-primary);">Upload Student Data</div>
+                            <div class="description" style="margin-bottom: 16px;">Import multiple students from CSV file</div>
+                            <button class="btn btn-primary" onclick="showImportModal()" style="width: 100%;">
+                                📄 Import CSV File
+                            </button>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">Quick Actions</div>
+                            <div style="font-size: 20px; font-weight: 600; margin: 12px 0; color: var(--text-primary);">Manage Data</div>
+                            <div class="description" style="margin-bottom: 16px;">Export or backup your data</div>
+                            <button class="btn btn-secondary" onclick="switchView('reports')" style="width: 100%;">
+                                📊 View Reports
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-top: 32px;">
                     <div class="table-container">
                         <div style="padding: 20px; border-bottom: 1px solid var(--border); background: var(--card-bg-elevated);">
@@ -1395,23 +1418,13 @@
         </main>
     </div>
 
-    <button class="fab" onclick="showFabMenu()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-    </button>
-
-    <!-- Fab Menu -->
-    <div id="fabMenu" class="fab-menu" style="display: none;">
-        <div class="fab-menu-item" onclick="showAddStudent(); hideFabMenu();">
-            <div class="fab-menu-icon">👤</div>
-            <div class="fab-menu-text">Add Student</div>
-        </div>
-        <div class="fab-menu-item" onclick="showImportModal(); hideFabMenu();">
-            <div class="fab-menu-icon">📄</div>
-            <div class="fab-menu-text">Import CSV</div>
-        </div>
+    <div class="fab-container">
+        <button class="fab" onclick="showAddStudent()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </button>
     </div>
 
     <!-- Add/Edit Student Modal -->
@@ -1554,6 +1567,19 @@
                     <button type="submit" class="btn btn-primary">Save Student</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Student View Modal -->
+    <div id="studentViewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="viewModalTitle">Student Overview</h2>
+                <button class="close-btn" onclick="closeModal('studentViewModal')">&times;</button>
+            </div>
+            <div id="studentViewContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
         </div>
     </div>
 
@@ -2319,7 +2345,8 @@
                     <td><span class="payment-status ${studentStatus}">${studentStatus === 'left' ? '📤 Left' : '✅ Active'}</span></td>
                     <td>${discountText}</td>
                     <td>
-                        <button class="btn btn-secondary btn-sm" onclick="editStudent('${student.id}', '${term}')">Edit</button>
+                        <button class="btn btn-secondary btn-sm" onclick="viewStudent('${student.id}', '${term}')">View</button>
+                        <button class="btn btn-secondary btn-sm" onclick="editStudent('${student.id}', '${term}')" style="margin-left: 8px;">Edit</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteStudent('${student.id}', '${term}')" style="margin-left: 8px;">Delete</button>
                     </td>
                 </tr>
@@ -2432,7 +2459,166 @@
         }
     }
 
-    function editStudent(studentId, term) {
+    function viewStudent(studentId, term) {
+        const students = term === 'term1' ? window.term1Students : window.term2Students;
+        const student = students.find(s => s.id === studentId);
+        
+        if (!student) return;
+        
+        const modalTitle = document.getElementById('viewModalTitle');
+        const viewContent = document.getElementById('studentViewContent');
+        
+        if (modalTitle) {
+            modalTitle.textContent = `${student.firstName} ${student.lastName} - ${term === 'term1' ? 'Term 1' : 'Term 2'}`;
+        }
+        
+        const totalFee = (parseFloat(student.setFee) || 0) + (parseFloat(student.vat) || 0);
+        const totalPaid = getTotalPaid(student);
+        const outstanding = getOutstandingAmount(student, term);
+        const discountAmount = calculateDiscount(student);
+        const status = getPaymentStatus(student, term);
+        const studentStatus = student.studentStatus || 'active';
+        
+        if (viewContent) {
+            viewContent.innerHTML = `
+                <div class="section">
+                    <div class="section-title">Student Information</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div>
+                            <div class="form-label">Full Name</div>
+                            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">${student.firstName} ${student.lastName}</div>
+                        </div>
+                        <div>
+                            <div class="form-label">Date of Birth</div>
+                            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">${new Date(student.dob).toLocaleDateString('en-GB')}</div>
+                        </div>
+                        <div>
+                            <div class="form-label">Year Group</div>
+                            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">Year ${student.year}</div>
+                        </div>
+                        <div>
+                            <div class="form-label">Status</div>
+                            <span class="payment-status ${studentStatus}">${studentStatus === 'left' ? '📤 Left' : '✅ Active'}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-title">Financial Summary</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
+                        <div>
+                            <div class="form-label">Set Fee</div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--primary);">£${(parseFloat(student.setFee) || 0).toFixed(2)}</div>
+                        </div>
+                        <div>
+                            <div class="form-label">VAT</div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--text-primary);">£${(parseFloat(student.vat) || 0).toFixed(2)}</div>
+                        </div>
+                        <div>
+                            <div class="form-label">Discount</div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--warning);">-£${discountAmount.toFixed(2)}</div>
+                        </div>
+                        <div>
+                            <div class="form-label">Total Due</div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--text-primary);">£${(totalFee - discountAmount).toFixed(2)}</div>
+                        </div>
+                        <div>
+                            <div class="form-label">Total Paid</div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--success);">£${totalPaid.toFixed(2)}</div>
+                        </div>
+                        <div>
+                            <div class="form-label">Outstanding</div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--danger);">£${outstanding.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; text-align: center;">
+                        <span class="payment-status ${status}" style="font-size: 16px; padding: 8px 16px;">
+                            <span class="dot"></span>
+                            ${status.charAt(0).toUpperCase() + status.slice(1)}
+                        </span>
+                    </div>
+                </div>
+                
+                ${student.discount && student.discount.type !== 'none' ? `
+                <div class="section">
+                    <div class="section-title">Discount Details</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div>
+                            <div class="form-label">Discount Type</div>
+                            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">${student.discount.type === 'percentage' ? 'Percentage' : 'Fixed Amount'}</div>
+                        </div>
+                        <div>
+                            <div class="form-label">Discount Value</div>
+                            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">${student.discount.type === 'percentage' ? student.discount.value + '%' : '£' + student.discount.value}</div>
+                        </div>
+                        ${student.discount.siblingNames ? `
+                        <div>
+                            <div class="form-label">Sibling Names</div>
+                            <div style="font-size: 16px; font-weight: 600; color: var(--text-primary);">${student.discount.siblingNames}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="section">
+                    <div class="section-title">Payment History</div>
+                    ${student.payments && student.payments.length > 0 ? `
+                        <div class="table-container">
+                            <div class="table-wrapper">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Amount</th>
+                                            <th>Invoice No.</th>
+                                            <th>Method</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${student.payments.map(payment => `
+                                            <tr>
+                                                <td>${payment.date ? new Date(payment.date).toLocaleDateString('en-GB') : 'N/A'}</td>
+                                                <td style="font-weight: 700; color: var(--success);">£${(parseFloat(payment.amount) || 0).toFixed(2)}</td>
+                                                <td>${payment.invoice || 'N/A'}</td>
+                                                <td>${payment.method || 'N/A'}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    ` : `
+                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.4;">💳</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No payments recorded</div>
+                            <div>No payment history available for this student</div>
+                        </div>
+                    `}
+                </div>
+                
+                ${student.comments && student.comments.trim() ? `
+                <div class="section">
+                    <div class="section-title">Comments</div>
+                    <div style="background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+                        <div style="font-size: 15px; line-height: 1.5; color: var(--text-primary);">${student.comments}</div>
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('studentViewModal')">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="editStudent('${student.id}', '${term}'); closeModal('studentViewModal');">Edit Student</button>
+                </div>
+            `;
+        }
+        
+        const modal = document.getElementById('studentViewModal');
+        if (modal) {
+            modal.classList.add('active');
+        }
+    }
         const students = term === 'term1' ? window.term1Students : window.term2Students;
         const student = students.find(s => s.id === studentId);
         
@@ -3596,6 +3782,7 @@
     // Make functions globally accessible for onclick handlers
     window.switchView = switchView;
     window.showAddStudent = showAddStudent;
+    window.viewStudent = viewStudent;
     window.editStudent = editStudent;
     window.deleteStudent = deleteStudent;
     window.closeModal = closeModal;
@@ -3608,31 +3795,6 @@
     window.processCSVImport = processCSVImport;
     window.exportPDFReport = exportPDFReport;
     window.updateAnalytics = updateAnalytics;
-    
-    // Fab menu functions
-    window.showFabMenu = function() {
-        const fabMenu = document.getElementById('fabMenu');
-        if (fabMenu) {
-            fabMenu.style.display = 'block';
-        }
-    };
-    
-    window.hideFabMenu = function() {
-        const fabMenu = document.getElementById('fabMenu');
-        if (fabMenu) {
-            fabMenu.style.display = 'none';
-        }
-    };
-    
-    // Close fab menu when clicking outside
-    document.addEventListener('click', function(event) {
-        const fabMenu = document.getElementById('fabMenu');
-        const fab = document.querySelector('.fab');
-        
-        if (fabMenu && fab && !fabMenu.contains(event.target) && !fab.contains(event.target)) {
-            fabMenu.style.display = 'none';
-        }
-    });
 </script>
 </body>
 </html>
