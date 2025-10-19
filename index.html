@@ -2537,7 +2537,7 @@ function deleteSelectedStudents(term) {
     const OriginalDate = Date;
     window.Date = function(dateStr) {
         if (arguments.length === 1 && typeof dateStr === 'string') {
-            return parseDate(dateStr);
+            return parseUKDate(dateStr);
         }
         // For all other cases (multiple arguments, no arguments, etc.), use original Date
         return new (OriginalDate.bind.apply(OriginalDate, [null].concat(Array.prototype.slice.call(arguments))))();
