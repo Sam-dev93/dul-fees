@@ -1389,6 +1389,14 @@
                         <option value="active">Active Students</option>
                         <option value="left">Left Students</option>
                         <option value="outstanding">Outstanding Only</option>
+                        <option value="">-- Year Groups --</option>
+                        <option value="year7">Year 7</option>
+                        <option value="year8">Year 8</option>
+                        <option value="year9">Year 9</option>
+                        <option value="year10">Year 10</option>
+                        <option value="year11">Year 11</option>
+                        <option value="year16+">16+</option>
+                        <option value="year18+">18+</option>
                     </select>
                 </div>
 
@@ -1484,6 +1492,14 @@
                         <option value="active">Active Students</option>
                         <option value="left">Left Students</option>
                         <option value="outstanding">Outstanding Only</option>
+                        <option value="">-- Year Groups --</option>
+                        <option value="year7">Year 7</option>
+                        <option value="year8">Year 8</option>
+                        <option value="year9">Year 9</option>
+                        <option value="year10">Year 10</option>
+                        <option value="year11">Year 11</option>
+                        <option value="year16+">16+</option>
+                        <option value="year18+">18+</option>
                     </select>
                 </div>
 
@@ -1877,7 +1893,25 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Date of Birth (DD/MM/YYYY)</label>
-                            <input type="text" class="form-input" id="studentDOB" placeholder="15/06/2011" required pattern="\d{2}/\d{2}/\d{4}">
+                            <div style="position: relative;">
+                                <input type="text" 
+                                       class="form-input date-input" 
+                                       id="studentDOB" 
+                                       placeholder="DD/MM/YYYY" 
+                                       pattern="\d{2}/\d{2}/\d{4}"
+                                       maxlength="10"
+                                       required
+                                       oninput="autoFormatDate(this)"
+                                       style="padding-right: 40px;">
+                                <button type="button" 
+                                        class="date-picker-btn" 
+                                        onclick="showDatePicker('studentDOB')"
+                                        style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); 
+                                               background: none; border: none; cursor: pointer; font-size: 16px; 
+                                               color: var(--text-secondary); padding: 4px;">
+                                    📅
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1896,6 +1930,7 @@
                                 <option value="10">Year 10</option>
                                 <option value="11">Year 11</option>
                                 <option value="16+">16+</option>
+                                <option value="18+">18+</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1960,7 +1995,24 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Date (DD/MM/YYYY)</label>
-                                <input type="text" class="form-input" name="paymentDate[]" placeholder="15/06/2025" pattern="\d{2}/\d{2}/\d{4}">
+                                <div style="position: relative;">
+                                    <input type="text" 
+                                           class="form-input date-input" 
+                                           name="paymentDate[]" 
+                                           placeholder="DD/MM/YYYY" 
+                                           pattern="\d{2}/\d{2}/\d{4}"
+                                           maxlength="10"
+                                           oninput="autoFormatDate(this)"
+                                           style="padding-right: 40px;">
+                                    <button type="button" 
+                                            class="date-picker-btn" 
+                                            onclick="showDatePicker(this.previousElementSibling.id || 'paymentDate_' + Date.now())"
+                                            style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); 
+                                                   background: none; border: none; cursor: pointer; font-size: 16px; 
+                                                   color: var(--text-secondary); padding: 4px;">
+                                        📅
+                                    </button>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Method</label>
@@ -2095,6 +2147,7 @@
                                 <th>Amount</th>
                                 <th>Invoice No.</th>
                                 <th>Method</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="viewPaymentsBody">
@@ -2146,7 +2199,25 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Payment Date (DD/MM/YYYY)</label>
-                            <input type="text" class="form-input" id="paymentDate" placeholder="15/06/2025" required pattern="\d{2}/\d{2}/\d{4}">
+                            <div style="position: relative;">
+                                <input type="text" 
+                                       class="form-input date-input" 
+                                       id="paymentDate" 
+                                       placeholder="DD/MM/YYYY" 
+                                       pattern="\d{2}/\d{2}/\d{4}"
+                                       maxlength="10"
+                                       required
+                                       oninput="autoFormatDate(this)"
+                                       style="padding-right: 40px;">
+                                <button type="button" 
+                                        class="date-picker-btn" 
+                                        onclick="showDatePicker('paymentDate')"
+                                        style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); 
+                                               background: none; border: none; cursor: pointer; font-size: 16px; 
+                                               color: var(--text-secondary); padding: 4px;">
+                                    📅
+                                </button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Invoice Number</label>
@@ -2210,7 +2281,7 @@
     </div>
 
     <script>
-    // Date formatting utility functions
+    // Enhanced date formatting utility functions
     function formatDateToUK(dateInput) {
         if (!dateInput) return '';
         
@@ -2282,6 +2353,109 @@
         return ukDate;
     }
 
+    // Auto-format date input as user types
+    function autoFormatDate(input) {
+        let value = input.value.replace(/\D/g, ''); // Remove non-digits
+        
+        if (value.length >= 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2);
+        }
+        if (value.length >= 5) {
+            value = value.substring(0, 5) + '/' + value.substring(5);
+        }
+        if (value.length > 10) {
+            value = value.substring(0, 10);
+        }
+        
+        input.value = value;
+        
+        // Validate complete date
+        if (value.length === 10) {
+            const parts = value.split('/');
+            if (parts.length === 3) {
+                const day = parseInt(parts[0]);
+                const month = parseInt(parts[1]);
+                const year = parseInt(parts[2]);
+                
+                if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2100) {
+                    input.setCustomValidity('Please enter a valid date in DD/MM/YYYY format');
+                } else {
+                    input.setCustomValidity('');
+                }
+            }
+        } else {
+            input.setCustomValidity('');
+        }
+    }
+
+    // Enhanced date input with both picker and manual entry
+    function createDateInput(id, placeholder = 'DD/MM/YYYY', required = false) {
+        return `
+            <div style="position: relative;">
+                <input type="text" 
+                       class="form-input date-input" 
+                       id="${id}" 
+                       placeholder="${placeholder}" 
+                       pattern="\\d{2}/\\d{2}/\\d{4}"
+                       maxlength="10"
+                       ${required ? 'required' : ''}
+                       oninput="autoFormatDate(this)"
+                       style="padding-right: 40px;">
+                <button type="button" 
+                        class="date-picker-btn" 
+                        onclick="showDatePicker('${id}')"
+                        style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); 
+                               background: none; border: none; cursor: pointer; font-size: 16px; 
+                               color: var(--text-secondary); padding: 4px;">
+                    📅
+                </button>
+            </div>
+        `;
+    }
+
+    // Show native date picker and convert result
+    function showDatePicker(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        
+        // Create temporary hidden date input
+        const tempInput = document.createElement('input');
+        tempInput.type = 'date';
+        tempInput.style.position = 'absolute';
+        tempInput.style.left = '-9999px';
+        
+        // Convert current value to ISO format for date picker
+        if (input.value) {
+            const isoDate = parseUKDateToISO(input.value);
+            if (isoDate && isoDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                tempInput.value = isoDate;
+            }
+        }
+        
+        tempInput.onchange = function() {
+            if (this.value) {
+                input.value = formatDateToUK(this.value);
+                input.setCustomValidity('');
+                // Trigger any change events
+                const event = new Event('input', { bubbles: true });
+                input.dispatchEvent(event);
+            }
+            document.body.removeChild(this);
+        };
+        
+        tempInput.onblur = function() {
+            setTimeout(() => {
+                if (document.body.contains(this)) {
+                    document.body.removeChild(this);
+                }
+            }, 100);
+        };
+        
+        document.body.appendChild(tempInput);
+        tempInput.focus();
+        tempInput.showPicker();
+    }
+
     // Firebase configuration
     const firebaseConfig = {
         apiKey: "AIzaSyC-AM7-3HdvjRpJMDVQLfxUsZmgh1aA8UU",
@@ -2292,11 +2466,35 @@
         appId: "1:484339552499:web:1dff66886e1627a178a786"
     };
 
-    // Global variables for bulk selection
-    let selectedStudents = {
-        term1: new Set(),
-        term2: new Set()
-    };
+    // Year group sorting function
+    function getYearGroupOrder(year) {
+        const yearOrder = {
+            '7': 1,
+            '8': 2,
+            '9': 3,
+            '10': 4,
+            '11': 5,
+            '16+': 6,
+            '18+': 7
+        };
+        return yearOrder[year] || 999; // Unknown years go to end
+    }
+
+    function sortStudentsByYear(students) {
+        return students.sort((a, b) => {
+            const aOrder = getYearGroupOrder(a.year);
+            const bOrder = getYearGroupOrder(b.year);
+            
+            if (aOrder !== bOrder) {
+                return aOrder - bOrder; // Primary sort by year
+            }
+            
+            // Secondary sort by last name if same year
+            const aLastName = (a.lastName || '').toLowerCase();
+            const bLastName = (b.lastName || '').toLowerCase();
+            return aLastName.localeCompare(bLastName);
+        });
+    }
 
     // Academic Year Management
     let currentAcademicYear = '2025-2026';
@@ -2538,25 +2736,43 @@
 
     function toggleSelectAll(term) {
         const selectAllCheckbox = document.getElementById(`${term}SelectAll`);
-        const isChecked = selectAllCheckbox.checked;
+        const isChecked = selectAllCheckbox ? selectAllCheckbox.checked : false;
         
-        // Get all visible student checkboxes
-        const visibleCheckboxes = document.querySelectorAll(`#${term}StudentsTable tbody tr:not([style*="display: none"]) input.student-checkbox`);
+        console.log(`ToggleSelectAll ${term}: ${isChecked ? 'checking' : 'unchecking'} all visible`);
         
-        visibleCheckboxes.forEach(checkbox => {
-            checkbox.checked = isChecked;
-            const studentId = checkbox.getAttribute('data-student-id');
-            if (isChecked) {
-                selectedStudents[term].add(studentId);
-            } else {
-                selectedStudents[term].delete(studentId);
+        const tableBody = document.querySelector(`#${term}StudentsTable tbody`);
+        if (!tableBody) {
+            console.error(`Table body not found for ${term}`);
+            return;
+        }
+        
+        const visibleRows = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
+            return row.style.display !== 'none' && !row.querySelector('.empty-state');
+        });
+        
+        console.log(`Found ${visibleRows.length} visible rows to ${isChecked ? 'select' : 'deselect'}`);
+        
+        visibleRows.forEach(row => {
+            const checkbox = row.querySelector('input.student-checkbox');
+            if (checkbox) {
+                checkbox.checked = isChecked;
+                const studentId = checkbox.getAttribute('data-student-id');
+                if (studentId) {
+                    if (isChecked) {
+                        selectedStudents[term].add(studentId);
+                    } else {
+                        selectedStudents[term].delete(studentId);
+                    }
+                }
             }
         });
         
         updateBulkActionsUI(term);
+        console.log(`ToggleSelectAll complete. Total selected in ${term}: ${selectedStudents[term].size}`);
     }
 
     function selectAllStudents(term, scope) {
+        console.log(`Selecting ${scope} students in ${term}`);
         const students = term === 'term1' ? window.term1Students : window.term2Students;
         
         if (scope === 'all') {
@@ -2568,20 +2784,36 @@
                 checkbox.checked = true;
             });
         } else if (scope === 'visible') {
-            // Select only visible students
-            const visibleCheckboxes = document.querySelectorAll(`#${term}StudentsTable tbody tr:not([style*="display: none"]) input.student-checkbox`);
-            visibleCheckboxes.forEach(checkbox => {
-                checkbox.checked = true;
-                const studentId = checkbox.getAttribute('data-student-id');
-                if (studentId) {
-                    selectedStudents[term].add(studentId);
+            // Select only visible students - improved selector
+            const tableBody = document.querySelector(`#${term}StudentsTable tbody`);
+            if (!tableBody) {
+                console.error(`Table body not found for ${term}`);
+                return;
+            }
+            
+            const visibleRows = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
+                const style = row.style.display;
+                return style !== 'none' && !row.querySelector('.empty-state');
+            });
+            
+            console.log(`Found ${visibleRows.length} visible rows in ${term}`);
+            
+            visibleRows.forEach(row => {
+                const checkbox = row.querySelector('input.student-checkbox');
+                if (checkbox) {
+                    checkbox.checked = true;
+                    const studentId = checkbox.getAttribute('data-student-id');
+                    if (studentId) {
+                        selectedStudents[term].add(studentId);
+                        console.log(`Selected student ${studentId} in ${term}`);
+                    }
                 }
             });
         }
         
         updateSelectAllCheckbox(term);
         updateBulkActionsUI(term);
-        console.log(`Selected ${selectedStudents[term].size} students in ${term}`);
+        console.log(`Total selected ${selectedStudents[term].size} students in ${term}`);
     }
 
     function deselectAllStudents(term) {
@@ -2600,8 +2832,19 @@
 
     function updateSelectAllCheckbox(term) {
         const selectAllCheckbox = document.getElementById(`${term}SelectAll`);
-        const visibleCheckboxes = document.querySelectorAll(`#${term}StudentsTable tbody tr:not([style*="display: none"]) input.student-checkbox`);
-        const checkedVisible = document.querySelectorAll(`#${term}StudentsTable tbody tr:not([style*="display: none"]) input.student-checkbox:checked`);
+        if (!selectAllCheckbox) return;
+        
+        const tableBody = document.querySelector(`#${term}StudentsTable tbody`);
+        if (!tableBody) return;
+        
+        const visibleRows = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
+            return row.style.display !== 'none' && !row.querySelector('.empty-state');
+        });
+        
+        const visibleCheckboxes = visibleRows.map(row => row.querySelector('input.student-checkbox')).filter(cb => cb);
+        const checkedVisible = visibleCheckboxes.filter(cb => cb.checked);
+        
+        console.log(`UpdateSelectAll ${term}: ${checkedVisible.length}/${visibleCheckboxes.length} visible checkboxes checked`);
         
         if (visibleCheckboxes.length === 0) {
             selectAllCheckbox.checked = false;
@@ -3337,7 +3580,10 @@
             return;
         }
         
-        tableBody.innerHTML = students.map((student, index) => {
+        // Sort students by year group (youngest to eldest) then by last name
+        const sortedStudents = sortStudentsByYear([...students]);
+        
+        tableBody.innerHTML = sortedStudents.map((student, index) => {
             const totalPaid = getTotalPaid(student);
             const outstanding = getOutstandingAmount(student, term);
             const status = getPaymentStatus(student, term);
@@ -3428,7 +3674,7 @@
             
             // Type filter
             let matchesFilter = true;
-            if (filterType !== 'all') {
+            if (filterType !== 'all' && filterType !== '') {
                 switch (filterType) {
                     case 'paid':
                         matchesFilter = status.includes('paid') && !status.includes('partial');
@@ -3448,6 +3694,28 @@
                     case 'outstanding':
                         const outstanding = parseFloat(row.children[8]?.textContent.replace('£', '') || '0');
                         matchesFilter = outstanding > 0;
+                        break;
+                    // Year group filters
+                    case 'year7':
+                        matchesFilter = year.includes('year 7');
+                        break;
+                    case 'year8':
+                        matchesFilter = year.includes('year 8');
+                        break;
+                    case 'year9':
+                        matchesFilter = year.includes('year 9');
+                        break;
+                    case 'year10':
+                        matchesFilter = year.includes('year 10');
+                        break;
+                    case 'year11':
+                        matchesFilter = year.includes('year 11');
+                        break;
+                    case 'year16+':
+                        matchesFilter = year.includes('year 16+');
+                        break;
+                    case 'year18+':
+                        matchesFilter = year.includes('year 18+');
                         break;
                     default:
                         matchesFilter = true;
@@ -3609,7 +3877,7 @@
             if (viewNoPayments) viewNoPayments.style.display = 'none';
             
             if (viewPaymentsBody) {
-                viewPaymentsBody.innerHTML = payments.map(payment => {
+                viewPaymentsBody.innerHTML = payments.map((payment, index) => {
                     const paymentDate = payment.date ? formatDateToUK(payment.date) : 'Not specified';
                     const amount = parseFloat(payment.amount) || 0;
                     const invoice = payment.invoice || 'N/A';
@@ -3621,6 +3889,13 @@
                             <td style="font-weight: 600; color: var(--success);">£${amount.toFixed(2)}</td>
                             <td>${invoice}</td>
                             <td><span class="payment-method-badge">${method}</span></td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" 
+                                        onclick="deletePayment(${index}, '${term}')" 
+                                        title="Delete this payment">
+                                    Delete
+                                </button>
+                            </td>
                         </tr>
                     `;
                 }).join('');
@@ -3858,6 +4133,7 @@
         const container = document.getElementById('paymentsContainer');
         if (!container) return;
         
+        const entryId = 'paymentDate_' + Date.now();
         const newEntry = document.createElement('div');
         newEntry.className = 'payment-row';
         newEntry.innerHTML = `
@@ -3871,7 +4147,25 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Date (DD/MM/YYYY)</label>
-                <input type="text" class="form-input" name="paymentDate[]" placeholder="15/06/2025" pattern="\\d{2}/\\d{2}/\\d{4}">
+                <div style="position: relative;">
+                    <input type="text" 
+                           class="form-input date-input" 
+                           name="paymentDate[]" 
+                           id="${entryId}"
+                           placeholder="DD/MM/YYYY" 
+                           pattern="\\d{2}/\\d{2}/\\d{4}"
+                           maxlength="10"
+                           oninput="autoFormatDate(this)"
+                           style="padding-right: 40px;">
+                    <button type="button" 
+                            class="date-picker-btn" 
+                            onclick="showDatePicker('${entryId}')"
+                            style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); 
+                                   background: none; border: none; cursor: pointer; font-size: 16px; 
+                                   color: var(--text-secondary); padding: 4px;">
+                        📅
+                    </button>
+                </div>
             </div>
             <div class="form-group">
                 <label class="form-label">Method</label>
@@ -3909,6 +4203,7 @@
         const container = document.getElementById('paymentsContainer');
         if (!container) return;
         
+        const initialEntryId = 'paymentDate_initial';
         container.innerHTML = `
             <div class="payment-row">
                 <div class="form-group">
@@ -3921,7 +4216,25 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Date (DD/MM/YYYY)</label>
-                    <input type="text" class="form-input" name="paymentDate[]" placeholder="15/06/2025" pattern="\\d{2}/\\d{2}/\\d{4}">
+                    <div style="position: relative;">
+                        <input type="text" 
+                               class="form-input date-input" 
+                               name="paymentDate[]" 
+                               id="${initialEntryId}"
+                               placeholder="DD/MM/YYYY" 
+                               pattern="\\d{2}/\\d{2}/\\d{4}"
+                               maxlength="10"
+                               oninput="autoFormatDate(this)"
+                               style="padding-right: 40px;">
+                        <button type="button" 
+                                class="date-picker-btn" 
+                                onclick="showDatePicker('${initialEntryId}')"
+                                style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); 
+                                       background: none; border: none; cursor: pointer; font-size: 16px; 
+                                       color: var(--text-secondary); padding: 4px;">
+                            📅
+                        </button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Method</label>
@@ -4353,26 +4666,361 @@
         
         if (outstandingStudents.length === 0) {
             doc.setFontSize(16);
-            doc.text('No outstanding fees found!', 148, 100, { align: 'center' });
+            doc.setTextColor(34, 197, 94);
+            doc.text('🎉 Excellent! No outstanding fees found!', 148, 100, { align: 'center' });
+            doc.setFontSize(14);
+            doc.setTextColor(60, 60, 60);
+            doc.text('All active students have paid their fees in full.', 148, 120, { align: 'center' });
             addPDFFooter(doc);
             return;
         }
+        
+        // Summary stats
+        let yPos = 55;
+        const totalOutstanding = outstandingStudents.reduce((sum, s) => sum + getOutstandingAmount(s, s.term || 'term1'), 0);
+        
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(25, yPos, 247, 32, 3, 3, 'F');
+        
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('OUTSTANDING FEES SUMMARY', 148, yPos + 12, { align: 'center' });
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Students with outstanding fees: ${outstandingStudents.length}`, 35, yPos + 22);
+        doc.setTextColor(255, 59, 48);
+        doc.setFont(undefined, 'bold');
+        doc.text(`Total Outstanding: £${totalOutstanding.toFixed(2)}`, 200, yPos + 22);
+        doc.setTextColor(60, 60, 60);
+        doc.setFont(undefined, 'normal');
+        
+        // Students table
+        yPos = 95;
+        const tableData = outstandingStudents.map(student => {
+            const outstanding = getOutstandingAmount(student, student.term || 'term1');
+            const totalFee = (parseFloat(student.setFee) || 0) + (parseFloat(student.vat) || 0);
+            const paid = getTotalPaid(student);
+            
+            return [
+                `${student.firstName} ${student.lastName}`,
+                `Year ${student.year}`,
+                student.term === 'term1' ? 'Term 1' : 'Term 2',
+                `£${totalFee.toFixed(2)}`,
+                `£${paid.toFixed(2)}`,
+                `£${outstanding.toFixed(2)}`
+            ];
+        });
+        
+        doc.autoTable({
+            startY: yPos,
+            head: [['Student Name', 'Year', 'Term', 'Total Fee', 'Paid', 'Outstanding']],
+            body: tableData,
+            theme: 'grid',
+            headStyles: { 
+                fillColor: [255, 59, 48],
+                textColor: [255, 255, 255],
+                fontSize: 10,
+                fontStyle: 'bold'
+            },
+            bodyStyles: { 
+                fontSize: 9,
+                cellPadding: 4
+            },
+            columnStyles: {
+                0: { cellWidth: 50, fontStyle: 'bold' },
+                1: { cellWidth: 25, halign: 'center' },
+                2: { cellWidth: 25, halign: 'center' },
+                3: { cellWidth: 30, halign: 'right' },
+                4: { cellWidth: 30, halign: 'right', textColor: [34, 197, 94] },
+                5: { cellWidth: 35, halign: 'right', textColor: [255, 59, 48], fontStyle: 'bold' }
+            },
+            margin: { left: 20, right: 20 }
+        });
         
         addPDFFooter(doc);
     }
 
     function generateSummaryReport(doc, notes) {
         addPDFHeader(doc, 'Financial Summary Report', notes);
+        
+        const allStudents = [...window.term1Students, ...window.term2Students];
+        const activeStudents = allStudents.filter(s => s.studentStatus !== 'left');
+        
+        // Financial overview cards
+        let yPos = 60;
+        const totalRevenue = activeStudents.reduce((sum, s) => sum + getTotalPaid(s), 0);
+        const totalOutstanding = activeStudents.reduce((sum, s) => sum + getOutstandingAmount(s, s.term || 'term1'), 0);
+        const totalFees = activeStudents.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0) + (parseFloat(s.vat) || 0), 0);
+        const collectionRate = totalFees > 0 ? (totalRevenue / totalFees * 100) : 0;
+        
+        // Revenue card
+        doc.setFillColor(34, 197, 94);
+        doc.rect(20, yPos, 60, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text('Total Revenue', 50, yPos + 15, { align: 'center' });
+        doc.setFontSize(16);
+        doc.text(`£${totalRevenue.toFixed(2)}`, 50, yPos + 30, { align: 'center' });
+        
+        // Outstanding card
+        doc.setFillColor(255, 59, 48);
+        doc.rect(88, yPos, 60, 40, 'F');
+        doc.setFontSize(12);
+        doc.text('Outstanding', 118, yPos + 15, { align: 'center' });
+        doc.setFontSize(16);
+        doc.text(`£${totalOutstanding.toFixed(2)}`, 118, yPos + 30, { align: 'center' });
+        
+        // Collection Rate card
+        doc.setFillColor(99, 102, 241);
+        doc.rect(156, yPos, 60, 40, 'F');
+        doc.setFontSize(12);
+        doc.text('Collection Rate', 186, yPos + 15, { align: 'center' });
+        doc.setFontSize(16);
+        doc.text(`${collectionRate.toFixed(1)}%`, 186, yPos + 30, { align: 'center' });
+        
+        // Total Fees card
+        doc.setFillColor(16, 163, 127);
+        doc.rect(224, yPos, 52, 40, 'F');
+        doc.setFontSize(12);
+        doc.text('Total Fees', 250, yPos + 15, { align: 'center' });
+        doc.setFontSize(16);
+        doc.text(`£${totalFees.toFixed(2)}`, 250, yPos + 30, { align: 'center' });
+        
+        // Term breakdown
+        yPos = 120;
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        doc.text('Term Breakdown', 25, yPos);
+        
+        const term1Students = window.term1Students.filter(s => s.studentStatus !== 'left');
+        const term2Students = window.term2Students.filter(s => s.studentStatus !== 'left');
+        
+        const term1Revenue = term1Students.reduce((sum, s) => sum + getTotalPaid(s), 0);
+        const term1Outstanding = term1Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term1'), 0);
+        const term2Revenue = term2Students.reduce((sum, s) => sum + getTotalPaid(s), 0);
+        const term2Outstanding = term2Students.reduce((sum, s) => sum + getOutstandingAmount(s, 'term2'), 0);
+        
+        yPos = 140;
+        const termData = [
+            ['Term 1', term1Students.length, `£${term1Revenue.toFixed(2)}`, `£${term1Outstanding.toFixed(2)}`],
+            ['Term 2', term2Students.length, `£${term2Revenue.toFixed(2)}`, `£${term2Outstanding.toFixed(2)}`],
+            ['TOTAL', activeStudents.length, `£${totalRevenue.toFixed(2)}`, `£${totalOutstanding.toFixed(2)}`]
+        ];
+        
+        doc.autoTable({
+            startY: yPos,
+            head: [['Term', 'Students', 'Revenue', 'Outstanding']],
+            body: termData,
+            theme: 'grid',
+            headStyles: { 
+                fillColor: [16, 163, 127],
+                textColor: [255, 255, 255],
+                fontSize: 12,
+                fontStyle: 'bold'
+            },
+            bodyStyles: { 
+                fontSize: 11,
+                cellPadding: 6
+            },
+            columnStyles: {
+                0: { cellWidth: 50, fontStyle: 'bold' },
+                1: { cellWidth: 50, halign: 'center' },
+                2: { cellWidth: 60, halign: 'right', textColor: [34, 197, 94], fontStyle: 'bold' },
+                3: { cellWidth: 60, halign: 'right', textColor: [255, 59, 48], fontStyle: 'bold' }
+            },
+            margin: { left: 20, right: 20 }
+        });
+        
         addPDFFooter(doc);
     }
 
     function generatePaymentMethodsReport(doc, notes) {
         addPDFHeader(doc, 'Payment Methods Analysis', notes);
+        
+        const allStudents = [...window.term1Students, ...window.term2Students];
+        const activeStudents = allStudents.filter(s => s.studentStatus !== 'left');
+        const allPayments = activeStudents.flatMap(s => s.payments || []);
+        
+        if (allPayments.length === 0) {
+            doc.setFontSize(16);
+            doc.setTextColor(255, 149, 0);
+            doc.text('No payment data available for analysis.', 148, 100, { align: 'center' });
+            addPDFFooter(doc);
+            return;
+        }
+        
+        // Payment method breakdown
+        const paymentMethods = {};
+        let totalAmount = 0;
+        
+        allPayments.forEach(payment => {
+            const method = payment.method || 'Not Specified';
+            const amount = parseFloat(payment.amount) || 0;
+            
+            if (!paymentMethods[method]) {
+                paymentMethods[method] = { count: 0, amount: 0 };
+            }
+            paymentMethods[method].count++;
+            paymentMethods[method].amount += amount;
+            totalAmount += amount;
+        });
+        
+        // Summary
+        let yPos = 60;
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(25, yPos, 247, 25, 3, 3, 'F');
+        
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('PAYMENT METHODS SUMMARY', 148, yPos + 10, { align: 'center' });
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Total Payments: ${allPayments.length}`, 35, yPos + 20);
+        doc.text(`Total Amount: £${totalAmount.toFixed(2)}`, 200, yPos + 20);
+        
+        // Payment methods table
+        yPos = 100;
+        const methodData = Object.entries(paymentMethods)
+            .sort(([,a], [,b]) => b.amount - a.amount)
+            .map(([method, data]) => {
+                const percentage = totalAmount > 0 ? (data.amount / totalAmount * 100) : 0;
+                return [
+                    method,
+                    data.count.toString(),
+                    `£${data.amount.toFixed(2)}`,
+                    `${percentage.toFixed(1)}%`
+                ];
+            });
+        
+        doc.autoTable({
+            startY: yPos,
+            head: [['Payment Method', 'Count', 'Total Amount', 'Percentage']],
+            body: methodData,
+            theme: 'grid',
+            headStyles: { 
+                fillColor: [99, 102, 241],
+                textColor: [255, 255, 255],
+                fontSize: 12,
+                fontStyle: 'bold'
+            },
+            bodyStyles: { 
+                fontSize: 11,
+                cellPadding: 6
+            },
+            columnStyles: {
+                0: { cellWidth: 70, fontStyle: 'bold' },
+                1: { cellWidth: 40, halign: 'center' },
+                2: { cellWidth: 50, halign: 'right', textColor: [34, 197, 94], fontStyle: 'bold' },
+                3: { cellWidth: 40, halign: 'right', textColor: [99, 102, 241], fontStyle: 'bold' }
+            },
+            margin: { left: 20, right: 20 }
+        });
+        
         addPDFFooter(doc);
     }
 
     function generateYearGroupsReport(doc, notes) {
         addPDFHeader(doc, 'Year Group Analysis', notes);
+        
+        const allStudents = [...window.term1Students, ...window.term2Students];
+        const activeStudents = allStudents.filter(s => s.studentStatus !== 'left');
+        
+        if (activeStudents.length === 0) {
+            doc.setFontSize(16);
+            doc.setTextColor(255, 149, 0);
+            doc.text('No active students found for analysis.', 148, 100, { align: 'center' });
+            addPDFFooter(doc);
+            return;
+        }
+        
+        // Year group breakdown
+        const yearGroups = {};
+        
+        activeStudents.forEach(student => {
+            const year = student.year || 'Unknown';
+            const outstanding = getOutstandingAmount(student, student.term || 'term1');
+            const paid = getTotalPaid(student);
+            const totalFee = (parseFloat(student.setFee) || 0) + (parseFloat(student.vat) || 0);
+            
+            if (!yearGroups[year]) {
+                yearGroups[year] = {
+                    count: 0,
+                    totalFees: 0,
+                    totalPaid: 0,
+                    totalOutstanding: 0
+                };
+            }
+            
+            yearGroups[year].count++;
+            yearGroups[year].totalFees += totalFee;
+            yearGroups[year].totalPaid += paid;
+            yearGroups[year].totalOutstanding += outstanding;
+        });
+        
+        // Summary
+        let yPos = 60;
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(25, yPos, 247, 25, 3, 3, 'F');
+        
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('YEAR GROUP DISTRIBUTION', 148, yPos + 10, { align: 'center' });
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Total Active Students: ${activeStudents.length}`, 35, yPos + 20);
+        doc.text(`Year Groups: ${Object.keys(yearGroups).length}`, 200, yPos + 20);
+        
+        // Sort year groups by order (7, 8, 9, 10, 11, 16+, 18+)
+        const sortedYearGroups = Object.entries(yearGroups).sort(([a], [b]) => {
+            return getYearGroupOrder(a) - getYearGroupOrder(b);
+        });
+        
+        // Year groups table
+        yPos = 100;
+        const yearData = sortedYearGroups.map(([year, data]) => {
+            const collectionRate = data.totalFees > 0 ? (data.totalPaid / data.totalFees * 100) : 0;
+            return [
+                `Year ${year}`,
+                data.count.toString(),
+                `£${data.totalFees.toFixed(2)}`,
+                `£${data.totalPaid.toFixed(2)}`,
+                `£${data.totalOutstanding.toFixed(2)}`,
+                `${collectionRate.toFixed(1)}%`
+            ];
+        });
+        
+        doc.autoTable({
+            startY: yPos,
+            head: [['Year Group', 'Students', 'Total Fees', 'Collected', 'Outstanding', 'Collection Rate']],
+            body: yearData,
+            theme: 'grid',
+            headStyles: { 
+                fillColor: [175, 82, 222],
+                textColor: [255, 255, 255],
+                fontSize: 10,
+                fontStyle: 'bold'
+            },
+            bodyStyles: { 
+                fontSize: 9,
+                cellPadding: 4
+            },
+            columnStyles: {
+                0: { cellWidth: 35, fontStyle: 'bold' },
+                1: { cellWidth: 25, halign: 'center' },
+                2: { cellWidth: 35, halign: 'right' },
+                3: { cellWidth: 35, halign: 'right', textColor: [34, 197, 94], fontStyle: 'bold' },
+                4: { cellWidth: 35, halign: 'right', textColor: [255, 59, 48], fontStyle: 'bold' },
+                5: { cellWidth: 35, halign: 'right', textColor: [99, 102, 241], fontStyle: 'bold' }
+            },
+            margin: { left: 20, right: 20 }
+        });
+        
         addPDFFooter(doc);
     }
 
@@ -4409,9 +5057,9 @@
         doc.setTextColor(120, 120, 120);
         doc.setFontSize(9);
         doc.setFont(undefined, 'normal');
-        doc.text('Student Fees Management System', 25, pageHeight - 12);
+        doc.text('DUL Student Fees Management System', 25, pageHeight - 12);
         doc.text(`Page 1`, 272, pageHeight - 12, { align: 'right' });
-        doc.text(`© ${new Date().getFullYear()} School Administration`, 148, pageHeight - 6, { align: 'center' });
+        doc.text(`© ${new Date().getFullYear()} Darul Uloom London`, 148, pageHeight - 6, { align: 'center' });
     }
 
     function addSummaryStats(doc, students, scope) {
@@ -4491,8 +5139,53 @@
         });
     }
 
-    // Analytics function
-    function updateAnalytics() {
+    function deletePayment(paymentIndex, term) {
+        if (!currentViewStudentId || !currentViewTerm) {
+            console.error('No student currently being viewed');
+            return;
+        }
+        
+        const students = term === 'term1' ? window.term1Students : window.term2Students;
+        const studentIndex = students.findIndex(s => s.id === currentViewStudentId);
+        
+        if (studentIndex === -1) {
+            console.error('Student not found');
+            return;
+        }
+        
+        const student = students[studentIndex];
+        const payments = student.payments || [];
+        
+        if (paymentIndex < 0 || paymentIndex >= payments.length) {
+            console.error('Invalid payment index');
+            return;
+        }
+        
+        const payment = payments[paymentIndex];
+        const paymentAmount = parseFloat(payment.amount) || 0;
+        const paymentDate = formatDateToUK(payment.date);
+        
+        // Confirm deletion
+        if (!confirm(`Are you sure you want to delete this payment?\n\nAmount: £${paymentAmount.toFixed(2)}\nDate: ${paymentDate}\nMethod: ${payment.method || 'Not specified'}\n\nThis action cannot be undone.`)) {
+            return;
+        }
+        
+        // Remove the payment
+        students[studentIndex].payments.splice(paymentIndex, 1);
+        
+        // Update student's last updated time
+        students[studentIndex].updatedAt = formatDateToUK(new Date());
+        
+        // Save and update UI
+        saveLocalData();
+        saveToFirebase(currentAcademicYear, term);
+        updateAllUI();
+        
+        // Refresh the student view modal with updated data
+        populateStudentViewModal(students[studentIndex], term);
+        
+        alert(`Payment of £${paymentAmount.toFixed(2)} has been deleted successfully.`);
+    }
         const allStudents = [...window.term1Students, ...window.term2Students];
         const activeStudents = allStudents.filter(s => s.studentStatus !== 'left');
         
@@ -4534,6 +5227,7 @@
     window.editStudent = editStudent;
     window.editStudentFromView = editStudentFromView;
     window.deleteStudent = deleteStudent;
+    window.deletePayment = deletePayment;
     window.closeModal = closeModal;
     window.addPaymentEntry = addPaymentEntry;
     window.removePaymentEntry = removePaymentEntry;
@@ -4554,6 +5248,10 @@
     window.selectAllStudents = selectAllStudents;
     window.deselectAllStudents = deselectAllStudents;
     window.bulkDeleteStudents = bulkDeleteStudents;
+    
+    // Date formatting functions
+    window.autoFormatDate = autoFormatDate;
+    window.showDatePicker = showDatePicker;
     </script>
     </body>
 </html>
