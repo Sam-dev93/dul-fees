@@ -2479,7 +2479,7 @@ function deleteSelectedStudents(term) {
                     ` : ''}
                     <td>${index + 1}</td>
                     <td>${student.firstName} ${student.lastName}</td>
-                    <td>${new Date(student.dob).toLocaleDateString('en-GB')}</td>
+                    <td>${parseUKDate(student.dob).toLocaleDateString('en-GB')}</td>
                     <td>Year ${student.year}</td>
                     <td>£${(parseFloat(student.setFee) || 0).toFixed(2)}</td>
                     <td>£${(parseFloat(student.vat) || 0).toFixed(2)}</td>
@@ -2505,10 +2505,8 @@ function deleteSelectedStudents(term) {
         }).join('');
     }
 
-    // Add this SINGLE function right after your global variables section (around line 950)
-    // This will fix ALL date parsing issues throughout your entire application
-
-    function parseDate(dateStr) {
+    // REPLACE the existing Date override with this safer version:
+    function parseUKDate(dateStr) {
         if (!dateStr) return new Date();
         
         // If it's already a Date object, return it
@@ -2529,9 +2527,11 @@ function deleteSelectedStudents(term) {
             }
         }
         
-        // Fallback to standard Date parsing for other formats
+        // Fallback to standard Date parsing
         return new Date(dateStr);
     }
+
+// DON'T override Date - just use parseUKDate() function directly
 
     // Override the global Date constructor for your application
     const OriginalDate = Date;
@@ -3224,7 +3224,7 @@ function deleteSelectedStudents(term) {
                 <tr style="${studentStatus === 'left' ? 'opacity: 0.6;' : ''}">
                     <td>${index + 1}</td>
                     <td>${student.firstName} ${student.lastName}</td>
-                    <td>${new Date(student.dob).toLocaleDateString('en-GB')}</td>
+                    <td>${parseUKDate(student.dob).toLocaleDateString('en-GB')}</td>
                     <td>Year ${student.year}</td>
                     <td>£${(parseFloat(student.setFee) || 0).toFixed(2)}</td>
                     <td>£${(parseFloat(student.vat) || 0).toFixed(2)}</td>
@@ -3382,7 +3382,7 @@ function deleteSelectedStudents(term) {
         const viewStudentUpdated = document.getElementById('viewStudentUpdated');
         
         if (viewStudentName) viewStudentName.textContent = `${student.firstName} ${student.lastName}`;
-        if (viewStudentDOB) viewStudentDOB.textContent = new Date(student.dob).toLocaleDateString('en-GB');
+        if (viewStudentDOB) viewStudentDOB.textContent = parseUKDate(student.dob).toLocaleDateString('en-GB');
         if (viewStudentYear) viewStudentYear.textContent = `Year ${student.year}`;
         if (viewStudentTerm) viewStudentTerm.textContent = term === 'term1' ? 'Term 1' : 'Term 2';
         if (viewStudentStatus) {
