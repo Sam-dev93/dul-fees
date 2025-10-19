@@ -3309,34 +3309,95 @@
                 return;
             }
             
-            // ⚠️ ADD: Prevent concurrent saves
+            // Prevent concurrent saves
             if (window.savingToFirebase) {
                 console.log('Save already in progress, skipping');
                 resolve();
                 return;
             }
             
-            window.savingToFirebase = true; // ⚠️ ADD: Flag to prevent concurrent saves
+            window.savingToFirebase = true;
             isSyncing = true;
+            
+            // TEMPORARILY DISABLE LISTENERS TO PREVENT CONFLICTS
+            const wasListenerActive = isListenerSetup;
+            if (wasListenerActive) {
+                cleanupListeners();
+            }
+            
             updateSyncStatus('syncing');
             
-            // ... rest of function ...
-            
-            }).then(function() {
-                console.log(term + ' saved to Firebase successfully for year', year);
+            try {
+                const students = term === 'term1' ? window.term1Students : window.term2Students;
+                const yearKey = year.replace('-', '_');
+                const docId = `${term}_${yearKey}`;
                 
-                setTimeout(function() {
-                    updateSyncStatus('synced');
+                const db = firebase.firestore();
+                
+                // Clean the data
+                const cleanStudents = students.map(function(student) {
+                    const cleanStudent = {};
+                    Object.keys(student).forEach(function(key) {
+                        if (student[key] !== undefined) {
+                            cleanStudent[key] = student[key];
+                        }
+                    });
+                    return cleanStudent;
+                });
+                
+                db.collection('studentFees').doc(docId).set({
+                    students: cleanStudents,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                    userId: currentUser.uid,
+                    term: term,
+                    academicYear: year
+                }).then(function() {
+                    console.log(term + ' saved to Firebase successfully for year', year);
+                    
+                    setTimeout(function() {
+                        updateSyncStatus('synced');
+                        isSyncing = false;
+                        window.savingToFirebase = false;
+                        
+                        // RE-ENABLE LISTENERS AFTER SAVE IS COMPLETE
+                        if (wasListenerActive && currentUser && isOnline) {
+                            setTimeout(() => {
+                                setupRealtimeSync();
+                            }, 1000);
+                        }
+                        
+                        resolve();
+                    }, 1000);
+                }).catch(function(error) {
+                    console.error('Error saving ' + term + ' for year', year, ':', error);
+                    updateSyncStatus('offline');
                     isSyncing = false;
-                    window.savingToFirebase = false; // ⚠️ ADD: Clear flag
-                    resolve();
-                }, 1000);
-            }).catch(function(error) {
+                    window.savingToFirebase = false;
+                    
+                    // Re-enable listeners even on error
+                    if (wasListenerActive && currentUser && isOnline) {
+                        setTimeout(() => {
+                            setupRealtimeSync();
+                        }, 1000);
+                    }
+                    
+                    reject(error);
+                });
+            } catch (error) {
                 console.error('Error saving ' + term + ' for year', year, ':', error);
                 updateSyncStatus('offline');
                 isSyncing = false;
-                window.savingToFirebase = false; // ⚠️ ADD: Clear flag
+                window.savingToFirebase = false;
+                
+                // Re-enable listeners on error
+                if (wasListenerActive && currentUser && isOnline) {
+                    setTimeout(() => {
+                        setupRealtimeSync();
+                    }, 1000);
+                }
+                
                 reject(error);
+            }
         });
     }
 
