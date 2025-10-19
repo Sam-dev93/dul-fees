@@ -1394,9 +1394,11 @@
 
                 <!-- Selection Controls -->
                 <div class="selection-controls">
-                    <button class="btn btn-secondary btn-sm" onclick="selectAllStudents('term1', 'all')">Select All</button>
                     <button class="btn btn-secondary btn-sm" onclick="selectAllStudents('term1', 'visible')">Select All Visible</button>
-                    <button class="btn btn-secondary btn-sm" onclick="deselectAllStudents('term1')">Deselect All</button>
+                    <button class="btn btn-secondary btn-sm" onclick="deselectAllStudents('term1')">Clear Selection</button>
+                    <span style="color: var(--text-secondary); font-size: 14px; margin-left: 16px;">
+                        <span id="term1SelectedDisplay">0</span> selected
+                    </span>
                 </div>
 
                 <!-- Bulk Actions Bar -->
@@ -1487,9 +1489,11 @@
 
                 <!-- Selection Controls -->
                 <div class="selection-controls">
-                    <button class="btn btn-secondary btn-sm" onclick="selectAllStudents('term2', 'all')">Select All</button>
                     <button class="btn btn-secondary btn-sm" onclick="selectAllStudents('term2', 'visible')">Select All Visible</button>
-                    <button class="btn btn-secondary btn-sm" onclick="deselectAllStudents('term2')">Deselect All</button>
+                    <button class="btn btn-secondary btn-sm" onclick="deselectAllStudents('term2')">Clear Selection</button>
+                    <span style="color: var(--text-secondary); font-size: 14px; margin-left: 16px;">
+                        <span id="term2SelectedDisplay">0</span> selected
+                    </span>
                 </div>
 
                 <!-- Bulk Actions Bar -->
@@ -2518,13 +2522,18 @@
 
     // Bulk selection functions
     function toggleStudentSelection(studentId, term) {
+        console.log(`Toggling selection for student ${studentId} in ${term}`);
         const checkbox = document.querySelector(`#${term}StudentsTable input[data-student-id="${studentId}"]`);
         if (checkbox && checkbox.checked) {
             selectedStudents[term].add(studentId);
+            console.log(`Added student ${studentId} to selection`);
         } else {
             selectedStudents[term].delete(studentId);
+            console.log(`Removed student ${studentId} from selection`);
         }
         updateBulkActionsUI(term);
+        updateSelectAllCheckbox(term);
+        console.log(`Total selected in ${term}: ${selectedStudents[term].size}`);
     }
 
     function toggleSelectAll(term) {
@@ -2552,6 +2561,7 @@
         
         if (scope === 'all') {
             // Select all students
+            selectedStudents[term].clear(); // Clear first
             students.forEach(student => selectedStudents[term].add(student.id));
             // Check all checkboxes
             document.querySelectorAll(`#${term}StudentsTable input.student-checkbox`).forEach(checkbox => {
@@ -2563,15 +2573,19 @@
             visibleCheckboxes.forEach(checkbox => {
                 checkbox.checked = true;
                 const studentId = checkbox.getAttribute('data-student-id');
-                selectedStudents[term].add(studentId);
+                if (studentId) {
+                    selectedStudents[term].add(studentId);
+                }
             });
         }
         
         updateSelectAllCheckbox(term);
         updateBulkActionsUI(term);
+        console.log(`Selected ${selectedStudents[term].size} students in ${term}`);
     }
 
     function deselectAllStudents(term) {
+        console.log(`Deselecting all students in ${term}`);
         selectedStudents[term].clear();
         
         // Uncheck all checkboxes
@@ -2581,6 +2595,7 @@
         
         updateSelectAllCheckbox(term);
         updateBulkActionsUI(term);
+        console.log(`Cleared selections in ${term}: ${selectedStudents[term].size} students selected`);
     }
 
     function updateSelectAllCheckbox(term) {
@@ -2606,14 +2621,20 @@
     function updateBulkActionsUI(term) {
         const bulkActions = document.getElementById(`${term}BulkActions`);
         const selectedCount = document.getElementById(`${term}SelectedCount`);
+        const selectedDisplay = document.getElementById(`${term}SelectedDisplay`);
         
         const count = selectedStudents[term].size;
         
         if (count > 0) {
             bulkActions.classList.add('show');
-            selectedCount.textContent = count;
+            if (selectedCount) selectedCount.textContent = count;
         } else {
             bulkActions.classList.remove('show');
+        }
+        
+        // Update the selection counter in controls
+        if (selectedDisplay) {
+            selectedDisplay.textContent = count;
         }
     }
 
