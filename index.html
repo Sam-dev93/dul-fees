@@ -2714,6 +2714,11 @@
     let families = [];
     let archivedYears = [];
 
+    let selectedStudents = {
+        term1: new Set(),
+        term2: new Set()
+    };
+
     // Data storage
     window.term1Students = [];
     window.term2Students = [];
