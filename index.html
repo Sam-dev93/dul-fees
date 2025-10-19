@@ -2505,43 +2505,24 @@ function deleteSelectedStudents(term) {
         }).join('');
     }
 
-    // REPLACE the existing Date override with this safer version:
     function parseUKDate(dateStr) {
         if (!dateStr) return new Date();
-        
-        // If it's already a Date object, return it
         if (dateStr instanceof Date) return dateStr;
         
         // Handle UK format DD/MM/YYYY
-        const ukPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
-        const ukMatch = dateStr.match(ukPattern);
-        
-        if (ukMatch) {
-            const day = parseInt(ukMatch[1], 10);
-            const month = parseInt(ukMatch[2], 10) - 1; // months are 0-indexed
-            const year = parseInt(ukMatch[3], 10);
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+            const day = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const year = parseInt(parts[2], 10);
             
-            // Validate the date parts
             if (day >= 1 && day <= 31 && month >= 0 && month <= 11 && year >= 1900) {
                 return new Date(year, month, day);
             }
         }
         
-        // Fallback to standard Date parsing
         return new Date(dateStr);
     }
-
-// DON'T override Date - just use parseUKDate() function directly
-
-    // Override the global Date constructor for your application
-    const OriginalDate = Date;
-    window.Date = function(dateStr) {
-        if (arguments.length === 1 && typeof dateStr === 'string') {
-            return parseUKDate(dateStr);
-        }
-        // For all other cases (multiple arguments, no arguments, etc.), use original Date
-        return new (OriginalDate.bind.apply(OriginalDate, [null].concat(Array.prototype.slice.call(arguments))))();
-    };
 
     // Copy static methods from original Date
     Object.setPrototypeOf(window.Date, OriginalDate);
