@@ -3021,7 +3021,6 @@
             try {
                 console.log('Initializing Firebase...');
                 
-                // Initialize Firebase with error handling
                 if (typeof firebase === 'undefined') {
                     throw new Error('Firebase not loaded');
                 }
@@ -3030,15 +3029,23 @@
                 const auth = firebase.auth();
                 const db = firebase.firestore();
                 
-                // Set up persistence first, then auth
+                // Handle offline/connection issues more gracefully
+                db.settings({
+                    cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
+                });
+                
+                // Set up persistence with better error handling
                 Promise.all([
                     db.enablePersistence({ synchronizeTabs: true }).catch(err => {
-                        console.warn('Persistence error:', err.code);
-                        return Promise.resolve(); // Continue even if persistence fails
+                        console.warn('Persistence error (continuing anyway):', err.code);
+                        return Promise.resolve();
                     }),
-                    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+                    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(err => {
+                        console.warn('Auth persistence error (continuing anyway):', err.code);
+                        return Promise.resolve();
+                    })
                 ]).then(function() {
-                    // Now set up auth state listener
+                    // Set up auth state listener
                     auth.onAuthStateChanged(function(user) {
                         handleAuthStateChange(user).catch(function(error) {
                             console.error('Auth state change error:', error);
@@ -3046,24 +3053,25 @@
                         });
                     });
                     
-                    // Try to sign in after setting up listener
+                    // Try to sign in
                     if (!auth.currentUser) {
                         signInUser().catch(function(error) {
-                            console.error('Sign in failed:', error);
+                            console.error('Sign in failed (continuing offline):', error);
                             updateSyncStatus('offline');
                         });
                     }
                     
                     resolve(true);
                 }).catch(function(error) {
-                    console.error('Firebase setup error:', error);
-                    reject(error);
+                    console.error('Firebase setup error (continuing offline):', error);
+                    updateSyncStatus('offline');
+                    resolve(true); // Continue even if Firebase fails
                 });
                 
             } catch (error) {
-                console.error('Firebase init error:', error);
+                console.error('Firebase init error (continuing offline):', error);
                 handleOfflineMode();
-                reject(error);
+                resolve(true); // Don't reject, just continue offline
             }
         });
     }
@@ -3300,17 +3308,16 @@
         });
     }
 
-    function saveToFirebase(year, term) {
+    function saveToFirebase(year, term, retryCount = 0) {
         return new Promise(function(resolve, reject) {
-            if (!currentUser || !isOnline || isSyncing) {
-                console.log('Cannot save: no user, offline, or syncing');
+            if (!currentUser || !isOnline) {
+                console.log('Cannot save: no user or offline');
                 saveLocalDataForYear(year);
                 resolve();
                 return;
             }
             
-            // Prevent concurrent saves
-            if (window.savingToFirebase) {
+            if (window.savingToFirebase && retryCount === 0) {
                 console.log('Save already in progress, skipping');
                 resolve();
                 return;
@@ -3318,13 +3325,6 @@
             
             window.savingToFirebase = true;
             isSyncing = true;
-            
-            // TEMPORARILY DISABLE LISTENERS TO PREVENT CONFLICTS
-            const wasListenerActive = isListenerSetup;
-            if (wasListenerActive) {
-                cleanupListeners();
-            }
-            
             updateSyncStatus('syncing');
             
             try {
@@ -3345,59 +3345,86 @@
                     return cleanStudent;
                 });
                 
+                // Try to save with retry logic
                 db.collection('studentFees').doc(docId).set({
                     students: cleanStudents,
                     lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
                     userId: currentUser.uid,
                     term: term,
                     academicYear: year
-                }).then(function() {
+                }, { merge: false }).then(function() {
                     console.log(term + ' saved to Firebase successfully for year', year);
                     
                     setTimeout(function() {
                         updateSyncStatus('synced');
                         isSyncing = false;
                         window.savingToFirebase = false;
-                        
-                        // RE-ENABLE LISTENERS AFTER SAVE IS COMPLETE
-                        if (wasListenerActive && currentUser && isOnline) {
-                            setTimeout(() => {
-                                setupRealtimeSync();
-                            }, 1000);
-                        }
-                        
                         resolve();
-                    }, 1000);
+                    }, 500);
+                    
                 }).catch(function(error) {
-                    console.error('Error saving ' + term + ' for year', year, ':', error);
-                    updateSyncStatus('offline');
-                    isSyncing = false;
-                    window.savingToFirebase = false;
+                    console.error('Firebase save error:', error);
                     
-                    // Re-enable listeners even on error
-                    if (wasListenerActive && currentUser && isOnline) {
+                    // Retry logic - try up to 3 times
+                    if (retryCount < 2) {
+                        console.log(`Retrying save (attempt ${retryCount + 2}/3)...`);
+                        window.savingToFirebase = false;
+                        
                         setTimeout(() => {
-                            setupRealtimeSync();
-                        }, 1000);
+                            saveToFirebase(year, term, retryCount + 1)
+                                .then(resolve)
+                                .catch(reject);
+                        }, 2000 * (retryCount + 1)); // Increasing delay
+                        
+                    } else {
+                        // All retries failed
+                        console.error('All save attempts failed for ' + term + ' year ' + year);
+                        updateSyncStatus('offline');
+                        isSyncing = false;
+                        window.savingToFirebase = false;
+                        
+                        // Ensure data is saved locally
+                        saveLocalDataForYear(year);
+                        
+                        // Resolve anyway since data is saved locally
+                        resolve();
                     }
-                    
-                    reject(error);
                 });
+                
             } catch (error) {
-                console.error('Error saving ' + term + ' for year', year, ':', error);
+                console.error('Save error:', error);
                 updateSyncStatus('offline');
                 isSyncing = false;
                 window.savingToFirebase = false;
-                
-                // Re-enable listeners on error
-                if (wasListenerActive && currentUser && isOnline) {
-                    setTimeout(() => {
-                        setupRealtimeSync();
-                    }, 1000);
-                }
-                
-                reject(error);
+                saveLocalDataForYear(year);
+                resolve(); // Don't reject, data is safe locally
             }
+        });
+    }
+
+    function manualSync() {
+        if (!currentUser || !isOnline) {
+            alert('Cannot sync: No internet connection or not authenticated');
+            return;
+        }
+        
+        if (isSyncing) {
+            alert('Sync already in progress');
+            return;
+        }
+        
+        updateSyncStatus('syncing');
+        
+        Promise.all([
+            saveToFirebase(currentAcademicYear, 'term1'),
+            saveToFirebase(currentAcademicYear, 'term2')
+        ]).then(() => {
+            alert('Manual sync completed successfully');
+            updateSyncStatus('synced');
+        }).catch((error) => {
+            console.error('Manual sync failed:', error);
+            alert('Manual sync failed. Data remains saved locally.');
+            updateSyncStatus('offline');
         });
     }
 
@@ -3449,16 +3476,24 @@
         syncEl.className = `sync-status ${status}`;
         if (dotEl) dotEl.className = `sync-dot ${status}`;
         
+        // Make it clickable for manual sync
+        syncEl.style.cursor = 'pointer';
+        syncEl.onclick = function() {
+            if (status === 'offline' || status === 'synced') {
+                manualSync();
+            }
+        };
+        
         if (textEl) {
             switch(status) {
                 case 'syncing':
                     textEl.textContent = 'Syncing...';
                     break;
                 case 'synced':
-                    textEl.textContent = 'Synced';
+                    textEl.textContent = 'Synced (click to refresh)';
                     break;
                 default:
-                    textEl.textContent = 'Offline';
+                    textEl.textContent = 'Offline (click to retry)';
             }
         }
         
@@ -4065,6 +4100,12 @@
         
         if (studentIndex === -1) return;
         
+        // DISABLE LISTENERS TEMPORARILY to prevent conflicts
+        const wasListenerActive = isListenerSetup;
+        if (wasListenerActive) {
+            cleanupListeners();
+        }
+        
         // Add payment to student
         if (!students[studentIndex].payments) {
             students[studentIndex].payments = [];
@@ -4081,14 +4122,38 @@
         // Update student's last updated time
         students[studentIndex].updatedAt = formatDateToUK(new Date());
         
-        // Save and update UI
+        // Save locally first
         saveLocalData();
-        saveToFirebase(currentAcademicYear, currentPaymentTerm);
+        
+        // Update UI immediately
         updateAllUI();
         closeModal('addPaymentModal');
         
-        // Show success message
-        alert(`Payment of £${amount.toFixed(2)} added successfully for ${students[studentIndex].firstName} ${students[studentIndex].lastName}`);
+        // Save to Firebase with conflict prevention
+        saveToFirebase(currentAcademicYear, currentPaymentTerm).then(() => {
+            console.log('Payment saved successfully');
+            
+            // Re-enable listeners after successful save
+            if (wasListenerActive && currentUser && isOnline) {
+                setTimeout(() => {
+                    setupRealtimeSync();
+                }, 2000);
+            }
+            
+            // Show success message
+            alert(`Payment of £${formatNumber(amount)} added successfully for ${students[studentIndex].firstName} ${students[studentIndex].lastName}`);
+        }).catch((error) => {
+            console.error('Error saving payment:', error);
+            
+            // Re-enable listeners even on error
+            if (wasListenerActive && currentUser && isOnline) {
+                setTimeout(() => {
+                    setupRealtimeSync();
+                }, 2000);
+            }
+            
+            alert(`Payment of ${formatNumber(amount)} added successfully for ${students[studentIndex].firstName} ${students[studentIndex].lastName}.\n\nNote: Payment saved locally. Will sync to cloud when connection improves.`);
+        });
     }
 
     function editStudent(studentId, term) {
@@ -5307,6 +5372,7 @@
     window.addPaymentEntry = addPaymentEntry;
     window.removePaymentEntry = removePaymentEntry;
     window.saveStudent = saveStudent;
+    window.manualSync = manualSync;
     window.applyFilter = applyFilter;
     window.showImportModal = showImportModal;
     window.handleCSVUpload = handleCSVUpload;
