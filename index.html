@@ -376,6 +376,51 @@
         border: 1px solid var(--success);
     }
 
+    /* Bulk Actions */
+    .bulk-actions {
+        display: none;
+        background: var(--card-bg-elevated);
+        border: 2px solid var(--primary);
+        border-radius: 16px;
+        padding: 16px 20px;
+        margin-bottom: 16px;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 4px 16px rgba(16, 163, 127, 0.2);
+    }
+
+    .bulk-actions.show {
+        display: flex;
+    }
+
+    .bulk-actions-text {
+        font-weight: 600;
+        color: var(--primary);
+        flex: 1;
+    }
+
+    .bulk-actions-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .bulk-actions .btn {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+
+    .selection-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .selection-controls .btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
     .table-container {
         background: var(--card-bg);
         border-radius: 20px;
@@ -392,7 +437,7 @@
     .table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 1400px;
+        min-width: 1500px;
     }
 
     .table th,
@@ -412,6 +457,13 @@
         letter-spacing: 0.5px;
     }
 
+    .table th:first-child,
+    .table td:first-child {
+        width: 60px;
+        text-align: center;
+        padding: 16px 10px;
+    }
+
     .table tr:hover {
         background: var(--card-bg-elevated);
     }
@@ -423,6 +475,20 @@
     .table td:last-child {
         width: 280px;
         min-width: 280px;
+    }
+
+    .student-checkbox {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary);
+        cursor: pointer;
+    }
+
+    .select-all-checkbox {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary);
+        cursor: pointer;
     }
 
     .payment-status {
@@ -1166,6 +1232,20 @@
             width: auto;
             min-width: auto;
         }
+
+        .bulk-actions {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .bulk-actions-buttons {
+            justify-content: center;
+        }
+
+        .selection-controls {
+            flex-wrap: wrap;
+        }
     }
 
     /* PDF Export Button Styling */
@@ -1310,10 +1390,23 @@
                         <option value="left">Left Students</option>
                         <option value="outstanding">Outstanding Only</option>
                     </select>
-                    <!-- ADD THESE NEW BUTTONS -->
-                    <button class="btn btn-info" id="term1BulkBtn" onclick="toggleBulkMode('term1')">Select Multiple</button>
-                    <button class="btn btn-primary" id="term1SelectAllBtn" onclick="selectAllVisible('term1')" style="display: none;">Select All Visible</button>
-                    <button class="btn btn-danger" id="term1DeleteSelectedBtn" onclick="deleteSelectedStudents('term1')" style="display: none;" disabled>Delete Selected (0)</button>
+                </div>
+
+                <!-- Selection Controls -->
+                <div class="selection-controls">
+                    <button class="btn btn-secondary btn-sm" onclick="selectAllStudents('term1', 'all')">Select All</button>
+                    <button class="btn btn-secondary btn-sm" onclick="selectAllStudents('term1', 'visible')">Select All Visible</button>
+                    <button class="btn btn-secondary btn-sm" onclick="deselectAllStudents('term1')">Deselect All</button>
+                </div>
+
+                <!-- Bulk Actions Bar -->
+                <div class="bulk-actions" id="term1BulkActions">
+                    <div class="bulk-actions-text">
+                        <span id="term1SelectedCount">0</span> students selected
+                    </div>
+                    <div class="bulk-actions-buttons">
+                        <button class="btn btn-danger" onclick="bulkDeleteStudents('term1')">Delete Selected</button>
+                    </div>
                 </div>
 
                 <div class="table-container">
@@ -1321,6 +1414,9 @@
                         <table class="table">
                             <thead>
                                 <tr>
+                                    <th>
+                                        <input type="checkbox" class="select-all-checkbox" id="term1SelectAll" onchange="toggleSelectAll('term1')">
+                                    </th>
                                     <th>No.</th>
                                     <th>Name</th>
                                     <th>DOB</th>
@@ -1337,7 +1433,7 @@
                             </thead>
                             <tbody id="term1StudentsTable">
                                 <tr>
-                                    <td colspan="12">
+                                    <td colspan="13">
                                         <div class="empty-state">
                                             <div class="icon">🎓</div>
                                             <div class="title">No students added yet</div>
@@ -1387,10 +1483,23 @@
                         <option value="left">Left Students</option>
                         <option value="outstanding">Outstanding Only</option>
                     </select>
-                    <!-- ADD THESE NEW BUTTONS -->
-                    <button class="btn btn-info" id="term2BulkBtn" onclick="toggleBulkMode('term2')">Select Multiple</button>
-                    <button class="btn btn-primary" id="term2SelectAllBtn" onclick="selectAllVisible('term2')" style="display: none;">Select All Visible</button>
-                    <button class="btn btn-danger" id="term2DeleteSelectedBtn" onclick="deleteSelectedStudents('term2')" style="display: none;" disabled>Delete Selected (0)</button>
+                </div>
+
+                <!-- Selection Controls -->
+                <div class="selection-controls">
+                    <button class="btn btn-secondary btn-sm" onclick="selectAllStudents('term2', 'all')">Select All</button>
+                    <button class="btn btn-secondary btn-sm" onclick="selectAllStudents('term2', 'visible')">Select All Visible</button>
+                    <button class="btn btn-secondary btn-sm" onclick="deselectAllStudents('term2')">Deselect All</button>
+                </div>
+
+                <!-- Bulk Actions Bar -->
+                <div class="bulk-actions" id="term2BulkActions">
+                    <div class="bulk-actions-text">
+                        <span id="term2SelectedCount">0</span> students selected
+                    </div>
+                    <div class="bulk-actions-buttons">
+                        <button class="btn btn-danger" onclick="bulkDeleteStudents('term2')">Delete Selected</button>
+                    </div>
                 </div>
 
                 <div class="table-container">
@@ -1398,6 +1507,9 @@
                         <table class="table">
                             <thead>
                                 <tr>
+                                    <th>
+                                        <input type="checkbox" class="select-all-checkbox" id="term2SelectAll" onchange="toggleSelectAll('term2')">
+                                    </th>
                                     <th>No.</th>
                                     <th>Name</th>
                                     <th>DOB</th>
@@ -1414,7 +1526,7 @@
                             </thead>
                             <tbody id="term2StudentsTable">
                                 <tr>
-                                    <td colspan="12">
+                                    <td colspan="13">
                                         <div class="empty-state">
                                             <div class="icon">🎓</div>
                                             <div class="title">No students added yet</div>
@@ -1760,8 +1872,8 @@
                             <input type="text" class="form-input" id="studentLastName" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Date of Birth</label>
-                            <input type="date" class="form-input" id="studentDOB" required>
+                            <label class="form-label">Date of Birth (DD/MM/YYYY)</label>
+                            <input type="text" class="form-input" id="studentDOB" placeholder="15/06/2011" required pattern="\d{2}/\d{2}/\d{4}">
                         </div>
                     </div>
                 </div>
@@ -1843,8 +1955,8 @@
                                 <input type="text" class="form-input" name="paymentInvoice[]">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Date</label>
-                                <input type="date" class="form-input" name="paymentDate[]">
+                                <label class="form-label">Date (DD/MM/YYYY)</label>
+                                <input type="text" class="form-input" name="paymentDate[]" placeholder="15/06/2025" pattern="\d{2}/\d{2}/\d{4}">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Method</label>
@@ -2029,8 +2141,8 @@
                             <input type="number" step="0.01" class="form-input" id="paymentAmount" required min="0">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Payment Date</label>
-                            <input type="date" class="form-input" id="paymentDate" required>
+                            <label class="form-label">Payment Date (DD/MM/YYYY)</label>
+                            <input type="text" class="form-input" id="paymentDate" placeholder="15/06/2025" required pattern="\d{2}/\d{2}/\d{4}">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Invoice Number</label>
@@ -2066,7 +2178,7 @@
             </div>
             <div>
                 <p style="color: var(--text-secondary); margin-bottom: 24px; line-height: 1.5;">
-                    Upload a CSV file with student data. Required columns: Student Name, DOB, School Year, Set Fee, VAT Amount
+                    Upload a CSV file with student data. Required columns: Student Name, DOB (DD/MM/YYYY), School Year, Set Fee, VAT Amount
                 </p>
                 
                 <div class="file-upload-area" onclick="document.getElementById('csvFileInput').click()">
@@ -2094,6 +2206,78 @@
     </div>
 
     <script>
+    // Date formatting utility functions
+    function formatDateToUK(dateInput) {
+        if (!dateInput) return '';
+        
+        // If it's already in DD/MM/YYYY format, return as is
+        if (typeof dateInput === 'string' && dateInput.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+            return dateInput;
+        }
+        
+        let date;
+        if (typeof dateInput === 'string') {
+            // Handle various input formats
+            if (dateInput.includes('-')) {
+                // ISO format (YYYY-MM-DD) or similar
+                date = new Date(dateInput);
+            } else if (dateInput.includes('/')) {
+                // Try to parse as DD/MM/YYYY first
+                const parts = dateInput.split('/');
+                if (parts.length === 3) {
+                    // Assume DD/MM/YYYY
+                    date = new Date(parts[2], parts[1] - 1, parts[0]);
+                } else {
+                    date = new Date(dateInput);
+                }
+            } else {
+                date = new Date(dateInput);
+            }
+        } else {
+            date = new Date(dateInput);
+        }
+        
+        if (isNaN(date.getTime())) {
+            return dateInput; // Return original if parsing fails
+        }
+        
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        
+        return `${day}/${month}/${year}`;
+    }
+
+    function parseUKDateToISO(ukDate) {
+        if (!ukDate) return '';
+        
+        // If it's already in ISO format, return as is
+        if (ukDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return ukDate;
+        }
+        
+        // Parse DD/MM/YYYY format
+        const parts = ukDate.split('/');
+        if (parts.length === 3) {
+            const day = parts[0].padStart(2, '0');
+            const month = parts[1].padStart(2, '0');
+            const year = parts[2];
+            return `${year}-${month}-${day}`;
+        }
+        
+        return ukDate;
+    }
+
+    function setTodayInUKFormat(inputId) {
+        const today = new Date();
+        const ukDate = formatDateToUK(today);
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.value = ukDate;
+        }
+        return ukDate;
+    }
+
     // Firebase configuration
     const firebaseConfig = {
         apiKey: "AIzaSyC-AM7-3HdvjRpJMDVQLfxUsZmgh1aA8UU",
@@ -2102,6 +2286,12 @@
         storageBucket: "dul-accounts-21118.firebasestorage.app",
         messagingSenderId: "484339552499",
         appId: "1:484339552499:web:1dff66886e1627a178a786"
+    };
+
+    // Global variables for bulk selection
+    let selectedStudents = {
+        term1: new Set(),
+        term2: new Set()
     };
 
     // Academic Year Management
@@ -2210,6 +2400,10 @@
         // Reset current data
         window.term1Students = [];
         window.term2Students = [];
+        
+        // Reset selections
+        selectedStudents.term1.clear();
+        selectedStudents.term2.clear();
         
         // Load from localStorage for the specific year
         const term1Key = `dulTerm1Students_${year}`;
@@ -2322,214 +2516,142 @@
     window.term1Students = [];
     window.term2Students = [];
 
-    // 1. ADD THESE VARIABLES after your existing global variables (around line 2311)
-let selectedStudents = new Set(); // Track selected student IDs
-let bulkModeEnabled = false; // Track if bulk mode is active
-
-// 2. ADD THESE FUNCTIONS after your existing utility functions
-
-function toggleBulkMode(term) {
-    bulkModeEnabled = !bulkModeEnabled;
-    selectedStudents.clear();
-    
-    const bulkBtn = document.getElementById(`${term}BulkBtn`);
-    const deleteBtn = document.getElementById(`${term}DeleteSelectedBtn`);
-    const selectAllBtn = document.getElementById(`${term}SelectAllBtn`);
-    
-    if (bulkModeEnabled) {
-        bulkBtn.textContent = 'Cancel Selection';
-        bulkBtn.className = 'btn btn-secondary';
-        deleteBtn.style.display = 'inline-flex';
-        selectAllBtn.style.display = 'inline-flex';
-    } else {
-        bulkBtn.textContent = 'Select Multiple';
-        bulkBtn.className = 'btn btn-info';
-        deleteBtn.style.display = 'none';
-        selectAllBtn.style.display = 'none';
-    }
-    
-    renderStudentsTable(term);
-    updateBulkUI(term);
-}
-
-function toggleStudentSelection(studentId, term) {
-    if (!bulkModeEnabled) return;
-    
-    if (selectedStudents.has(studentId)) {
-        selectedStudents.delete(studentId);
-    } else {
-        selectedStudents.add(studentId);
-    }
-    
-    updateBulkUI(term);
-}
-
-function selectAllVisible(term) {
-    if (!bulkModeEnabled) return;
-    
-    const table = document.getElementById(`${term}StudentsTable`);
-    const rows = table.querySelectorAll('tr');
-    
-    selectedStudents.clear();
-    
-    rows.forEach(row => {
-        if (row.style.display !== 'none' && !row.querySelector('.empty-state')) {
-            const checkbox = row.querySelector('.student-checkbox');
-            if (checkbox) {
-                const studentId = checkbox.dataset.studentId;
-                selectedStudents.add(studentId);
-            }
+    // Bulk selection functions
+    function toggleStudentSelection(studentId, term) {
+        const checkbox = document.querySelector(`#${term}StudentsTable input[data-student-id="${studentId}"]`);
+        if (checkbox && checkbox.checked) {
+            selectedStudents[term].add(studentId);
+        } else {
+            selectedStudents[term].delete(studentId);
         }
-    });
-    
-    updateBulkUI(term);
-    renderStudentsTable(term);
-}
-
-function updateBulkUI(term) {
-    const deleteBtn = document.getElementById(`${term}DeleteSelectedBtn`);
-    const selectAllBtn = document.getElementById(`${term}SelectAllBtn`);
-    
-    if (deleteBtn) {
-        deleteBtn.textContent = `Delete Selected (${selectedStudents.size})`;
-        deleteBtn.disabled = selectedStudents.size === 0;
+        updateBulkActionsUI(term);
     }
-    
-    // Update checkboxes
-    const checkboxes = document.querySelectorAll(`#${term}StudentsTable .student-checkbox`);
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = selectedStudents.has(checkbox.dataset.studentId);
-    });
-}
 
-function deleteSelectedStudents(term) {
-    if (selectedStudents.size === 0) {
-        alert('No students selected');
-        return;
+    function toggleSelectAll(term) {
+        const selectAllCheckbox = document.getElementById(`${term}SelectAll`);
+        const isChecked = selectAllCheckbox.checked;
+        
+        // Get all visible student checkboxes
+        const visibleCheckboxes = document.querySelectorAll(`#${term}StudentsTable tbody tr:not([style*="display: none"]) input.student-checkbox`);
+        
+        visibleCheckboxes.forEach(checkbox => {
+            checkbox.checked = isChecked;
+            const studentId = checkbox.getAttribute('data-student-id');
+            if (isChecked) {
+                selectedStudents[term].add(studentId);
+            } else {
+                selectedStudents[term].delete(studentId);
+            }
+        });
+        
+        updateBulkActionsUI(term);
     }
-    
-    const students = term === 'term1' ? window.term1Students : window.term2Students;
-    const selectedStudentsList = Array.from(selectedStudents).map(id => {
-        const student = students.find(s => s.id === id);
-        return student ? `${student.firstName} ${student.lastName}` : 'Unknown';
-    });
-    
-    const confirmMessage = `Are you sure you want to delete ${selectedStudents.size} selected students?\n\n${selectedStudentsList.join('\n')}\n\nThis action cannot be undone.`;
-    
-    if (!confirm(confirmMessage)) {
-        return;
-    }
-    
-    // Remove selected students
-    if (term === 'term1') {
-        window.term1Students = window.term1Students.filter(s => !selectedStudents.has(s.id));
-    } else {
-        window.term2Students = window.term2Students.filter(s => !selectedStudents.has(s.id));
-    }
-    
-    selectedStudents.clear();
-    saveLocalData();
-    saveToFirebase(currentAcademicYear, term);
-    updateAllUI();
-    
-    alert(`Successfully deleted ${selectedStudentsList.length} students from ${term === 'term1' ? 'Term 1' : 'Term 2'}`);
-}
 
-    // 3. UPDATE THE renderStudentsTable FUNCTION - Replace the existing function with this:
-
-    function renderStudentsTable(term) {
+    function selectAllStudents(term, scope) {
         const students = term === 'term1' ? window.term1Students : window.term2Students;
-        const tableBody = document.getElementById(`${term}StudentsTable`);
         
-        if (!tableBody) return;
+        if (scope === 'all') {
+            // Select all students
+            students.forEach(student => selectedStudents[term].add(student.id));
+            // Check all checkboxes
+            document.querySelectorAll(`#${term}StudentsTable input.student-checkbox`).forEach(checkbox => {
+                checkbox.checked = true;
+            });
+        } else if (scope === 'visible') {
+            // Select only visible students
+            const visibleCheckboxes = document.querySelectorAll(`#${term}StudentsTable tbody tr:not([style*="display: none"]) input.student-checkbox`);
+            visibleCheckboxes.forEach(checkbox => {
+                checkbox.checked = true;
+                const studentId = checkbox.getAttribute('data-student-id');
+                selectedStudents[term].add(studentId);
+            });
+        }
         
-        if (students.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="13">
-                        <div class="empty-state">
-                            <div class="icon">🎓</div>
-                            <div class="title">No students added yet</div>
-                            <div class="subtitle">Click the + button to add your first student</div>
-                        </div>
-                    </td>
-                </tr>
-            `;
+        updateSelectAllCheckbox(term);
+        updateBulkActionsUI(term);
+    }
+
+    function deselectAllStudents(term) {
+        selectedStudents[term].clear();
+        
+        // Uncheck all checkboxes
+        document.querySelectorAll(`#${term}StudentsTable input.student-checkbox`).forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        updateSelectAllCheckbox(term);
+        updateBulkActionsUI(term);
+    }
+
+    function updateSelectAllCheckbox(term) {
+        const selectAllCheckbox = document.getElementById(`${term}SelectAll`);
+        const visibleCheckboxes = document.querySelectorAll(`#${term}StudentsTable tbody tr:not([style*="display: none"]) input.student-checkbox`);
+        const checkedVisible = document.querySelectorAll(`#${term}StudentsTable tbody tr:not([style*="display: none"]) input.student-checkbox:checked`);
+        
+        if (visibleCheckboxes.length === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedVisible.length === visibleCheckboxes.length) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedVisible.length > 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = true;
+        } else {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        }
+    }
+
+    function updateBulkActionsUI(term) {
+        const bulkActions = document.getElementById(`${term}BulkActions`);
+        const selectedCount = document.getElementById(`${term}SelectedCount`);
+        
+        const count = selectedStudents[term].size;
+        
+        if (count > 0) {
+            bulkActions.classList.add('show');
+            selectedCount.textContent = count;
+        } else {
+            bulkActions.classList.remove('show');
+        }
+    }
+
+    function bulkDeleteStudents(term) {
+        const count = selectedStudents[term].size;
+        
+        if (count === 0) {
+            alert('No students selected for deletion.');
             return;
         }
         
-        tableBody.innerHTML = students.map((student, index) => {
-            const totalPaid = getTotalPaid(student);
-            const outstanding = getOutstandingAmount(student, term);
-            const status = getPaymentStatus(student, term);
-            const discountText = getDiscountText(student);
-            const studentStatus = student.studentStatus || 'active';
-            const isSelected = selectedStudents.has(student.id);
-            
-            return `
-                <tr style="${studentStatus === 'left' ? 'opacity: 0.6;' : ''}">
-                    ${bulkModeEnabled ? `
-                        <td>
-                            <input type="checkbox" class="student-checkbox" 
-                                data-student-id="${student.id}" 
-                                ${isSelected ? 'checked' : ''}
-                                onchange="toggleStudentSelection('${student.id}', '${term}')"
-                                style="width: 18px; height: 18px; accent-color: var(--primary);">
-                        </td>
-                    ` : ''}
-                    <td>${index + 1}</td>
-                    <td>${student.firstName} ${student.lastName}</td>
-                    <td>${parseUKDate(student.dob).toLocaleDateString('en-GB')}</td>
-                    <td>Year ${student.year}</td>
-                    <td>£${(parseFloat(student.setFee) || 0).toFixed(2)}</td>
-                    <td>£${(parseFloat(student.vat) || 0).toFixed(2)}</td>
-                    <td>£${totalPaid.toFixed(2)}</td>
-                    <td>£${outstanding.toFixed(2)}</td>
-                    <td><span class="payment-status ${studentStatus === 'left' ? 'left' : status}"><span class="dot"></span>${studentStatus === 'left' ? 'Left' : status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
-                    <td><span class="payment-status ${studentStatus}">${studentStatus === 'left' ? '📤 Left' : '✅ Active'}</span></td>
-                    <td>${discountText}</td>
-                    <td>
-                        <div class="action-buttons">
-                            ${!bulkModeEnabled ? `
-                                <button class="btn btn-info btn-sm" onclick="viewStudent('${student.id}', '${term}')">View</button>
-                                <button class="btn btn-success btn-sm" onclick="showAddPayment('${student.id}', '${term}')">Add Payment</button>
-                                <button class="btn btn-secondary btn-sm" onclick="editStudent('${student.id}', '${term}')">Edit</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteStudent('${student.id}', '${term}')">Delete</button>
-                            ` : `
-                                <span style="color: var(--text-secondary); font-size: 12px;">Bulk mode active</span>
-                            `}
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-    }
-
-    function parseUKDate(dateStr) {
-        if (!dateStr) return new Date();
-        if (dateStr instanceof Date) return dateStr;
-        
-        // Handle UK format DD/MM/YYYY
-        const parts = dateStr.split('/');
-        if (parts.length === 3) {
-            const day = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1;
-            const year = parseInt(parts[2], 10);
-            
-            if (day >= 1 && day <= 31 && month >= 0 && month <= 11 && year >= 1900) {
-                return new Date(year, month, day);
-            }
+        if (!confirm(`Are you sure you want to permanently delete ${count} selected student${count > 1 ? 's' : ''}? This action cannot be undone.`)) {
+            return;
         }
         
-        return new Date(dateStr);
+        // Get the students array
+        const students = term === 'term1' ? window.term1Students : window.term2Students;
+        
+        // Filter out selected students
+        const remainingStudents = students.filter(student => !selectedStudents[term].has(student.id));
+        
+        // Update the array
+        if (term === 'term1') {
+            window.term1Students = remainingStudents;
+        } else {
+            window.term2Students = remainingStudents;
+        }
+        
+        // Clear selections
+        selectedStudents[term].clear();
+        
+        // Save and update UI
+        saveLocalData();
+        saveToFirebase(currentAcademicYear, term);
+        updateAllUI();
+        
+        alert(`Successfully deleted ${count} student${count > 1 ? 's' : ''}.`);
     }
-
-    // Copy static methods from original Date
-    Object.setPrototypeOf(window.Date, OriginalDate);
-    Object.setPrototypeOf(window.Date.prototype, OriginalDate.prototype);
-    window.Date.now = OriginalDate.now;
-    window.Date.parse = OriginalDate.parse;
-    window.Date.UTC = OriginalDate.UTC;
 
     // Core calculation functions
     function getTotalPaid(student) {
@@ -3182,7 +3304,7 @@ function deleteSelectedStudents(term) {
         if (students.length === 0) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="12">
+                    <td colspan="13">
                         <div class="empty-state">
                             <div class="icon">🎓</div>
                             <div class="title">No students added yet</div>
@@ -3200,12 +3322,19 @@ function deleteSelectedStudents(term) {
             const status = getPaymentStatus(student, term);
             const discountText = getDiscountText(student);
             const studentStatus = student.studentStatus || 'active';
+            const isSelected = selectedStudents[term].has(student.id);
+            const dobFormatted = formatDateToUK(student.dob);
             
             return `
                 <tr style="${studentStatus === 'left' ? 'opacity: 0.6;' : ''}">
+                    <td>
+                        <input type="checkbox" class="student-checkbox" data-student-id="${student.id}" 
+                               onchange="toggleStudentSelection('${student.id}', '${term}')" 
+                               ${isSelected ? 'checked' : ''}>
+                    </td>
                     <td>${index + 1}</td>
                     <td>${student.firstName} ${student.lastName}</td>
-                    <td>${parseUKDate(student.dob).toLocaleDateString('en-GB')}</td>
+                    <td>${dobFormatted}</td>
                     <td>Year ${student.year}</td>
                     <td>£${(parseFloat(student.setFee) || 0).toFixed(2)}</td>
                     <td>£${(parseFloat(student.vat) || 0).toFixed(2)}</td>
@@ -3225,6 +3354,10 @@ function deleteSelectedStudents(term) {
                 </tr>
             `;
         }).join('');
+        
+        // Update select all checkbox state
+        updateSelectAllCheckbox(term);
+        updateBulkActionsUI(term);
     }
 
     function setupSearchFilters() {
@@ -3263,10 +3396,10 @@ function deleteSelectedStudents(term) {
         rows.forEach(row => {
             if (row.querySelector('.empty-state')) return;
             
-            const name = row.children[1]?.textContent.toLowerCase() || '';
-            const year = row.children[3]?.textContent.toLowerCase() || '';
-            const status = row.children[8]?.textContent.toLowerCase() || '';
-            const studentStatus = row.children[9]?.textContent.toLowerCase() || '';
+            const name = row.children[2]?.textContent.toLowerCase() || '';
+            const year = row.children[4]?.textContent.toLowerCase() || '';
+            const status = row.children[9]?.textContent.toLowerCase() || '';
+            const studentStatus = row.children[10]?.textContent.toLowerCase() || '';
             
             // Search filter
             const matchesSearch = name.includes(searchTerm.toLowerCase()) || 
@@ -3292,7 +3425,7 @@ function deleteSelectedStudents(term) {
                         matchesFilter = studentStatus.includes('left');
                         break;
                     case 'outstanding':
-                        const outstanding = parseFloat(row.children[7]?.textContent.replace('£', '') || '0');
+                        const outstanding = parseFloat(row.children[8]?.textContent.replace('£', '') || '0');
                         matchesFilter = outstanding > 0;
                         break;
                     default:
@@ -3302,6 +3435,9 @@ function deleteSelectedStudents(term) {
             
             row.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
         });
+        
+        // Update select all checkbox after filtering
+        updateSelectAllCheckbox(term);
     }
 
     // Modal Functions
@@ -3363,7 +3499,7 @@ function deleteSelectedStudents(term) {
         const viewStudentUpdated = document.getElementById('viewStudentUpdated');
         
         if (viewStudentName) viewStudentName.textContent = `${student.firstName} ${student.lastName}`;
-        if (viewStudentDOB) viewStudentDOB.textContent = parseUKDate(student.dob).toLocaleDateString('en-GB');
+        if (viewStudentDOB) viewStudentDOB.textContent = formatDateToUK(student.dob);
         if (viewStudentYear) viewStudentYear.textContent = `Year ${student.year}`;
         if (viewStudentTerm) viewStudentTerm.textContent = term === 'term1' ? 'Term 1' : 'Term 2';
         if (viewStudentStatus) {
@@ -3372,12 +3508,12 @@ function deleteSelectedStudents(term) {
             viewStudentStatus.style.color = status === 'left' ? 'var(--warning)' : 'var(--success)';
         }
         if (viewStudentCreated && student.createdAt) {
-            viewStudentCreated.textContent = new Date(student.createdAt).toLocaleDateString('en-GB');
+            viewStudentCreated.textContent = formatDateToUK(student.createdAt);
         } else if (viewStudentCreated) {
             viewStudentCreated.textContent = 'Not available';
         }
         if (viewStudentUpdated && student.updatedAt) {
-            viewStudentUpdated.textContent = new Date(student.updatedAt).toLocaleDateString('en-GB');
+            viewStudentUpdated.textContent = formatDateToUK(student.updatedAt);
         } else if (viewStudentUpdated) {
             viewStudentUpdated.textContent = 'Not available';
         }
@@ -3453,7 +3589,7 @@ function deleteSelectedStudents(term) {
             
             if (viewPaymentsBody) {
                 viewPaymentsBody.innerHTML = payments.map(payment => {
-                    const paymentDate = payment.date ? new Date(payment.date).toLocaleDateString('en-GB') : 'Not specified';
+                    const paymentDate = payment.date ? formatDateToUK(payment.date) : 'Not specified';
                     const amount = parseFloat(payment.amount) || 0;
                     const invoice = payment.invoice || 'N/A';
                     const method = payment.method || 'Not specified';
@@ -3511,11 +3647,8 @@ function deleteSelectedStudents(term) {
             addPaymentForm.reset();
         }
         
-        // Set today's date as default
-        const paymentDate = document.getElementById('paymentDate');
-        if (paymentDate) {
-            paymentDate.value = new Date().toISOString().split('T')[0];
-        }
+        // Set today's date as default in UK format
+        setTodayInUKFormat('paymentDate');
         
         // Show modal
         const modal = document.getElementById('addPaymentModal');
@@ -3531,7 +3664,7 @@ function deleteSelectedStudents(term) {
         
         // Get form data
         const amount = parseFloat(document.getElementById('paymentAmount')?.value) || 0;
-        const date = document.getElementById('paymentDate')?.value || '';
+        const dateUK = document.getElementById('paymentDate')?.value || '';
         const invoice = document.getElementById('paymentInvoice')?.value || '';
         const method = document.getElementById('paymentMethod')?.value || '';
         
@@ -3540,13 +3673,19 @@ function deleteSelectedStudents(term) {
             return;
         }
         
-        if (!date) {
+        if (!dateUK) {
             alert('Please select a payment date');
             return;
         }
         
         if (!method) {
             alert('Please select a payment method');
+            return;
+        }
+        
+        // Validate UK date format
+        if (!dateUK.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+            alert('Please enter date in DD/MM/YYYY format');
             return;
         }
         
@@ -3563,14 +3702,14 @@ function deleteSelectedStudents(term) {
         
         students[studentIndex].payments.push({
             amount: amount,
-            date: date,
+            date: dateUK,
             invoice: invoice,
             method: method,
-            createdAt: new Date().toISOString()
+            createdAt: formatDateToUK(new Date())
         });
         
         // Update student's last updated time
-        students[studentIndex].updatedAt = new Date().toISOString();
+        students[studentIndex].updatedAt = formatDateToUK(new Date());
         
         // Save and update UI
         saveLocalData();
@@ -3607,7 +3746,7 @@ function deleteSelectedStudents(term) {
         
         if (studentFirstName) studentFirstName.value = student.firstName || '';
         if (studentLastName) studentLastName.value = student.lastName || '';
-        if (studentDOB) studentDOB.value = student.dob || '';
+        if (studentDOB) studentDOB.value = formatDateToUK(student.dob);
         if (studentYear) studentYear.value = student.year || '';
         if (studentFee) studentFee.value = student.setFee || 0;
         if (studentVAT) studentVAT.value = student.vat || 0;
@@ -3650,7 +3789,7 @@ function deleteSelectedStudents(term) {
                         
                         if (amountInput) amountInput.value = payment.amount || '';
                         if (invoiceInput) invoiceInput.value = payment.invoice || '';
-                        if (dateInput) dateInput.value = payment.date || '';
+                        if (dateInput) dateInput.value = formatDateToUK(payment.date);
                         if (methodSelect) methodSelect.value = payment.method || '';
                     }
                 }
@@ -3678,6 +3817,9 @@ function deleteSelectedStudents(term) {
         } else {
             window.term2Students = window.term2Students.filter(s => s.id !== studentId);
         }
+        
+        // Remove from selections
+        selectedStudents[term].delete(studentId);
         
         saveLocalData();
         saveToFirebase(currentAcademicYear, term);
@@ -3707,8 +3849,8 @@ function deleteSelectedStudents(term) {
                 <input type="text" class="form-input" name="paymentInvoice[]">
             </div>
             <div class="form-group">
-                <label class="form-label">Date</label>
-                <input type="date" class="form-input" name="paymentDate[]">
+                <label class="form-label">Date (DD/MM/YYYY)</label>
+                <input type="text" class="form-input" name="paymentDate[]" placeholder="15/06/2025" pattern="\\d{2}/\\d{2}/\\d{4}">
             </div>
             <div class="form-group">
                 <label class="form-label">Method</label>
@@ -3757,8 +3899,8 @@ function deleteSelectedStudents(term) {
                     <input type="text" class="form-input" name="paymentInvoice[]">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Date</label>
-                    <input type="date" class="form-input" name="paymentDate[]">
+                    <label class="form-label">Date (DD/MM/YYYY)</label>
+                    <input type="text" class="form-input" name="paymentDate[]" placeholder="15/06/2025" pattern="\\d{2}/\\d{2}/\\d{4}">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Method</label>
@@ -3789,11 +3931,18 @@ function deleteSelectedStudents(term) {
             }
         });
         
+        // Get and validate DOB
+        const dobValue = document.getElementById('studentDOB')?.value || '';
+        if (!dobValue.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+            alert('Please enter date of birth in DD/MM/YYYY format');
+            return;
+        }
+        
         const studentData = {
             id: currentStudentId || Date.now().toString(),
             firstName: document.getElementById('studentFirstName')?.value || '',
             lastName: document.getElementById('studentLastName')?.value || '',
-            dob: document.getElementById('studentDOB')?.value || '',
+            dob: dobValue,
             year: document.getElementById('studentYear')?.value || '',
             setFee: parseFloat(document.getElementById('studentFee')?.value) || 0,
             vat: parseFloat(document.getElementById('studentVAT')?.value) || 0,
@@ -3807,8 +3956,8 @@ function deleteSelectedStudents(term) {
             payments: [],
             term: currentTerm,
             academicYear: currentAcademicYear,
-            createdAt: currentStudentId ? undefined : new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            createdAt: currentStudentId ? undefined : formatDateToUK(new Date()),
+            updatedAt: formatDateToUK(new Date())
         };
 
         // Collect payments
@@ -3819,11 +3968,19 @@ function deleteSelectedStudents(term) {
 
         for (let i = 0; i < amountInputs.length; i++) {
             const amount = parseFloat(amountInputs[i].value);
+            const dateValue = dateInputs[i].value;
+            
             if (amount && amount > 0) {
+                // Validate date format if provided
+                if (dateValue && !dateValue.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                    alert(`Payment ${i + 1}: Please enter date in DD/MM/YYYY format or leave empty`);
+                    return;
+                }
+                
                 studentData.payments.push({
                     amount: amount,
                     invoice: invoiceInputs[i].value,
-                    date: dateInputs[i].value,
+                    date: dateValue,
                     method: methodSelects[i].value
                 });
             }
@@ -3957,11 +4114,18 @@ function deleteSelectedStudents(term) {
         
         csvData.forEach(row => {
             try {
+                // Handle DOB formatting - ensure it's in DD/MM/YYYY
+                let dobFormatted = '';
+                const dobValue = row['dob'] || row['date of birth'] || '';
+                if (dobValue) {
+                    dobFormatted = formatDateToUK(dobValue);
+                }
+                
                 const studentData = {
                     id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
                     firstName: row['student name'] || row['first name'] || '',
                     lastName: row['last name'] || '',
-                    dob: row['dob'] || row['date of birth'] || '',
+                    dob: dobFormatted,
                     year: row['school year'] || row['year'] || '',
                     setFee: parseFloat(row['set fee'] || row['fee'] || 0),
                     vat: parseFloat(row['vat amount'] || row['vat'] || 0),
@@ -3971,8 +4135,8 @@ function deleteSelectedStudents(term) {
                     payments: [],
                     term: term,
                     academicYear: currentAcademicYear,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
+                    createdAt: formatDateToUK(new Date()),
+                    updatedAt: formatDateToUK(new Date())
                 };
                 
                 if (studentData.firstName && studentData.lastName) {
@@ -4046,7 +4210,7 @@ function deleteSelectedStudents(term) {
                     break;
             }
             
-            const fileName = `${type}_report_${scope}_${currentAcademicYear}_${new Date().toISOString().split('T')[0]}.pdf`;
+            const fileName = `${type}_report_${scope}_${currentAcademicYear}_${formatDateToUK(new Date()).replace(/\//g, '-')}.pdf`;
             doc.save(fileName);
             
             setTimeout(() => {
@@ -4206,7 +4370,7 @@ function deleteSelectedStudents(term) {
         doc.setFontSize(11);
         doc.setFont(undefined, 'normal');
         doc.text(`Academic Year: ${currentAcademicYear}`, 25, 30);
-        doc.text(`Generated: ${new Date().toLocaleDateString('en-GB')}`, 272, 30, { align: 'right' });
+        doc.text(`Generated: ${formatDateToUK(new Date())}`, 272, 30, { align: 'right' });
         
         // Reset text color for body
         doc.setTextColor(60, 60, 60);
@@ -4362,10 +4526,13 @@ function deleteSelectedStudents(term) {
     window.showYearSelector = showYearSelector;
     window.confirmYearChange = confirmYearChange;
     window.changeAcademicYear = changeAcademicYear;
-    window.toggleBulkMode = toggleBulkMode;
+    
+    // Bulk selection functions
     window.toggleStudentSelection = toggleStudentSelection;
-    window.selectAllVisible = selectAllVisible;
-    window.deleteSelectedStudents = deleteSelectedStudents;
+    window.toggleSelectAll = toggleSelectAll;
+    window.selectAllStudents = selectAllStudents;
+    window.deselectAllStudents = deselectAllStudents;
+    window.bulkDeleteStudents = bulkDeleteStudents;
     </script>
     </body>
 </html>
