@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#10A37F">
 <title>Student Fees Tracker</title>
+<link rel="manifest" href="fees-manifest.json">
+<link rel="apple-touch-icon" href="fees-icon-192.png">
 
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -265,7 +267,6 @@
     .stat-card.paid .value { color: var(--success); }
     .stat-card.partial .value { color: var(--warning); }
     .stat-card.outstanding .value { color: var(--danger); }
-    .stat-card.warning .value { color: var(--warning); }
 
     .controls {
         display: flex;
@@ -522,12 +523,6 @@
         background: rgba(128, 128, 128, 0.2);
         color: #808080;
         border: 1px solid rgba(128, 128, 128, 0.3);
-    }
-
-    .payment-status.active {
-        background: rgba(52, 199, 89, 0.2);
-        color: var(--success);
-        border: 1px solid rgba(52, 199, 89, 0.3);
     }
 
     .payment-status .dot {
@@ -1092,9 +1087,10 @@
         min-width: auto;
     }
 
-    /* Mobile Optimizations */
+/* Ensure buttons stay in one line on mobile */
     @media (max-width: 768px) {
         .action-buttons {
+            flex-direction: row !important; /* Override the existing mobile rule */
             gap: 2px;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
@@ -1112,7 +1108,24 @@
             min-width: 240px;
             padding: 8px;
         }
+    }
 
+    /* For very small screens */
+    @media (max-width: 480px) {
+        .action-buttons .btn-sm {
+            padding: 4px 6px;
+            font-size: 10px;
+            min-width: 45px;
+        }
+        
+        .table td:last-child {
+            width: 200px;
+            min-width: 200px;
+        }
+    }
+
+    /* Mobile Optimizations */
+    @media (max-width: 768px) {
         .modal-content {
             padding: 20px;
             margin: 10px;
@@ -1205,6 +1218,21 @@
             grid-template-columns: 1fr;
         }
 
+        .action-buttons {
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .btn-sm {
+            padding: 6px 8px;
+            font-size: 11px;
+        }
+
+        .table td:last-child {
+            width: auto;
+            min-width: auto;
+        }
+
         .bulk-actions {
             flex-direction: column;
             align-items: stretch;
@@ -1218,6 +1246,76 @@
         .selection-controls {
             flex-wrap: wrap;
         }
+    }
+
+    /* PDF Export Button Styling */
+    .pdf-export-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .pdf-export-card {
+        background: linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg-elevated) 100%);
+        border-radius: 16px;
+        padding: 24px;
+        border: 1px solid var(--border);
+        box-shadow: 0 4px 16px var(--shadow);
+    }
+
+    .pdf-export-card h3 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: var(--text-primary);
+    }
+
+    .pdf-export-card p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+
+    .pdf-btn {
+        width: 100%;
+        padding: 14px 20px;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 15px;
+        font-family: inherit;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        box-shadow: 0 4px 16px rgba(16, 163, 127, 0.3);
+    }
+
+    .pdf-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 163, 127, 0.4);
+    }
+
+    .pdf-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .pdf-loading {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        display: none;
     }
 </style>
 </head>
@@ -1514,7 +1612,29 @@
                     </div>
                 </div>
 
-                <!-- Term Summaries -->
+                <!-- Import CSV Section -->
+                <div style="margin: 32px 0;">
+                    <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Import Student Data</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+                        <div class="stat-card">
+                            <div class="label">CSV Import</div>
+                            <div style="font-size: 20px; font-weight: 600; margin: 12px 0; color: var(--text-primary);">Upload Student Data</div>
+                            <div class="description" style="margin-bottom: 16px;">Import multiple students from CSV file</div>
+                            <button class="btn btn-primary" onclick="showImportModal()" style="width: 100%;">
+                                📄 Import CSV File
+                            </button>
+                        </div>
+                        <div class="stat-card">
+                            <div class="label">Quick Actions</div>
+                            <div style="font-size: 20px; font-weight: 600; margin: 12px 0; color: var(--text-primary);">Choose Academic Year</div>
+                            <div class="description" style="margin-bottom: 16px;">Switch between different academic years</div>
+                            <button class="btn btn-secondary" onclick="showYearSelector()" style="width: 100%;">
+                                📅 Select Academic Year
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-top: 32px;">
                     <div class="table-container">
                         <div style="padding: 20px; border-bottom: 1px solid var(--border); background: var(--card-bg-elevated);">
@@ -1562,44 +1682,77 @@
             <div id="reportsView" class="view">
                 <div class="controls">
                     <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 24px; color: var(--text-primary);">PDF Reports</h2>
-                    <p style="color: var(--text-secondary); margin-bottom: 24px;">Generate comprehensive reports for accounting, analysis, and compliance purposes.</p>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
-                    <div class="stat-card">
-                        <div class="label">Term 1 Report</div>
-                        <div style="font-size: 20px; font-weight: 600; margin: 12px 0; color: var(--text-primary);">Detailed Term 1 Analysis</div>
-                        <div class="description" style="margin-bottom: 16px;">Complete overview of Term 1 students, payments, and financial status</div>
-                        <button class="btn btn-primary" onclick="generateBasicReport('term1')" style="width: 100%;">
-                            Generate Term 1 Report
+                <div class="pdf-export-section">
+                    <div class="pdf-export-card">
+                        <h3>📊 Term 1 Detailed Report</h3>
+                        <p>Comprehensive report with all Term 1 student data, payment details, and analytics</p>
+                        <button class="pdf-btn" onclick="exportPDFReport('term1', 'detailed')" id="term1DetailedBtn">
+                            <div class="pdf-loading" id="term1DetailedSpinner"></div>
+                            📄 Generate Term 1 PDF
                         </button>
                     </div>
 
-                    <div class="stat-card">
-                        <div class="label">Term 2 Report</div>
-                        <div style="font-size: 20px; font-weight: 600; margin: 12px 0; color: var(--text-primary);">Detailed Term 2 Analysis</div>
-                        <div class="description" style="margin-bottom: 16px;">Complete overview of Term 2 students, payments, and financial status</div>
-                        <button class="btn btn-primary" onclick="generateBasicReport('term2')" style="width: 100%;">
-                            Generate Term 2 Report
+                    <div class="pdf-export-card">
+                        <h3>📊 Term 2 Detailed Report</h3>
+                        <p>Comprehensive report with all Term 2 student data, payment details, and analytics</p>
+                        <button class="pdf-btn" onclick="exportPDFReport('term2', 'detailed')" id="term2DetailedBtn">
+                            <div class="pdf-loading" id="term2DetailedSpinner"></div>
+                            📄 Generate Term 2 PDF
                         </button>
                     </div>
 
-                    <div class="stat-card">
-                        <div class="label">Outstanding Report</div>
-                        <div style="font-size: 20px; font-weight: 600; margin: 12px 0; color: var(--text-primary);">Outstanding Fees Summary</div>
-                        <div class="description" style="margin-bottom: 16px;">Focus on students with outstanding balances across both terms</div>
-                        <button class="btn btn-warning" onclick="generateOutstandingReport()" style="width: 100%;">
-                            Generate Outstanding Report
+                    <div class="pdf-export-card">
+                        <h3>💰 Outstanding Fees Report</h3>
+                        <p>Report focusing on students with outstanding balances across both terms</p>
+                        <button class="pdf-btn" onclick="exportPDFReport('all', 'outstanding')" id="outstandingBtn">
+                            <div class="pdf-loading" id="outstandingSpinner"></div>
+                            📄 Generate Outstanding PDF
                         </button>
                     </div>
 
-                    <div class="stat-card">
-                        <div class="label">VAT Report</div>
-                        <div style="font-size: 20px; font-weight: 600; margin: 12px 0; color: var(--text-primary);">VAT Summary for HMRC</div>
-                        <div class="description" style="margin-bottom: 16px;">Complete VAT breakdown for compliance and accounting</div>
-                        <button class="btn btn-info" onclick="generateVATReport()" style="width: 100%;">
-                            Generate VAT Report
+                    <div class="pdf-export-card">
+                        <h3>💳 VAT Summary Report</h3>
+                        <p>Complete VAT breakdown for HMRC compliance and accounting purposes</p>
+                        <button class="pdf-btn" onclick="exportPDFReport('all', 'vat')" id="vatBtn">
+                            <div class="pdf-loading" id="vatSpinner"></div>
+                            📄 Generate VAT PDF
                         </button>
+                    </div>
+
+                    <div class="pdf-export-card">
+                        <h3>📈 Financial Summary</h3>
+                        <p>Executive summary with key financial metrics and collection statistics</p>
+                        <button class="pdf-btn" onclick="exportPDFReport('all', 'summary')" id="summaryBtn">
+                            <div class="pdf-loading" id="summarySpinner"></div>
+                            📄 Generate Summary PDF
+                        </button>
+                    </div>
+
+                    <div class="pdf-export-card">
+                        <h3>💳 Payment Methods Analysis</h3>
+                        <p>Detailed breakdown of payment methods and collection patterns</p>
+                        <button class="pdf-btn" onclick="exportPDFReport('all', 'payments')" id="paymentsBtn">
+                            <div class="pdf-loading" id="paymentsSpinner"></div>
+                            📄 Generate Payments PDF
+                        </button>
+                    </div>
+
+                    <div class="pdf-export-card">
+                        <h3>🎓 Year Group Analysis</h3>
+                        <p>Student distribution and financial metrics by year group</p>
+                        <button class="pdf-btn" onclick="exportPDFReport('all', 'yeargroups')" id="yearGroupsBtn">
+                            <div class="pdf-loading" id="yearGroupsSpinner"></div>
+                            📄 Generate Year Groups PDF
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container" style="margin-top: 32px;">
+                    <div style="padding: 24px;">
+                        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Add Report Notes</h3>
+                        <textarea id="reportNotes" class="form-textarea" placeholder="Add notes that will be included in PDF reports..."></textarea>
                     </div>
                 </div>
             </div>
@@ -1612,32 +1765,61 @@
 
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="label">Collection Rate</div>
-                        <div class="value" id="analyticsCollectionRate">0%</div>
-                        <div class="description">Overall fee collection</div>
+                        <div class="label">Collection Trend</div>
+                        <div class="value" id="collectionTrend">+15%</div>
+                        <div class="description">vs previous period</div>
                     </div>
                     <div class="stat-card">
-                        <div class="label">Average Fee</div>
-                        <div class="value" id="analyticsAverageFee">£0</div>
-                        <div class="description">Per student average</div>
+                        <div class="label">Avg Payment Time</div>
+                        <div class="value" id="avgPaymentTime">23 days</div>
+                        <div class="description">from enrollment</div>
                     </div>
                     <div class="stat-card">
                         <div class="label">Payment Methods</div>
-                        <div class="value" id="analyticsTopPaymentMethod">None</div>
-                        <div class="description">Most popular method</div>
+                        <div class="value" id="topPaymentMethod">Bank</div>
+                        <div class="description">most popular</div>
                     </div>
                     <div class="stat-card">
-                        <div class="label">Students with Discounts</div>
-                        <div class="value" id="analyticsDiscountUsage">0</div>
-                        <div class="description">Total students</div>
+                        <div class="label">Discount Usage</div>
+                        <div class="value" id="discountUsage">12%</div>
+                        <div class="description">of students</div>
                     </div>
                 </div>
 
-                <div style="margin-top: 32px;">
-                    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Year Group Distribution</h3>
-                    <div id="yearGroupAnalytics" class="table-container">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-top: 32px;">
+                    <div class="table-container">
+                        <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                            <h3 style="font-weight: 700; font-size: 18px;">Payment Timeline</h3>
+                        </div>
                         <div style="padding: 20px;">
-                            <div id="yearGroupData">No data available</div>
+                            <div id="paymentChart"></div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                            <h3 style="font-weight: 700; font-size: 18px;">Year Group Analysis</h3>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div id="yearGroupStats"></div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                            <h3 style="font-weight: 700; font-size: 18px;">Payment Methods Breakdown</h3>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div id="paymentMethodsChart"></div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                            <h3 style="font-weight: 700; font-size: 18px;">Outstanding by Year</h3>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div id="outstandingByYear"></div>
                         </div>
                     </div>
                 </div>
@@ -1713,20 +1895,20 @@
                             <label class="form-label">Date of Birth (DD/MM/YYYY)</label>
                             <div style="position: relative;">
                                 <input type="text" 
-                                    class="form-input date-input" 
-                                    id="studentDOB" 
-                                    placeholder="DD/MM/YYYY" 
-                                    pattern="\d{2}/\d{2}/\d{4}"
-                                    maxlength="10"
-                                    required
-                                    oninput="autoFormatDate(this)"
-                                    style="padding-right: 40px;">
+                                       class="form-input date-input" 
+                                       id="studentDOB" 
+                                       placeholder="DD/MM/YYYY" 
+                                       pattern="\d{2}/\d{2}/\d{4}"
+                                       maxlength="10"
+                                       required
+                                       oninput="autoFormatDate(this)"
+                                       style="padding-right: 40px;">
                                 <button type="button" 
                                         class="date-picker-btn" 
                                         onclick="showDatePicker('studentDOB')"
                                         style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); 
-                                            background: none; border: none; cursor: pointer; font-size: 16px; 
-                                            color: var(--text-secondary); padding: 4px;">
+                                               background: none; border: none; cursor: pointer; font-size: 16px; 
+                                               color: var(--text-secondary); padding: 4px;">
                                     📅
                                 </button>
                             </div>
@@ -1815,19 +1997,19 @@
                                 <label class="form-label">Date (DD/MM/YYYY)</label>
                                 <div style="position: relative;">
                                     <input type="text" 
-                                        class="form-input date-input" 
-                                        name="paymentDate[]" 
-                                        placeholder="DD/MM/YYYY" 
-                                        pattern="\d{2}/\d{2}/\d{4}"
-                                        maxlength="10"
-                                        oninput="autoFormatDate(this)"
-                                        style="padding-right: 40px;">
+                                           class="form-input date-input" 
+                                           name="paymentDate[]" 
+                                           placeholder="DD/MM/YYYY" 
+                                           pattern="\d{2}/\d{2}/\d{4}"
+                                           maxlength="10"
+                                           oninput="autoFormatDate(this)"
+                                           style="padding-right: 40px;">
                                     <button type="button" 
                                             class="date-picker-btn" 
                                             onclick="showDatePicker(this.previousElementSibling.id || 'paymentDate_' + Date.now())"
                                             style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); 
-                                                background: none; border: none; cursor: pointer; font-size: 16px; 
-                                                color: var(--text-secondary); padding: 4px;">
+                                                   background: none; border: none; cursor: pointer; font-size: 16px; 
+                                                   color: var(--text-secondary); padding: 4px;">
                                         📅
                                     </button>
                                 </div>
@@ -2019,20 +2201,20 @@
                             <label class="form-label">Payment Date (DD/MM/YYYY)</label>
                             <div style="position: relative;">
                                 <input type="text" 
-                                    class="form-input date-input" 
-                                    id="paymentDate" 
-                                    placeholder="DD/MM/YYYY" 
-                                    pattern="\d{2}/\d{2}/\d{4}"
-                                    maxlength="10"
-                                    required
-                                    oninput="autoFormatDate(this)"
-                                    style="padding-right: 40px;">
+                                       class="form-input date-input" 
+                                       id="paymentDate" 
+                                       placeholder="DD/MM/YYYY" 
+                                       pattern="\d{2}/\d{2}/\d{4}"
+                                       maxlength="10"
+                                       required
+                                       oninput="autoFormatDate(this)"
+                                       style="padding-right: 40px;">
                                 <button type="button" 
                                         class="date-picker-btn" 
                                         onclick="showDatePicker('paymentDate')"
                                         style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); 
-                                            background: none; border: none; cursor: pointer; font-size: 16px; 
-                                            color: var(--text-secondary); padding: 4px;">
+                                               background: none; border: none; cursor: pointer; font-size: 16px; 
+                                               color: var(--text-secondary); padding: 4px;">
                                     📅
                                 </button>
                             </div>
@@ -2211,20 +2393,20 @@
         return `
             <div style="position: relative;">
                 <input type="text" 
-                    class="form-input date-input" 
-                    id="${id}" 
-                    placeholder="${placeholder}" 
-                    pattern="\\d{2}/\\d{2}/\\d{4}"
-                    maxlength="10"
-                    ${required ? 'required' : ''}
-                    oninput="autoFormatDate(this)"
-                    style="padding-right: 40px;">
+                       class="form-input date-input" 
+                       id="${id}" 
+                       placeholder="${placeholder}" 
+                       pattern="\\d{2}/\\d{2}/\\d{4}"
+                       maxlength="10"
+                       ${required ? 'required' : ''}
+                       oninput="autoFormatDate(this)"
+                       style="padding-right: 40px;">
                 <button type="button" 
                         class="date-picker-btn" 
                         onclick="showDatePicker('${id}')"
                         style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); 
-                            background: none; border: none; cursor: pointer; font-size: 16px; 
-                            color: var(--text-secondary); padding: 4px;">
+                               background: none; border: none; cursor: pointer; font-size: 16px; 
+                               color: var(--text-secondary); padding: 4px;">
                     📅
                 </button>
             </div>
@@ -2385,12 +2567,12 @@
     function changeAcademicYear(newYear) {
         if (newYear === currentAcademicYear) return;
         
-        if (confirm(`Switch to academic year ${newYear}? This will save current data and load data for the selected year.`)) {
-            // Save current year data
-            saveLocalData();
-            
+        if (confirm(`Switch to academic year ${newYear}?`)) {
             // Clean up old listeners FIRST
             cleanupListeners();
+            
+            // Save current year data
+            saveLocalData();
             
             // Switch to new year
             currentAcademicYear = newYear;
@@ -2401,12 +2583,12 @@
             updateAcademicYearUI();
             updateAllUI();
             
-            // Set up new listeners AFTER a delay
+            // Set up new listeners with proper delay and checks
             setTimeout(() => {
-                if (currentUser && isOnline) {
+                if (currentUser && isOnline && !isListenerSetup) {
                     setupRealtimeSync();
                 }
-            }, 1000);
+            }, 2000); // Longer delay
             
             closeModal('yearSelectorModal');
             
@@ -2535,12 +2717,6 @@
     // Data storage
     window.term1Students = [];
     window.term2Students = [];
-
-    // Bulk selection storage - FIXED: Initialize properly
-    const selectedStudents = {
-        term1: new Set(),
-        term2: new Set()
-    };
 
     // Bulk selection functions
     function toggleStudentSelection(studentId, term) {
@@ -2849,23 +3025,23 @@
                 const auth = firebase.auth();
                 const db = firebase.firestore();
                 
-                // Set up persistence with error handling
-                db.enablePersistence({ synchronizeTabs: true }).then(function() {
-                    console.log('Persistence enabled');
-                }).catch(function(err) {
-                    console.warn('Persistence error:', err.code);
-                });
-
-                auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function() {
+                // Set up persistence first, then auth
+                Promise.all([
+                    db.enablePersistence({ synchronizeTabs: true }).catch(err => {
+                        console.warn('Persistence error:', err.code);
+                        return Promise.resolve(); // Continue even if persistence fails
+                    }),
+                    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+                ]).then(function() {
+                    // Now set up auth state listener
                     auth.onAuthStateChanged(function(user) {
-                        console.log('Auth state changed:', user ? 'Authenticated' : 'Not authenticated');
                         handleAuthStateChange(user).catch(function(error) {
                             console.error('Auth state change error:', error);
                             updateSyncStatus('offline');
                         });
                     });
                     
-                    // Try to sign in (non-blocking)
+                    // Try to sign in after setting up listener
                     if (!auth.currentUser) {
                         signInUser().catch(function(error) {
                             console.error('Sign in failed:', error);
@@ -2874,6 +3050,9 @@
                     }
                     
                     resolve(true);
+                }).catch(function(error) {
+                    console.error('Firebase setup error:', error);
+                    reject(error);
                 });
                 
             } catch (error) {
@@ -2916,20 +3095,20 @@
                     currentUser = user;
                     console.log('User authenticated:', user.uid);
                     
-                    // Set up listeners first
-                    setupRealtimeSync();
-                    
-                    // Then sync data (with delay to avoid conflicts)
                     if (isOnline) {
                         updateSyncStatus('syncing');
-                        setTimeout(() => {
-                            syncFromFirebase().then(() => resolve()).catch(reject);
-                        }, 1000); // 1 second delay
+                        // First sync data, THEN set up listeners
+                        syncFromFirebase().then(() => {
+                            // Set up listeners after initial sync is complete
+                            setTimeout(() => {
+                                setupRealtimeSync();
+                            }, 500);
+                            resolve();
+                        }).catch(reject);
                     } else {
                         resolve();
                     }
                 } else {
-                    // Handle signed out state
                     resolve();
                 }
             } catch (error) {
@@ -2961,16 +3140,28 @@
         unsubscribeTerm1 = db.collection('studentFees')
             .doc(`term1_${yearKey}`)
             .onSnapshot(
-                { includeMetadataChanges: false }, // IMPORTANT: Disable metadata changes
+                { includeMetadataChanges: false },
                 (doc) => {
+                    // Only process if this is for the current academic year
+                    if (currentListenerYear !== currentAcademicYear) {
+                        console.log('Ignoring snapshot for old year:', currentListenerYear);
+                        return;
+                    }
+                    
                     console.log(`Term 1 snapshot for ${currentAcademicYear}:`, doc.exists);
                     
                     if (doc.exists) {
                         const data = doc.data();
-                        if (data && data.students) {
-                            window.term1Students = data.students;
-                            saveLocalDataForYear(currentAcademicYear);
-                            updateAllUI();
+                        if (data && data.students && data.academicYear === currentAcademicYear) {
+                            // Check if data is actually different before updating
+                            const currentDataString = JSON.stringify(window.term1Students);
+                            const newDataString = JSON.stringify(data.students);
+                            
+                            if (currentDataString !== newDataString) {
+                                window.term1Students = data.students;
+                                saveLocalDataForYear(currentAcademicYear);
+                                updateAllUI();
+                            }
                             updateSyncStatus('synced');
                         }
                     }
@@ -2985,16 +3176,28 @@
         unsubscribeTerm2 = db.collection('studentFees')
             .doc(`term2_${yearKey}`)
             .onSnapshot(
-                { includeMetadataChanges: false }, // IMPORTANT: Disable metadata changes
+                { includeMetadataChanges: false },
                 (doc) => {
+                    // Only process if this is for the current academic year
+                    if (currentListenerYear !== currentAcademicYear) {
+                        console.log('Ignoring Term 2 snapshot for old year:', currentListenerYear);
+                        return;
+                    }
+                    
                     console.log(`Term 2 snapshot for ${currentAcademicYear}:`, doc.exists);
                     
                     if (doc.exists) {
                         const data = doc.data();
-                        if (data && data.students) {
-                            window.term2Students = data.students;
-                            saveLocalDataForYear(currentAcademicYear);
-                            updateAllUI();
+                        if (data && data.students && data.academicYear === currentAcademicYear) {
+                            // Check if data is actually different before updating
+                            const currentDataString = JSON.stringify(window.term2Students);
+                            const newDataString = JSON.stringify(data.students);
+                            
+                            if (currentDataString !== newDataString) {
+                                window.term2Students = data.students;
+                                saveLocalDataForYear(currentAcademicYear);
+                                updateAllUI();
+                            }
                             updateSyncStatus('synced');
                         }
                     }
@@ -3027,6 +3230,7 @@
         isListenerSetup = false;
         currentListenerYear = null;
     }
+
 
     function syncFromFirebase() {
         return new Promise(function(resolve, reject) {
@@ -3100,56 +3304,36 @@
                 return;
             }
             
+            // ⚠️ ADD: Prevent concurrent saves
+            if (window.savingToFirebase) {
+                console.log('Save already in progress, skipping');
+                resolve();
+                return;
+            }
+            
+            window.savingToFirebase = true; // ⚠️ ADD: Flag to prevent concurrent saves
             isSyncing = true;
             updateSyncStatus('syncing');
             
-            try {
-                const students = term === 'term1' ? window.term1Students : window.term2Students;
-                const yearKey = year.replace('-', '_'); // Convert 2025-2026 to 2025_2026
-                const docId = `${term}_${yearKey}`;
+            // ... rest of function ...
+            
+            }).then(function() {
+                console.log(term + ' saved to Firebase successfully for year', year);
                 
-                const db = firebase.firestore();
-                
-                // Clean the data to remove undefined values
-                const cleanStudents = students.map(function(student) {
-                    const cleanStudent = {};
-                    Object.keys(student).forEach(function(key) {
-                        if (student[key] !== undefined) {
-                            cleanStudent[key] = student[key];
-                        }
-                    });
-                    return cleanStudent;
-                });
-                
-                db.collection('studentFees').doc(docId).set({
-                    students: cleanStudents,
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                    userId: currentUser.uid,
-                    term: term,
-                    academicYear: year
-                }).then(function() {
-                    console.log(term + ' saved to Firebase successfully for year', year);
-                    
-                    setTimeout(function() {
-                        updateSyncStatus('synced');
-                        isSyncing = false;
-                        resolve();
-                    }, 1000);
-                }).catch(function(error) {
-                    console.error('Error saving ' + term + ' for year', year, ':', error);
-                    updateSyncStatus('offline');
+                setTimeout(function() {
+                    updateSyncStatus('synced');
                     isSyncing = false;
-                    reject(error);
-                });
-            } catch (error) {
+                    window.savingToFirebase = false; // ⚠️ ADD: Clear flag
+                    resolve();
+                }, 1000);
+            }).catch(function(error) {
                 console.error('Error saving ' + term + ' for year', year, ':', error);
                 updateSyncStatus('offline');
                 isSyncing = false;
+                window.savingToFirebase = false; // ⚠️ ADD: Clear flag
                 reject(error);
-            }
         });
     }
-
 
     function handleOfflineMode() {
         console.log('Running in offline mode');
@@ -4964,54 +5148,52 @@
     }
 
     function deletePayment(paymentIndex, term) {
-    if (!currentViewStudentId || !currentViewTerm) {
-        console.error('No student currently being viewed');
-        return;
+        if (!currentViewStudentId || !currentViewTerm) {
+            console.error('No student currently being viewed');
+            return;
+        }
+        
+        const students = term === 'term1' ? window.term1Students : window.term2Students;
+        const studentIndex = students.findIndex(s => s.id === currentViewStudentId);
+        
+        if (studentIndex === -1) {
+            console.error('Student not found');
+            return;
+        }
+        
+        const student = students[studentIndex];
+        const payments = student.payments || [];
+        
+        if (paymentIndex < 0 || paymentIndex >= payments.length) {
+            console.error('Invalid payment index');
+            return;
+        }
+        
+        const payment = payments[paymentIndex];
+        const paymentAmount = parseFloat(payment.amount) || 0;
+        const paymentDate = formatDateToUK(payment.date);
+        
+        // Confirm deletion
+        if (!confirm(`Are you sure you want to delete this payment?\n\nAmount: £${paymentAmount.toFixed(2)}\nDate: ${paymentDate}\nMethod: ${payment.method || 'Not specified'}\n\nThis action cannot be undone.`)) {
+            return;
+        }
+        
+        // Remove the payment
+        students[studentIndex].payments.splice(paymentIndex, 1);
+        
+        // Update student's last updated time
+        students[studentIndex].updatedAt = formatDateToUK(new Date());
+        
+        // Save and update UI
+        saveLocalData();
+        saveToFirebase(currentAcademicYear, term);
+        updateAllUI();
+        
+        // Refresh the student view modal with updated data
+        populateStudentViewModal(students[studentIndex], term);
+        
+        alert(`Payment of £${paymentAmount.toFixed(2)} has been deleted successfully.`);
     }
-    
-    const students = term === 'term1' ? window.term1Students : window.term2Students;
-    const studentIndex = students.findIndex(s => s.id === currentViewStudentId);
-    
-    if (studentIndex === -1) {
-        console.error('Student not found');
-        return;
-    }
-    
-    const student = students[studentIndex];
-    const payments = student.payments || [];
-    
-    if (paymentIndex < 0 || paymentIndex >= payments.length) {
-        console.error('Invalid payment index');
-        return;
-    }
-    
-    const payment = payments[paymentIndex];
-    const paymentAmount = parseFloat(payment.amount) || 0;
-    const paymentDate = formatDateToUK(payment.date);
-    
-    // Confirm deletion
-    if (!confirm(`Are you sure you want to delete this payment?\n\nAmount: £${paymentAmount.toFixed(2)}\nDate: ${paymentDate}\nMethod: ${payment.method || 'Not specified'}\n\nThis action cannot be undone.`)) {
-        return;
-    }
-    
-    // Remove the payment
-    students[studentIndex].payments.splice(paymentIndex, 1);
-    
-    // Update student's last updated time
-    students[studentIndex].updatedAt = formatDateToUK(new Date());
-    
-    // Save and update UI
-    saveLocalData();
-    saveToFirebase(currentAcademicYear, term);
-    updateAllUI();
-    
-    // Refresh the student view modal with updated data
-    populateStudentViewModal(students[studentIndex], term);
-    
-    alert(`Payment of £${paymentAmount.toFixed(2)} has been deleted successfully.`);
-}
-
-    // Analytics function
     function updateAnalytics() {
         const allStudents = [...window.term1Students, ...window.term2Students];
         const activeStudents = allStudents.filter(s => s.studentStatus !== 'left');
