@@ -1310,6 +1310,10 @@
                         <option value="left">Left Students</option>
                         <option value="outstanding">Outstanding Only</option>
                     </select>
+                    <!-- ADD THESE NEW BUTTONS -->
+                    <button class="btn btn-info" id="term1BulkBtn" onclick="toggleBulkMode('term1')">Select Multiple</button>
+                    <button class="btn btn-primary" id="term1SelectAllBtn" onclick="selectAllVisible('term1')" style="display: none;">Select All Visible</button>
+                    <button class="btn btn-danger" id="term1DeleteSelectedBtn" onclick="deleteSelectedStudents('term1')" style="display: none;" disabled>Delete Selected (0)</button>
                 </div>
 
                 <div class="table-container">
@@ -1383,6 +1387,10 @@
                         <option value="left">Left Students</option>
                         <option value="outstanding">Outstanding Only</option>
                     </select>
+                    <!-- ADD THESE NEW BUTTONS -->
+                    <button class="btn btn-info" id="term2BulkBtn" onclick="toggleBulkMode('term2')">Select Multiple</button>
+                    <button class="btn btn-primary" id="term2SelectAllBtn" onclick="selectAllVisible('term2')" style="display: none;">Select All Visible</button>
+                    <button class="btn btn-danger" id="term2DeleteSelectedBtn" onclick="deleteSelectedStudents('term2')" style="display: none;" disabled>Delete Selected (0)</button>
                 </div>
 
                 <div class="table-container">
@@ -2313,6 +2321,234 @@
     // Data storage
     window.term1Students = [];
     window.term2Students = [];
+
+    // 1. ADD THESE VARIABLES after your existing global variables (around line 2311)
+let selectedStudents = new Set(); // Track selected student IDs
+let bulkModeEnabled = false; // Track if bulk mode is active
+
+// 2. ADD THESE FUNCTIONS after your existing utility functions
+
+function toggleBulkMode(term) {
+    bulkModeEnabled = !bulkModeEnabled;
+    selectedStudents.clear();
+    
+    const bulkBtn = document.getElementById(`${term}BulkBtn`);
+    const deleteBtn = document.getElementById(`${term}DeleteSelectedBtn`);
+    const selectAllBtn = document.getElementById(`${term}SelectAllBtn`);
+    
+    if (bulkModeEnabled) {
+        bulkBtn.textContent = 'Cancel Selection';
+        bulkBtn.className = 'btn btn-secondary';
+        deleteBtn.style.display = 'inline-flex';
+        selectAllBtn.style.display = 'inline-flex';
+    } else {
+        bulkBtn.textContent = 'Select Multiple';
+        bulkBtn.className = 'btn btn-info';
+        deleteBtn.style.display = 'none';
+        selectAllBtn.style.display = 'none';
+    }
+    
+    renderStudentsTable(term);
+    updateBulkUI(term);
+}
+
+function toggleStudentSelection(studentId, term) {
+    if (!bulkModeEnabled) return;
+    
+    if (selectedStudents.has(studentId)) {
+        selectedStudents.delete(studentId);
+    } else {
+        selectedStudents.add(studentId);
+    }
+    
+    updateBulkUI(term);
+}
+
+function selectAllVisible(term) {
+    if (!bulkModeEnabled) return;
+    
+    const table = document.getElementById(`${term}StudentsTable`);
+    const rows = table.querySelectorAll('tr');
+    
+    selectedStudents.clear();
+    
+    rows.forEach(row => {
+        if (row.style.display !== 'none' && !row.querySelector('.empty-state')) {
+            const checkbox = row.querySelector('.student-checkbox');
+            if (checkbox) {
+                const studentId = checkbox.dataset.studentId;
+                selectedStudents.add(studentId);
+            }
+        }
+    });
+    
+    updateBulkUI(term);
+    renderStudentsTable(term);
+}
+
+function updateBulkUI(term) {
+    const deleteBtn = document.getElementById(`${term}DeleteSelectedBtn`);
+    const selectAllBtn = document.getElementById(`${term}SelectAllBtn`);
+    
+    if (deleteBtn) {
+        deleteBtn.textContent = `Delete Selected (${selectedStudents.size})`;
+        deleteBtn.disabled = selectedStudents.size === 0;
+    }
+    
+    // Update checkboxes
+    const checkboxes = document.querySelectorAll(`#${term}StudentsTable .student-checkbox`);
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectedStudents.has(checkbox.dataset.studentId);
+    });
+}
+
+function deleteSelectedStudents(term) {
+    if (selectedStudents.size === 0) {
+        alert('No students selected');
+        return;
+    }
+    
+    const students = term === 'term1' ? window.term1Students : window.term2Students;
+    const selectedStudentsList = Array.from(selectedStudents).map(id => {
+        const student = students.find(s => s.id === id);
+        return student ? `${student.firstName} ${student.lastName}` : 'Unknown';
+    });
+    
+    const confirmMessage = `Are you sure you want to delete ${selectedStudents.size} selected students?\n\n${selectedStudentsList.join('\n')}\n\nThis action cannot be undone.`;
+    
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    // Remove selected students
+    if (term === 'term1') {
+        window.term1Students = window.term1Students.filter(s => !selectedStudents.has(s.id));
+    } else {
+        window.term2Students = window.term2Students.filter(s => !selectedStudents.has(s.id));
+    }
+    
+    selectedStudents.clear();
+    saveLocalData();
+    saveToFirebase(currentAcademicYear, term);
+    updateAllUI();
+    
+    alert(`Successfully deleted ${selectedStudentsList.length} students from ${term === 'term1' ? 'Term 1' : 'Term 2'}`);
+}
+
+    // 3. UPDATE THE renderStudentsTable FUNCTION - Replace the existing function with this:
+
+    function renderStudentsTable(term) {
+        const students = term === 'term1' ? window.term1Students : window.term2Students;
+        const tableBody = document.getElementById(`${term}StudentsTable`);
+        
+        if (!tableBody) return;
+        
+        if (students.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="13">
+                        <div class="empty-state">
+                            <div class="icon">🎓</div>
+                            <div class="title">No students added yet</div>
+                            <div class="subtitle">Click the + button to add your first student</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        tableBody.innerHTML = students.map((student, index) => {
+            const totalPaid = getTotalPaid(student);
+            const outstanding = getOutstandingAmount(student, term);
+            const status = getPaymentStatus(student, term);
+            const discountText = getDiscountText(student);
+            const studentStatus = student.studentStatus || 'active';
+            const isSelected = selectedStudents.has(student.id);
+            
+            return `
+                <tr style="${studentStatus === 'left' ? 'opacity: 0.6;' : ''}">
+                    ${bulkModeEnabled ? `
+                        <td>
+                            <input type="checkbox" class="student-checkbox" 
+                                data-student-id="${student.id}" 
+                                ${isSelected ? 'checked' : ''}
+                                onchange="toggleStudentSelection('${student.id}', '${term}')"
+                                style="width: 18px; height: 18px; accent-color: var(--primary);">
+                        </td>
+                    ` : ''}
+                    <td>${index + 1}</td>
+                    <td>${student.firstName} ${student.lastName}</td>
+                    <td>${new Date(student.dob).toLocaleDateString('en-GB')}</td>
+                    <td>Year ${student.year}</td>
+                    <td>£${(parseFloat(student.setFee) || 0).toFixed(2)}</td>
+                    <td>£${(parseFloat(student.vat) || 0).toFixed(2)}</td>
+                    <td>£${totalPaid.toFixed(2)}</td>
+                    <td>£${outstanding.toFixed(2)}</td>
+                    <td><span class="payment-status ${studentStatus === 'left' ? 'left' : status}"><span class="dot"></span>${studentStatus === 'left' ? 'Left' : status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+                    <td><span class="payment-status ${studentStatus}">${studentStatus === 'left' ? '📤 Left' : '✅ Active'}</span></td>
+                    <td>${discountText}</td>
+                    <td>
+                        <div class="action-buttons">
+                            ${!bulkModeEnabled ? `
+                                <button class="btn btn-info btn-sm" onclick="viewStudent('${student.id}', '${term}')">View</button>
+                                <button class="btn btn-success btn-sm" onclick="showAddPayment('${student.id}', '${term}')">Add Payment</button>
+                                <button class="btn btn-secondary btn-sm" onclick="editStudent('${student.id}', '${term}')">Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteStudent('${student.id}', '${term}')">Delete</button>
+                            ` : `
+                                <span style="color: var(--text-secondary); font-size: 12px;">Bulk mode active</span>
+                            `}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // Add this SINGLE function right after your global variables section (around line 950)
+    // This will fix ALL date parsing issues throughout your entire application
+
+    function parseDate(dateStr) {
+        if (!dateStr) return new Date();
+        
+        // If it's already a Date object, return it
+        if (dateStr instanceof Date) return dateStr;
+        
+        // Handle UK format DD/MM/YYYY
+        const ukPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+        const ukMatch = dateStr.match(ukPattern);
+        
+        if (ukMatch) {
+            const day = parseInt(ukMatch[1], 10);
+            const month = parseInt(ukMatch[2], 10) - 1; // months are 0-indexed
+            const year = parseInt(ukMatch[3], 10);
+            
+            // Validate the date parts
+            if (day >= 1 && day <= 31 && month >= 0 && month <= 11 && year >= 1900) {
+                return new Date(year, month, day);
+            }
+        }
+        
+        // Fallback to standard Date parsing for other formats
+        return new Date(dateStr);
+    }
+
+    // Override the global Date constructor for your application
+    const OriginalDate = Date;
+    window.Date = function(dateStr) {
+        if (arguments.length === 1 && typeof dateStr === 'string') {
+            return parseDate(dateStr);
+        }
+        // For all other cases (multiple arguments, no arguments, etc.), use original Date
+        return new (OriginalDate.bind.apply(OriginalDate, [null].concat(Array.prototype.slice.call(arguments))))();
+    };
+
+    // Copy static methods from original Date
+    Object.setPrototypeOf(window.Date, OriginalDate);
+    Object.setPrototypeOf(window.Date.prototype, OriginalDate.prototype);
+    window.Date.now = OriginalDate.now;
+    window.Date.parse = OriginalDate.parse;
+    window.Date.UTC = OriginalDate.UTC;
 
     // Core calculation functions
     function getTotalPaid(student) {
@@ -4145,6 +4381,10 @@
     window.showYearSelector = showYearSelector;
     window.confirmYearChange = confirmYearChange;
     window.changeAcademicYear = changeAcademicYear;
+    window.toggleBulkMode = toggleBulkMode;
+    window.toggleStudentSelection = toggleStudentSelection;
+    window.selectAllVisible = selectAllVisible;
+    window.deleteSelectedStudents = deleteSelectedStudents;
     </script>
     </body>
 </html>
