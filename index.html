@@ -5140,52 +5140,55 @@
     }
 
     function deletePayment(paymentIndex, term) {
-        if (!currentViewStudentId || !currentViewTerm) {
-            console.error('No student currently being viewed');
-            return;
-        }
-        
-        const students = term === 'term1' ? window.term1Students : window.term2Students;
-        const studentIndex = students.findIndex(s => s.id === currentViewStudentId);
-        
-        if (studentIndex === -1) {
-            console.error('Student not found');
-            return;
-        }
-        
-        const student = students[studentIndex];
-        const payments = student.payments || [];
-        
-        if (paymentIndex < 0 || paymentIndex >= payments.length) {
-            console.error('Invalid payment index');
-            return;
-        }
-        
-        const payment = payments[paymentIndex];
-        const paymentAmount = parseFloat(payment.amount) || 0;
-        const paymentDate = formatDateToUK(payment.date);
-        
-        // Confirm deletion
-        if (!confirm(`Are you sure you want to delete this payment?\n\nAmount: £${paymentAmount.toFixed(2)}\nDate: ${paymentDate}\nMethod: ${payment.method || 'Not specified'}\n\nThis action cannot be undone.`)) {
-            return;
-        }
-        
-        // Remove the payment
-        students[studentIndex].payments.splice(paymentIndex, 1);
-        
-        // Update student's last updated time
-        students[studentIndex].updatedAt = formatDateToUK(new Date());
-        
-        // Save and update UI
-        saveLocalData();
-        saveToFirebase(currentAcademicYear, term);
-        updateAllUI();
-        
-        // Refresh the student view modal with updated data
-        populateStudentViewModal(students[studentIndex], term);
-        
-        alert(`Payment of £${paymentAmount.toFixed(2)} has been deleted successfully.`);
+    if (!currentViewStudentId || !currentViewTerm) {
+        console.error('No student currently being viewed');
+        return;
     }
+    
+    const students = term === 'term1' ? window.term1Students : window.term2Students;
+    const studentIndex = students.findIndex(s => s.id === currentViewStudentId);
+    
+    if (studentIndex === -1) {
+        console.error('Student not found');
+        return;
+    }
+    
+    const student = students[studentIndex];
+    const payments = student.payments || [];
+    
+    if (paymentIndex < 0 || paymentIndex >= payments.length) {
+        console.error('Invalid payment index');
+        return;
+    }
+    
+    const payment = payments[paymentIndex];
+    const paymentAmount = parseFloat(payment.amount) || 0;
+    const paymentDate = formatDateToUK(payment.date);
+    
+    // Confirm deletion
+    if (!confirm(`Are you sure you want to delete this payment?\n\nAmount: £${paymentAmount.toFixed(2)}\nDate: ${paymentDate}\nMethod: ${payment.method || 'Not specified'}\n\nThis action cannot be undone.`)) {
+        return;
+    }
+    
+    // Remove the payment
+    students[studentIndex].payments.splice(paymentIndex, 1);
+    
+    // Update student's last updated time
+    students[studentIndex].updatedAt = formatDateToUK(new Date());
+    
+    // Save and update UI
+    saveLocalData();
+    saveToFirebase(currentAcademicYear, term);
+    updateAllUI();
+    
+    // Refresh the student view modal with updated data
+    populateStudentViewModal(students[studentIndex], term);
+    
+    alert(`Payment of £${paymentAmount.toFixed(2)} has been deleted successfully.`);
+}
+
+    // Analytics function
+    function updateAnalytics() {
         const allStudents = [...window.term1Students, ...window.term2Students];
         const activeStudents = allStudents.filter(s => s.studentStatus !== 'left');
         
