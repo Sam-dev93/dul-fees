@@ -1397,6 +1397,7 @@
                         <option value="year11">Year 11</option>
                         <option value="year16+">16+</option>
                         <option value="year18+">18+</option>
+                        <option value="year19+">19+</option>
                     </select>
                 </div>
 
@@ -1500,6 +1501,7 @@
                         <option value="year11">Year 11</option>
                         <option value="year16+">16+</option>
                         <option value="year18+">18+</option>
+                        <option value="year19+">19+</option>
                     </select>
                 </div>
 
@@ -1974,6 +1976,7 @@
                                 <option value="11">Year 11</option>
                                 <option value="16+">16+</option>
                                 <option value="18+">18+</option>
+                                <option value="19+">19+</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -2518,7 +2521,8 @@
             '10': 4,
             '11': 5,
             '16+': 6,
-            '18+': 7
+            '18+': 7,
+            '19+': 8
         };
         return yearOrder[year] || 999; // Unknown years go to end
     }
@@ -3887,6 +3891,9 @@
                     case 'year18+':
                         matchesFilter = year.includes('year 18+');
                         break;
+                    case 'year19+':
+                        matchesFilter = year.includes('year 19+');
+                        break;
                     default:
                         matchesFilter = true;
                 }
@@ -5118,7 +5125,7 @@
         
         let yPos = 95;
         
-        // Sort students by year group (Year 7 to 18+)
+        // Sort students by year group (Year 7 to 19+)
         const sortedStudents = sortStudentsByYear([...students]);
         
         const tableData = sortedStudents.map(student => {
@@ -5595,7 +5602,7 @@
         doc.text(`Total Active Students: ${activeStudents.length}`, 35, yPos + 20);
         doc.text(`Year Groups: ${Object.keys(yearGroups).length}`, 200, yPos + 20);
         
-        // Sort year groups by order (7, 8, 9, 10, 11, 16+, 18+)
+        // Sort year groups by order (7, 8, 9, 10, 11, 16+, 18+, 19+)
         const sortedYearGroups = Object.entries(yearGroups).sort(([a], [b]) => {
             return getYearGroupOrder(a) - getYearGroupOrder(b);
         });
