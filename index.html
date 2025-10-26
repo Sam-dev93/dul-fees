@@ -5257,7 +5257,7 @@
         doc.setTextColor(60, 60, 60);
         doc.setFont(undefined, 'normal');
         
-        // Students table
+        // Students table with empty NOTES column for manual writing
         yPos = 95;
         const tableData = sortedStudents.map(student => {
             const outstanding = getOutstandingAmount(student, student.term || 'term1');
@@ -5270,13 +5270,14 @@
                 student.term === 'term1' ? 'Term 1' : 'Term 2',
                 formatCurrency(totalFee),
                 formatCurrency(paid),
-                formatCurrency(outstanding)
+                formatCurrency(outstanding),
+                '' // Empty notes column for manual writing
             ];
         });
         
         doc.autoTable({
             startY: yPos,
-            head: [['Student Name', 'Year', 'Term', 'Total Fee', 'Paid', 'Outstanding']],
+            head: [['Student Name', 'Year', 'Term', 'Total Fee', 'Paid', 'Outstanding', 'Notes']],
             body: tableData,
             theme: 'grid',
             headStyles: { 
@@ -5291,12 +5292,13 @@
                 cellPadding: 2.5
             },
             columnStyles: {
-                0: { cellWidth: 45, fontStyle: 'bold' },
-                1: { cellWidth: 22, halign: 'center' },
-                2: { cellWidth: 22, halign: 'center' },
-                3: { cellWidth: 30, halign: 'right' },
-                4: { cellWidth: 30, halign: 'right', textColor: [52, 199, 89], fontStyle: 'bold' },
-                5: { cellWidth: 35, halign: 'right', textColor: [255, 59, 48], fontStyle: 'bold' }
+                0: { cellWidth: 38, fontStyle: 'bold' },
+                1: { cellWidth: 18, halign: 'center' },
+                2: { cellWidth: 18, halign: 'center' },
+                3: { cellWidth: 25, halign: 'right' },
+                4: { cellWidth: 25, halign: 'right', textColor: [52, 199, 89], fontStyle: 'bold' },
+                5: { cellWidth: 28, halign: 'right', textColor: [255, 59, 48], fontStyle: 'bold' },
+                6: { cellWidth: 32, halign: 'left' } // Empty notes column
             },
             margin: { left: 20, right: 20 }
         });
