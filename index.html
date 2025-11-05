@@ -19,6 +19,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
+<!-- SHEETJS Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <style>
     * {
         margin: 0;
@@ -5358,8 +5361,13 @@
         }
     }
 
-    // New function to export Outstanding Report to Excel
     function exportOutstandingToExcel(scope) {
+        // Check if XLSX library is loaded
+        if (typeof XLSX === 'undefined') {
+            alert('Excel library not loaded. Please refresh the page and try again.');
+            return;
+        }
+        
         let allStudents = [];
         let reportTitle = '';
         
@@ -5389,25 +5397,25 @@
         }
         
         // Prepare data for Excel
-        const excelData = [];
+        const worksheetData = [];
         
-        // Add header information
-        excelData.push([reportTitle]);
-        excelData.push([`Academic Year: ${currentAcademicYear}`]);
-        excelData.push([`Generated: ${formatDateToUK(new Date())}`]);
-        excelData.push([]); // Empty row
+        // Add header rows
+        worksheetData.push([reportTitle]);
+        worksheetData.push([`Academic Year: ${currentAcademicYear}`]);
+        worksheetData.push([`Generated: ${formatDateToUK(new Date())}`]);
+        worksheetData.push([]); // Empty row
         
         // Add summary
         const totalOutstanding = sortedStudents.reduce((sum, s) => 
             sum + getOutstandingAmount(s, s.term || 'term1'), 0
         );
-        excelData.push(['SUMMARY']);
-        excelData.push(['Students with Outstanding Fees:', sortedStudents.length]);
-        excelData.push(['Total Outstanding Amount:', formatCurrency(totalOutstanding)]);
-        excelData.push([]); // Empty row
+        worksheetData.push(['SUMMARY']);
+        worksheetData.push(['Students with Outstanding Fees:', sortedStudents.length]);
+        worksheetData.push(['Total Outstanding Amount:', formatCurrency(totalOutstanding)]);
+        worksheetData.push([]); // Empty row
         
         // Add column headers
-        excelData.push([
+        worksheetData.push([
             'Student Name',
             'Year Group',
             'Term',
@@ -5437,7 +5445,6 @@
             const payments = student.payments || [];
             let lastPaymentDate = 'No payments';
             if (payments.length > 0) {
-                // Sort payments by date and get the latest
                 const sortedPayments = [...payments].sort((a, b) => {
                     const dateA = parseUKDateToISO(a.date);
                     const dateB = parseUKDateToISO(b.date);
@@ -5446,79 +5453,90 @@
                 lastPaymentDate = formatDateToUK(sortedPayments[0].date);
             }
             
-            excelData.push([
+            worksheetData.push([
                 `${student.firstName} ${student.lastName}`,
                 `Year ${student.year}`,
                 student.term === 'term1' ? 'Term 1' : 'Term 2',
                 formatDateToUK(student.dob),
-                formatCurrency(setFee),
-                formatCurrency(vat),
-                formatCurrency(totalFee),
-                formatCurrency(paid),
-                formatCurrency(outstanding),
+                setFee,  // Keep as number for Excel formatting
+                vat,     // Keep as number for Excel formatting
+                totalFee, // Keep as number for Excel formatting
+                paid,    // Keep as number for Excel formatting
+                outstanding, // Keep as number for Excel formatting
                 `${percentagePaid}%`,
                 lastPaymentDate,
                 '' // Empty column for manual notes
             ]);
         });
         
-        // Add footer
-        excelData.push([]); // Empty row
-        excelData.push(['']); // Empty row
-        excelData.push(['TOTALS']);
+        // Add totals
+        worksheetData.push([]); // Empty row
+        worksheetData.push([]); // Empty row
         
         const totalSetFees = sortedStudents.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0), 0);
         const totalVAT = sortedStudents.reduce((sum, s) => sum + (parseFloat(s.vat) || 0), 0);
         const totalFees = totalSetFees + totalVAT;
         const totalPaid = sortedStudents.reduce((sum, s) => sum + getTotalPaid(s), 0);
         
-        excelData.push([
+        worksheetData.push([
             'GRAND TOTAL',
-            sortedStudents.length + ' students',
+            `${sortedStudents.length} students`,
             '',
             '',
-            formatCurrency(totalSetFees),
-            formatCurrency(totalVAT),
-            formatCurrency(totalFees),
-            formatCurrency(totalPaid),
-            formatCurrency(totalOutstanding),
+            totalSetFees,
+            totalVAT,
+            totalFees,
+            totalPaid,
+            totalOutstanding,
             '',
             '',
             ''
         ]);
         
-        // Convert to CSV format for Excel
-        const csvContent = excelData.map(row => 
-            row.map(cell => {
-                const cellStr = String(cell || '');
-                // Escape quotes and wrap in quotes if contains comma, quote, or newline
-                if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
-                    return '"' + cellStr.replace(/"/g, '""') + '"';
+        // Create workbook
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+        
+        // Set column widths
+        ws['!cols'] = [
+            { width: 30 }, // Student Name
+            { width: 12 }, // Year Group
+            { width: 10 }, // Term
+            { width: 15 }, // Date of Birth
+            { width: 12 }, // Set Fee
+            { width: 10 }, // VAT
+            { width: 12 }, // Total Fee
+            { width: 12 }, // Amount Paid
+            { width: 15 }, // Outstanding
+            { width: 15 }, // Percentage Paid
+            { width: 18 }, // Last Payment Date
+            { width: 35 }  // Contact Notes
+        ];
+        
+        // Apply number formatting to currency columns (E through I)
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        for(let R = 9; R <= range.e.r; ++R) {  // Start from row 10 (data rows)
+            ['E', 'F', 'G', 'H', 'I'].forEach(col => {
+                const address = col + (R + 1);
+                if(ws[address] && typeof ws[address].v === 'number') {
+                    ws[address].z = '£#,##0.00';  // Excel currency format
                 }
-                return cellStr;
-            }).join(',')
-        ).join('\n');
+            });
+        }
         
-        // Create and download the file
-        const BOM = '\uFEFF'; // Add BOM for Excel compatibility
-        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Outstanding Fees');
         
+        // Generate filename
         const timestamp = formatDateToUK(new Date()).replace(/\//g, '-');
-        const filename = `Outstanding_Report_${scope}_${currentAcademicYear}_${timestamp}.csv`;
+        const filename = `Outstanding_Report_${scope}_${currentAcademicYear}_${timestamp}.xlsx`;
         
-        link.download = filename;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+        // Save the file
+        XLSX.writeFile(wb, filename);
         
         // Show success message
         setTimeout(() => {
-            alert(`Excel report generated successfully!\n\nFile: ${filename}\n\nThe file can be opened in Excel, Google Sheets, or any spreadsheet application.`);
+            alert(`Excel report generated successfully!\n\nFile: ${filename}\n\nThe file will open with proper formatting in Microsoft Excel.`);
         }, 500);
     }
 
