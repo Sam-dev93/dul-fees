@@ -1317,6 +1317,17 @@
         animation: spin 1s linear infinite;
         display: none;
     }
+
+    /* Add this to your existing styles */
+    .format-option:has(input:checked) {
+        border-color: var(--primary) !important;
+        background: rgba(16, 163, 127, 0.1) !important;
+    }
+
+    .format-option:hover {
+        border-color: var(--primary);
+        transform: translateY(-1px);
+    }
 </style>
 </head>
 <body>
@@ -1852,6 +1863,7 @@
         </button>
     </div>
 
+    // Replace the existing Outstanding Report Options Modal HTML (around line 1477)
     <!-- Outstanding Report Options Modal -->
     <div id="outstandingOptionsModal" class="modal">
         <div class="modal-content">
@@ -1861,20 +1873,40 @@
             </div>
             
             <div class="section">
+                <div class="section-title">Select Report Format</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                    <label class="format-option" style="display: flex; align-items: center; padding: 16px; background: var(--card-bg-elevated); border-radius: 12px; border: 2px solid var(--border); cursor: pointer; transition: all 0.2s;">
+                        <input type="radio" name="reportFormat" value="pdf" checked style="margin-right: 12px;">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;">📄 PDF Format</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Best for printing and sharing</div>
+                        </div>
+                    </label>
+                    <label class="format-option" style="display: flex; align-items: center; padding: 16px; background: var(--card-bg-elevated); border-radius: 12px; border: 2px solid var(--border); cursor: pointer; transition: all 0.2s;">
+                        <input type="radio" name="reportFormat" value="excel" style="margin-right: 12px;">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;">📊 Excel Format</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Best for analysis and editing</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="section">
                 <div class="section-title">Select Report Scope</div>
                 <div style="display: grid; gap: 12px;">
-                    <button class="btn btn-primary" onclick="exportPDFReport('term1', 'outstanding'); closeModal('outstandingOptionsModal');" style="width: 100%; justify-content: center;">
+                    <button class="btn btn-primary" onclick="generateOutstandingReport('term1');" style="width: 100%; justify-content: center;">
                         📊 Term 1 Outstanding Only
                     </button>
-                    <button class="btn btn-primary" onclick="exportPDFReport('term2', 'outstanding'); closeModal('outstandingOptionsModal');" style="width: 100%; justify-content: center;">
+                    <button class="btn btn-primary" onclick="generateOutstandingReport('term2');" style="width: 100%; justify-content: center;">
                         📊 Term 2 Outstanding Only
                     </button>
-                    <button class="btn btn-primary" onclick="exportPDFReport('all', 'outstanding'); closeModal('outstandingOptionsModal');" style="width: 100%; justify-content: center;">
+                    <button class="btn btn-primary" onclick="generateOutstandingReport('all');" style="width: 100%; justify-content: center;">
                         📊 Complete Year Outstanding
                     </button>
                 </div>
             </div>
-
+    
             <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('outstandingOptionsModal')">Cancel</button>
             </div>
@@ -5306,6 +5338,190 @@
         addPDFFooter(doc);
     }
 
+    // New function to handle outstanding report generation with format selection
+    function generateOutstandingReport(scope) {
+        const formatRadios = document.querySelectorAll('input[name="reportFormat"]');
+        let selectedFormat = 'pdf';
+        
+        formatRadios.forEach(radio => {
+            if (radio.checked) {
+                selectedFormat = radio.value;
+            }
+        });
+        
+        closeModal('outstandingOptionsModal');
+        
+        if (selectedFormat === 'excel') {
+            exportOutstandingToExcel(scope);
+        } else {
+            exportPDFReport(scope, 'outstanding');
+        }
+    }
+
+    // New function to export Outstanding Report to Excel
+    function exportOutstandingToExcel(scope) {
+        let allStudents = [];
+        let reportTitle = '';
+        
+        if (scope === 'term1') {
+            allStudents = window.term1Students;
+            reportTitle = 'Term 1 Outstanding Fees Report';
+        } else if (scope === 'term2') {
+            allStudents = window.term2Students;
+            reportTitle = 'Term 2 Outstanding Fees Report';
+        } else {
+            allStudents = [...window.term1Students, ...window.term2Students];
+            reportTitle = 'Outstanding Fees Report - Complete Year';
+        }
+        
+        // Filter for students with outstanding fees
+        const outstandingStudents = allStudents.filter(s => {
+            const outstanding = getOutstandingAmount(s, s.term || 'term1');
+            return outstanding > 0 && s.studentStatus !== 'left';
+        });
+        
+        // Sort by year group
+        const sortedStudents = sortStudentsByYear(outstandingStudents);
+        
+        if (sortedStudents.length === 0) {
+            alert('No outstanding fees found! All active students have paid their fees in full.');
+            return;
+        }
+        
+        // Prepare data for Excel
+        const excelData = [];
+        
+        // Add header information
+        excelData.push([reportTitle]);
+        excelData.push([`Academic Year: ${currentAcademicYear}`]);
+        excelData.push([`Generated: ${formatDateToUK(new Date())}`]);
+        excelData.push([]); // Empty row
+        
+        // Add summary
+        const totalOutstanding = sortedStudents.reduce((sum, s) => 
+            sum + getOutstandingAmount(s, s.term || 'term1'), 0
+        );
+        excelData.push(['SUMMARY']);
+        excelData.push(['Students with Outstanding Fees:', sortedStudents.length]);
+        excelData.push(['Total Outstanding Amount:', formatCurrency(totalOutstanding)]);
+        excelData.push([]); // Empty row
+        
+        // Add column headers
+        excelData.push([
+            'Student Name',
+            'Year Group',
+            'Term',
+            'Date of Birth',
+            'Set Fee',
+            'VAT',
+            'Total Fee',
+            'Amount Paid',
+            'Outstanding',
+            'Percentage Paid',
+            'Last Payment Date',
+            'Contact Notes'
+        ]);
+        
+        // Add student data
+        sortedStudents.forEach(student => {
+            const setFee = parseFloat(student.setFee) || 0;
+            const vat = parseFloat(student.vat) || 0;
+            const totalFee = setFee + vat;
+            const discount = calculateDiscount(student);
+            const discountedFee = totalFee - discount;
+            const paid = getTotalPaid(student);
+            const outstanding = getOutstandingAmount(student, student.term || 'term1');
+            const percentagePaid = discountedFee > 0 ? ((paid / discountedFee) * 100).toFixed(1) : 0;
+            
+            // Find last payment date
+            const payments = student.payments || [];
+            let lastPaymentDate = 'No payments';
+            if (payments.length > 0) {
+                // Sort payments by date and get the latest
+                const sortedPayments = [...payments].sort((a, b) => {
+                    const dateA = parseUKDateToISO(a.date);
+                    const dateB = parseUKDateToISO(b.date);
+                    return dateB.localeCompare(dateA);
+                });
+                lastPaymentDate = formatDateToUK(sortedPayments[0].date);
+            }
+            
+            excelData.push([
+                `${student.firstName} ${student.lastName}`,
+                `Year ${student.year}`,
+                student.term === 'term1' ? 'Term 1' : 'Term 2',
+                formatDateToUK(student.dob),
+                formatCurrency(setFee),
+                formatCurrency(vat),
+                formatCurrency(totalFee),
+                formatCurrency(paid),
+                formatCurrency(outstanding),
+                `${percentagePaid}%`,
+                lastPaymentDate,
+                '' // Empty column for manual notes
+            ]);
+        });
+        
+        // Add footer
+        excelData.push([]); // Empty row
+        excelData.push(['']); // Empty row
+        excelData.push(['TOTALS']);
+        
+        const totalSetFees = sortedStudents.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0), 0);
+        const totalVAT = sortedStudents.reduce((sum, s) => sum + (parseFloat(s.vat) || 0), 0);
+        const totalFees = totalSetFees + totalVAT;
+        const totalPaid = sortedStudents.reduce((sum, s) => sum + getTotalPaid(s), 0);
+        
+        excelData.push([
+            'GRAND TOTAL',
+            sortedStudents.length + ' students',
+            '',
+            '',
+            formatCurrency(totalSetFees),
+            formatCurrency(totalVAT),
+            formatCurrency(totalFees),
+            formatCurrency(totalPaid),
+            formatCurrency(totalOutstanding),
+            '',
+            '',
+            ''
+        ]);
+        
+        // Convert to CSV format for Excel
+        const csvContent = excelData.map(row => 
+            row.map(cell => {
+                const cellStr = String(cell || '');
+                // Escape quotes and wrap in quotes if contains comma, quote, or newline
+                if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+                    return '"' + cellStr.replace(/"/g, '""') + '"';
+                }
+                return cellStr;
+            }).join(',')
+        ).join('\n');
+        
+        // Create and download the file
+        const BOM = '\uFEFF'; // Add BOM for Excel compatibility
+        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        const timestamp = formatDateToUK(new Date()).replace(/\//g, '-');
+        const filename = `Outstanding_Report_${scope}_${currentAcademicYear}_${timestamp}.csv`;
+        
+        link.download = filename;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        // Show success message
+        setTimeout(() => {
+            alert(`Excel report generated successfully!\n\nFile: ${filename}\n\nThe file can be opened in Excel, Google Sheets, or any spreadsheet application.`);
+        }, 500);
+    }
+
     function generateVATReport(doc, notes) {
         addPDFHeader(doc, 'VAT Summary Report', notes);
         
@@ -5680,6 +5896,8 @@
     window.exportToCSV = exportToCSV;
     window.showImportCSV = showImportCSV;
     window.showOutstandingReportOptions = showOutstandingReportOptions;
+    window.generateOutstandingReport = generateOutstandingReport;
+    window.exportOutstandingToExcel = exportOutstandingToExcel;
     
     // Bulk selection functions
     window.toggleStudentSelection = toggleStudentSelection;
