@@ -5396,41 +5396,47 @@
             return;
         }
         
-        // Prepare data for Excel
-        const worksheetData = [];
+        // Create workbook
+        const wb = XLSX.utils.book_new();
         
-        // Add header rows
-        worksheetData.push([reportTitle]);
-        worksheetData.push([`Academic Year: ${currentAcademicYear}`]);
-        worksheetData.push([`Generated: ${formatDateToUK(new Date())}`]);
-        worksheetData.push([]); // Empty row
+        // Prepare data with formatting hints
+        const data = [];
         
-        // Add summary
+        // Title section with merged cells effect
+        data.push([reportTitle, '', '', '', '', '', '', '', '', '', '', '']);
+        data.push([`Academic Year: ${currentAcademicYear}`, '', '', '', '', '', '', '', '', '', '', '']);
+        data.push([`Generated: ${formatDateToUK(new Date())}`, '', '', '', '', '', '', '', '', '', '', '']);
+        data.push([]);
+        
+        // Summary section
         const totalOutstanding = sortedStudents.reduce((sum, s) => 
             sum + getOutstandingAmount(s, s.term || 'term1'), 0
         );
-        worksheetData.push(['SUMMARY']);
-        worksheetData.push(['Students with Outstanding Fees:', sortedStudents.length]);
-        worksheetData.push(['Total Outstanding Amount:', formatCurrency(totalOutstanding)]);
-        worksheetData.push([]); // Empty row
         
-        // Add column headers
-        worksheetData.push([
-            'Student Name',
-            'Year Group',
-            'Term',
-            'Date of Birth',
-            'Set Fee',
+        data.push(['═══════════ SUMMARY ═══════════', '', '', '', '', '', '', '', '', '', '', '']);
+        data.push(['Students with Outstanding:', sortedStudents.length, '', '', '', '', '', '', '', '', '', '']);
+        data.push(['Total Outstanding:', formatCurrency(totalOutstanding), '', '', '', '', '', '', '', '', '', '']);
+        data.push([]);
+        
+        // Headers with visual separators
+        data.push(['━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━']);
+        data.push([
+            'STUDENT NAME',
+            'YEAR',
+            'TERM',
+            'DATE OF BIRTH',
+            'SET FEE',
             'VAT',
-            'Total Fee',
-            'Amount Paid',
-            'Outstanding',
-            'Percentage Paid',
-            'Last Payment Date',
-            'Contact Notes'
+            'TOTAL FEE',
+            'PAID',
+            '>>> OUTSTANDING <<<',
+            '% PAID',
+            'LAST PAYMENT',
+            'NOTES'
         ]);
+        data.push(['━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━']);
         
-        // Add student data
+        // Student data
         sortedStudents.forEach(student => {
             const setFee = parseFloat(student.setFee) || 0;
             const vat = parseFloat(student.vat) || 0;
@@ -5453,76 +5459,64 @@
                 lastPaymentDate = formatDateToUK(sortedPayments[0].date);
             }
             
-            worksheetData.push([
+            data.push([
                 `${student.firstName} ${student.lastName}`,
                 `Year ${student.year}`,
                 student.term === 'term1' ? 'Term 1' : 'Term 2',
                 formatDateToUK(student.dob),
-                setFee,  // Keep as number for Excel formatting
-                vat,     // Keep as number for Excel formatting
-                totalFee, // Keep as number for Excel formatting
-                paid,    // Keep as number for Excel formatting
-                outstanding, // Keep as number for Excel formatting
+                formatCurrency(setFee),
+                formatCurrency(vat),
+                formatCurrency(totalFee),
+                formatCurrency(paid),
+                `→ ${formatCurrency(outstanding)} ←`,  // Visual emphasis
                 `${percentagePaid}%`,
                 lastPaymentDate,
-                '' // Empty column for manual notes
+                ''
             ]);
         });
         
-        // Add totals
-        worksheetData.push([]); // Empty row
-        worksheetData.push([]); // Empty row
+        // Totals section
+        data.push(['━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━']);
         
         const totalSetFees = sortedStudents.reduce((sum, s) => sum + (parseFloat(s.setFee) || 0), 0);
         const totalVAT = sortedStudents.reduce((sum, s) => sum + (parseFloat(s.vat) || 0), 0);
         const totalFees = totalSetFees + totalVAT;
         const totalPaid = sortedStudents.reduce((sum, s) => sum + getTotalPaid(s), 0);
         
-        worksheetData.push([
-            'GRAND TOTAL',
+        data.push([
+            '▶ GRAND TOTAL',
             `${sortedStudents.length} students`,
             '',
             '',
-            totalSetFees,
-            totalVAT,
-            totalFees,
-            totalPaid,
-            totalOutstanding,
+            formatCurrency(totalSetFees),
+            formatCurrency(totalVAT),
+            formatCurrency(totalFees),
+            formatCurrency(totalPaid),
+            `▶ ${formatCurrency(totalOutstanding)} ◀`,
             '',
             '',
             ''
         ]);
+        data.push(['━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━']);
         
-        // Create workbook
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+        // Convert to worksheet
+        const ws = XLSX.utils.aoa_to_sheet(data);
         
-        // Set column widths
+        // Set column widths for better readability
         ws['!cols'] = [
-            { width: 30 }, // Student Name
-            { width: 12 }, // Year Group
-            { width: 10 }, // Term
-            { width: 15 }, // Date of Birth
-            { width: 12 }, // Set Fee
-            { width: 10 }, // VAT
-            { width: 12 }, // Total Fee
-            { width: 12 }, // Amount Paid
-            { width: 15 }, // Outstanding
-            { width: 15 }, // Percentage Paid
-            { width: 18 }, // Last Payment Date
-            { width: 35 }  // Contact Notes
+            { wch: 25 }, // Student Name
+            { wch: 8 },  // Year
+            { wch: 8 },  // Term
+            { wch: 12 }, // DOB
+            { wch: 10 }, // Set Fee
+            { wch: 10 }, // VAT
+            { wch: 10 }, // Total Fee
+            { wch: 10 }, // Paid
+            { wch: 18 }, // Outstanding (wider for emphasis)
+            { wch: 8 },  // % Paid
+            { wch: 12 }, // Last Payment
+            { wch: 30 }  // Notes
         ];
-        
-        // Apply number formatting to currency columns (E through I)
-        const range = XLSX.utils.decode_range(ws['!ref']);
-        for(let R = 9; R <= range.e.r; ++R) {  // Start from row 10 (data rows)
-            ['E', 'F', 'G', 'H', 'I'].forEach(col => {
-                const address = col + (R + 1);
-                if(ws[address] && typeof ws[address].v === 'number') {
-                    ws[address].z = '£#,##0.00';  // Excel currency format
-                }
-            });
-        }
         
         // Add worksheet to workbook
         XLSX.utils.book_append_sheet(wb, ws, 'Outstanding Fees');
@@ -5536,7 +5530,7 @@
         
         // Show success message
         setTimeout(() => {
-            alert(`Excel report generated successfully!\n\nFile: ${filename}\n\nThe file will open with proper formatting in Microsoft Excel.`);
+            alert(`Excel report generated!\n\nFile: ${filename}\n\nNote: For best viewing experience, you may want to:\n1. Select all data (Ctrl+A)\n2. Apply borders (Home → Borders → All Borders)\n3. Bold the header row\n4. Apply color to outstanding column`);
         }, 500);
     }
 
