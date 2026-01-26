@@ -1703,8 +1703,8 @@
                 <div class="pdf-export-section">
                     <div class="pdf-export-card">
                         <h3>📊 Term 1 Detailed Report</h3>
-                        <p>Comprehensive report with all Term 1 student data, payment details, and analytics</p>
-                        <button class="pdf-btn" onclick="exportPDFReport('term1', 'detailed')" id="term1DetailedBtn">
+                        <p>Comprehensive report with all Term 1 student data. Now with payment method filtering!</p>
+                        <button class="pdf-btn" onclick="showTerm1ReportOptions()" id="term1DetailedBtn">
                             <div class="pdf-loading" id="term1DetailedSpinner"></div>
                             📄 Generate Term 1 PDF
                         </button>
@@ -1916,6 +1916,68 @@
     </div>
 
     <!-- Academic Year Selector Modal -->
+
+    <!-- Term 1 Report Options Modal - Payment Method Filter -->
+    <div id="term1ReportOptionsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Term 1 Detailed Report Options</h2>
+                <button class="close-btn" onclick="closeModal('term1ReportOptionsModal')">&times;</button>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Filter by Payment Method</div>
+                <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 14px;">
+                    Choose which students to include based on their payment methods
+                </p>
+                <div style="display: grid; gap: 12px;">
+                    <label class="format-option" style="display: flex; align-items: center; padding: 16px; background: var(--card-bg-elevated); border-radius: 12px; border: 2px solid var(--border); cursor: pointer; transition: all 0.2s;">
+                        <input type="radio" name="term1PaymentFilter" value="all" checked style="margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 4px; color: var(--text-primary);">📋 All Students</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Include all students regardless of payment method</div>
+                        </div>
+                    </label>
+                    <label class="format-option" style="display: flex; align-items: center; padding: 16px; background: var(--card-bg-elevated); border-radius: 12px; border: 2px solid var(--border); cursor: pointer; transition: all 0.2s;">
+                        <input type="radio" name="term1PaymentFilter" value="cash" style="margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 4px; color: var(--text-primary);">💵 Cash Payments Only</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Only include students who paid via Cash</div>
+                        </div>
+                    </label>
+                    <label class="format-option" style="display: flex; align-items: center; padding: 16px; background: var(--card-bg-elevated); border-radius: 12px; border: 2px solid var(--border); cursor: pointer; transition: all 0.2s;">
+                        <input type="radio" name="term1PaymentFilter" value="card" style="margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 4px; color: var(--text-primary);">💳 Card Payments Only</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Only include students who paid via Card</div>
+                        </div>
+                    </label>
+                    <label class="format-option" style="display: flex; align-items: center; padding: 16px; background: var(--card-bg-elevated); border-radius: 12px; border: 2px solid var(--border); cursor: pointer; transition: all 0.2s;">
+                        <input type="radio" name="term1PaymentFilter" value="bank" style="margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 4px; color: var(--text-primary);">🏦 Bank Transfer Only</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Only include students who paid via Bank Transfer</div>
+                        </div>
+                    </label>
+                    <label class="format-option" style="display: flex; align-items: center; padding: 16px; background: var(--card-bg-elevated); border-radius: 12px; border: 2px solid var(--border); cursor: pointer; transition: all 0.2s;">
+                        <input type="radio" name="term1PaymentFilter" value="cheque" style="margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 4px; color: var(--text-primary);">📝 Cheque Payments Only</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Only include students who paid via Cheque</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('term1ReportOptionsModal')">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="generateTerm1ReportWithFilter()">
+                    📄 Generate Report
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="yearSelectorModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -5907,6 +5969,241 @@
     window.exportToCSV = exportToCSV;
     window.showImportCSV = showImportCSV;
     window.showOutstandingReportOptions = showOutstandingReportOptions;
+
+    // ===== TERM 1 REPORT OPTIONS WITH PAYMENT METHOD FILTER =====
+    function showTerm1ReportOptions() {
+        // Reset to default selection
+        const allRadio = document.querySelector('input[name="term1PaymentFilter"][value="all"]');
+        if (allRadio) allRadio.checked = true;
+        document.getElementById('term1ReportOptionsModal').classList.add('active');
+    }
+
+    function generateTerm1ReportWithFilter() {
+        const selectedFilter = document.querySelector('input[name="term1PaymentFilter"]:checked');
+        const filterValue = selectedFilter ? selectedFilter.value : 'all';
+        
+        closeModal('term1ReportOptionsModal');
+        
+        // Call the export function with the filter
+        exportPDFReportWithFilter('term1', 'detailed', filterValue);
+    }
+
+    function exportPDFReportWithFilter(scope, type, paymentMethodFilter) {
+        const btnId = 'term1DetailedBtn';
+        const spinnerId = 'term1DetailedSpinner';
+        
+        const btn = document.getElementById(btnId);
+        const spinner = document.getElementById(spinnerId);
+        
+        if (btn) btn.disabled = true;
+        if (spinner) spinner.style.display = 'block';
+        
+        try {
+            if (typeof window.jspdf === 'undefined') {
+                alert('PDF library not loaded. Please refresh the page and try again.');
+                resetPDFButton(btnId, spinnerId);
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            
+            // Create landscape PDF
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4'
+            });
+            
+            const reportNotes = document.getElementById('reportNotes')?.value || '';
+            
+            // Get students and apply filter
+            let students = window.term1Students.filter(s => s.studentStatus !== 'left');
+            let title = 'Term 1 Detailed Report';
+            
+            // Apply payment method filter
+            if (paymentMethodFilter && paymentMethodFilter !== 'all') {
+                students = students.filter(student => {
+                    const payments = student.payments || [];
+                    if (payments.length === 0) return false;
+                    
+                    // Check if student has any payment with the specified method
+                    return payments.some(payment => {
+                        const method = (payment.method || '').toLowerCase();
+                        switch (paymentMethodFilter) {
+                            case 'cash':
+                                return method === 'cash';
+                            case 'card':
+                                return method === 'card';
+                            case 'bank':
+                                return method === 'bank transfer' || method === 'bank';
+                            case 'cheque':
+                                return method === 'cheque' || method === 'check';
+                            default:
+                                return true;
+                        }
+                    });
+                });
+                
+                // Update title to reflect filter
+                const filterLabels = {
+                    'cash': 'Cash Payments Only',
+                    'card': 'Card Payments Only',
+                    'bank': 'Bank Transfer Only',
+                    'cheque': 'Cheque Payments Only'
+                };
+                title = 'Term 1 Detailed Report - ' + (filterLabels[paymentMethodFilter] || paymentMethodFilter);
+            }
+            
+            // Generate the PDF with filtered data
+            generateFilteredDetailedPDF(doc, students, title, reportNotes, paymentMethodFilter);
+            
+            // Create filename with filter info
+            let filterSuffix = '';
+            if (paymentMethodFilter !== 'all') {
+                filterSuffix = '_' + paymentMethodFilter + '_only';
+            }
+            
+            const fileName = 'term1_detailed_report' + filterSuffix + '_' + currentAcademicYear + '_' + formatDateForFile(new Date()) + '.pdf';
+            doc.save(fileName);
+            
+            setTimeout(function() {
+                const filterText = paymentMethodFilter === 'all' ? 'all students' : paymentMethodFilter + ' payments only';
+                alert('PDF Term 1 Detailed report generated successfully!\n\nFilter: ' + filterText + '\nStudents included: ' + students.length + '\nAcademic Year: ' + currentAcademicYear);
+                resetPDFButton(btnId, spinnerId);
+            }, 500);
+            
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('Error generating PDF: ' + error.message);
+            resetPDFButton(btnId, spinnerId);
+        }
+    }
+
+    function generateFilteredDetailedPDF(doc, students, title, notes, paymentMethodFilter) {
+        // Header
+        doc.setFillColor(16, 163, 127);
+        doc.rect(0, 0, 297, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont(undefined, 'bold');
+        doc.text(title, 148, 18, { align: 'center' });
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'normal');
+        doc.text('Academic Year: ' + currentAcademicYear, 25, 30);
+        doc.text('Generated: ' + formatDateToUK(new Date()), 272, 30, { align: 'right' });
+        
+        // Filter notice if applied
+        let yPos = 50;
+        if (paymentMethodFilter && paymentMethodFilter !== 'all') {
+            doc.setFontSize(11);
+            doc.setTextColor(255, 149, 0);
+            doc.text('Filter Applied: Showing only students with ' + paymentMethodFilter.toUpperCase() + ' payments (' + students.length + ' students)', 148, 45, { align: 'center' });
+            yPos = 52;
+        }
+        
+        // Summary stats
+        const totalStudents = students.length;
+        const totalFees = students.reduce(function(sum, s) { return sum + (parseFloat(s.setFee) || 0) + (parseFloat(s.vat) || 0); }, 0);
+        const totalCollected = students.reduce(function(sum, s) { return sum + getTotalPaid(s); }, 0);
+        const totalOutstanding = totalFees - totalCollected;
+        
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(25, yPos, 247, 30, 3, 3, 'F');
+        
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        const summaryTitle = paymentMethodFilter !== 'all' ? 'FILTERED SUMMARY (' + paymentMethodFilter.toUpperCase() + ' ONLY)' : 'SUMMARY OVERVIEW';
+        doc.text(summaryTitle, 148, yPos + 10, { align: 'center' });
+        
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text('Students: ' + totalStudents, 35, yPos + 22);
+        doc.text('Total Fees: ' + formatCurrency(totalFees), 100, yPos + 22);
+        doc.text('Collected: ' + formatCurrency(totalCollected), 170, yPos + 22);
+        doc.text('Outstanding: ' + formatCurrency(totalOutstanding), 240, yPos + 22);
+        
+        // Student table
+        if (students.length > 0) {
+            const tableData = students.map(function(s, idx) {
+                return [
+                    idx + 1,
+                    s.firstName + ' ' + s.lastName,
+                    'Year ' + s.year,
+                    formatCurrency(s.setFee),
+                    formatCurrency(s.vat),
+                    formatCurrency(getTotalPaid(s)),
+                    formatCurrency(getOutstandingAmount(s)),
+                    getPaymentStatus(s).charAt(0).toUpperCase() + getPaymentStatus(s).slice(1)
+                ];
+            });
+            
+            doc.autoTable({
+                startY: yPos + 38,
+                head: [['#', 'Student Name', 'Year', 'Set Fee', 'VAT', 'Total Paid', 'Outstanding', 'Status']],
+                body: tableData,
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [16, 163, 127],
+                    textColor: 255,
+                    fontSize: 9,
+                    fontStyle: 'bold'
+                },
+                bodyStyles: {
+                    fontSize: 8
+                },
+                columnStyles: {
+                    0: { cellWidth: 12 },
+                    1: { cellWidth: 50 },
+                    2: { cellWidth: 25 },
+                    3: { cellWidth: 30 },
+                    4: { cellWidth: 25 },
+                    5: { cellWidth: 30 },
+                    6: { cellWidth: 30 },
+                    7: { cellWidth: 25 }
+                },
+                margin: { left: 20, right: 20 },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === 7) {
+                        const status = data.cell.raw.toLowerCase();
+                        if (status === 'paid') {
+                            data.cell.styles.textColor = [52, 199, 89];
+                        } else if (status === 'partial') {
+                            data.cell.styles.textColor = [255, 149, 0];
+                        } else if (status === 'unpaid') {
+                            data.cell.styles.textColor = [255, 59, 48];
+                        }
+                    }
+                }
+            });
+        } else {
+            doc.setFontSize(14);
+            doc.setTextColor(255, 149, 0);
+            doc.text('No students found matching the selected payment method filter.', 148, yPos + 50, { align: 'center' });
+            doc.setFontSize(12);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Try selecting "All Students" to see the complete report.', 148, yPos + 62, { align: 'center' });
+        }
+        
+        // Footer
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setDrawColor(16, 163, 127);
+            doc.line(25, 195, 272, 195);
+            doc.setTextColor(120, 120, 120);
+            doc.setFontSize(9);
+            doc.text('DUL Student Fees Tracker - Term 1 Detailed Report', 25, 203);
+            doc.text('Page ' + i + ' of ' + pageCount, 272, 203, { align: 'right' });
+        }
+    }
+
+    // Make the new functions globally accessible
+    window.showTerm1ReportOptions = showTerm1ReportOptions;
+    window.generateTerm1ReportWithFilter = generateTerm1ReportWithFilter;
+    window.exportPDFReportWithFilter = exportPDFReportWithFilter;
+    window.generateFilteredDetailedPDF = generateFilteredDetailedPDF;
+
     window.handleOutstandingReportFormat = handleOutstandingReportFormat;
     window.exportOutstandingToExcel = exportOutstandingToExcel;
     
