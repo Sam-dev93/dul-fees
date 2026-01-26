@@ -6685,7 +6685,7 @@
         saveLocalData();
         
         // Sync to Firebase if online
-        if (isOnline && db) {
+        if (isOnline && typeof db !== 'undefined' && db) {
             syncToFirebase();
         }
         
