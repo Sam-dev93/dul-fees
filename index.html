@@ -6125,7 +6125,7 @@
             }
             
             let filterSuffix = paymentMethodFilter !== 'all' ? '_' + paymentMethodFilter + '_only' : '';
-            const fileName = 'term1_report' + filterSuffix + '_' + currentAcademicYear + '_' + formatDateForFile(new Date()) + '.pdf';
+            const fileName = 'term1_report' + filterSuffix + '_' + currentAcademicYear + '_' + formatDateToUK(new Date()).replace(/\//g, '-') + '.pdf';
             doc.save(fileName);
             
             setTimeout(function() {
