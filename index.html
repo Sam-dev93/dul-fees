@@ -1755,12 +1755,22 @@
                         </button>
                     </div>
 
+                    
                     <div class="pdf-export-card">
                         <h3>🎓 Year Group Analysis</h3>
                         <p>Student distribution and financial metrics by year group</p>
                         <button class="pdf-btn" onclick="exportPDFReport('all', 'yeargroups')" id="yearGroupsBtn">
                             <div class="pdf-loading" id="yearGroupsSpinner"></div>
                             📄 Generate Year Groups PDF
+                        </button>
+                    </div>
+
+                    <div class="pdf-export-card" style="border: 2px solid var(--primary);">
+                        <h3>💰 Payment Transactions Report</h3>
+                        <p>Detailed list of all payment transactions filtered by payment method</p>
+                        <button class="pdf-btn" onclick="showPaymentTransactionsOptions()" id="paymentTransBtn" style="background: linear-gradient(135deg, #FF9500 0%, #E67E22 100%);">
+                            <div class="pdf-loading" id="paymentTransSpinner"></div>
+                            💰 Generate Transactions PDF
                         </button>
                     </div>
                 </div>
@@ -1972,6 +1982,83 @@
                 <button type="button" class="btn btn-secondary" onclick="closeModal('term1ReportOptionsModal')">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="generateTerm1ReportWithFilter()">
                     📄 Generate Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- Payment Transactions Report Modal -->
+    <div id="paymentTransactionsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💰 Payment Transactions Report</h2>
+                <button class="close-btn" onclick="closeModal('paymentTransactionsModal')">&times;</button>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Select Term</div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
+                    <label class="format-option" style="display: flex; align-items: center; padding: 12px; background: var(--card-bg-elevated); border-radius: 12px; border: 2px solid var(--border); cursor: pointer;">
+                        <input type="radio" name="transactionTerm" value="term1" checked style="margin-right: 10px; accent-color: var(--primary);">
+                        <span style="font-weight: 600;">Term 1</span>
+                    </label>
+                    <label class="format-option" style="display: flex; align-items: center; padding: 12px; background: var(--card-bg-elevated); border-radius: 12px; border: 2px solid var(--border); cursor: pointer;">
+                        <input type="radio" name="transactionTerm" value="term2" style="margin-right: 10px; accent-color: var(--primary);">
+                        <span style="font-weight: 600;">Term 2</span>
+                    </label>
+                    <label class="format-option" style="display: flex; align-items: center; padding: 12px; background: var(--card-bg-elevated); border-radius: 12px; border: 2px solid var(--border); cursor: pointer;">
+                        <input type="radio" name="transactionTerm" value="all" style="margin-right: 10px; accent-color: var(--primary);">
+                        <span style="font-weight: 600;">Both Terms</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Filter by Payment Method</div>
+                <div style="display: grid; gap: 10px;">
+                    <label class="format-option" style="display: flex; align-items: center; padding: 14px; background: var(--card-bg-elevated); border-radius: 12px; border: 2px solid var(--border); cursor: pointer;">
+                        <input type="radio" name="transactionMethod" value="all" checked style="margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: var(--text-primary);">📋 All Payment Methods</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Show all transactions</div>
+                        </div>
+                    </label>
+                    <label class="format-option" style="display: flex; align-items: center; padding: 14px; background: var(--card-bg-elevated); border-radius: 12px; border: 2px solid var(--border); cursor: pointer;">
+                        <input type="radio" name="transactionMethod" value="cash" style="margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: var(--text-primary);">💵 Cash Payments Only</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Filter cash transactions only</div>
+                        </div>
+                    </label>
+                    <label class="format-option" style="display: flex; align-items: center; padding: 14px; background: var(--card-bg-elevated); border-radius: 12px; border: 2px solid var(--border); cursor: pointer;">
+                        <input type="radio" name="transactionMethod" value="card" style="margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: var(--text-primary);">💳 Card Payments Only</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Filter card transactions only</div>
+                        </div>
+                    </label>
+                    <label class="format-option" style="display: flex; align-items: center; padding: 14px; background: var(--card-bg-elevated); border-radius: 12px; border: 2px solid var(--border); cursor: pointer;">
+                        <input type="radio" name="transactionMethod" value="bank" style="margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: var(--text-primary);">🏦 Bank Transfer Only</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Filter bank transfer transactions only</div>
+                        </div>
+                    </label>
+                    <label class="format-option" style="display: flex; align-items: center; padding: 14px; background: var(--card-bg-elevated); border-radius: 12px; border: 2px solid var(--border); cursor: pointer;">
+                        <input type="radio" name="transactionMethod" value="cheque" style="margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: var(--text-primary);">📝 Cheque Payments Only</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Filter cheque transactions only</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('paymentTransactionsModal')">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="generatePaymentTransactionsReport()" style="background: linear-gradient(135deg, #FF9500 0%, #E67E22 100%);">
+                    💰 Generate Report
                 </button>
             </div>
         </div>
@@ -6145,6 +6232,225 @@
     window.showTerm1ReportOptions = showTerm1ReportOptions;
     window.generateTerm1ReportWithFilter = generateTerm1ReportWithFilter;
     window.exportPDFReportWithFilter = exportPDFReportWithFilter;
+    
+    // ===== PAYMENT TRANSACTIONS REPORT =====
+    function showPaymentTransactionsOptions() {
+        // Reset to defaults
+        document.querySelector('input[name="transactionTerm"][value="term1"]').checked = true;
+        document.querySelector('input[name="transactionMethod"][value="all"]').checked = true;
+        document.getElementById('paymentTransactionsModal').classList.add('active');
+    }
+
+    function generatePaymentTransactionsReport() {
+        const selectedTerm = document.querySelector('input[name="transactionTerm"]:checked').value;
+        const selectedMethod = document.querySelector('input[name="transactionMethod"]:checked').value;
+        
+        closeModal('paymentTransactionsModal');
+        
+        const btn = document.getElementById('paymentTransBtn');
+        const spinner = document.getElementById('paymentTransSpinner');
+        
+        if (btn) btn.disabled = true;
+        if (spinner) spinner.style.display = 'block';
+        
+        try {
+            if (typeof window.jspdf === 'undefined') {
+                alert('PDF library not loaded. Please refresh the page.');
+                if (btn) btn.disabled = false;
+                if (spinner) spinner.style.display = 'none';
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            
+            // Get students based on term selection
+            let students = [];
+            if (selectedTerm === 'term1' || selectedTerm === 'all') {
+                students = students.concat(window.term1Students.map(s => ({...s, term: 'Term 1'})));
+            }
+            if (selectedTerm === 'term2' || selectedTerm === 'all') {
+                students = students.concat(window.term2Students.map(s => ({...s, term: 'Term 2'})));
+            }
+            
+            // Extract all payments and add student info
+            let allPayments = [];
+            students.forEach(student => {
+                const payments = student.payments || [];
+                payments.forEach(payment => {
+                    allPayments.push({
+                        studentName: student.firstName + ' ' + student.lastName,
+                        term: student.term,
+                        year: student.year,
+                        date: payment.date || '',
+                        amount: parseFloat(payment.amount) || 0,
+                        invoice: payment.invoice || '-',
+                        method: payment.method || 'Unknown'
+                    });
+                });
+            });
+            
+            // Filter by payment method
+            if (selectedMethod !== 'all') {
+                allPayments = allPayments.filter(p => {
+                    const method = (p.method || '').toLowerCase();
+                    switch (selectedMethod) {
+                        case 'cash': return method === 'cash';
+                        case 'card': return method === 'card';
+                        case 'bank': return method === 'bank transfer' || method === 'bank';
+                        case 'cheque': return method === 'cheque' || method === 'check';
+                        default: return true;
+                    }
+                });
+            }
+            
+            // Sort by date (newest first)
+            allPayments.sort((a, b) => {
+                const dateA = parseUKDate(a.date);
+                const dateB = parseUKDate(b.date);
+                return dateB - dateA;
+            });
+            
+            // Calculate totals
+            const totalAmount = allPayments.reduce((sum, p) => sum + p.amount, 0);
+            
+            // Build title
+            const methodLabels = {
+                'all': 'All Methods',
+                'cash': 'Cash',
+                'card': 'Card',
+                'bank': 'Bank Transfer',
+                'cheque': 'Cheque'
+            };
+            const termLabels = {
+                'term1': 'Term 1',
+                'term2': 'Term 2',
+                'all': 'All Terms'
+            };
+            const title = 'Payment Transactions - ' + methodLabels[selectedMethod] + ' (' + termLabels[selectedTerm] + ')';
+            
+            // Header
+            doc.setFillColor(255, 149, 0);
+            doc.rect(0, 0, 297, 40, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont(undefined, 'bold');
+            doc.text(title, 148, 18, { align: 'center' });
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'normal');
+            doc.text('Academic Year: ' + currentAcademicYear, 25, 30);
+            doc.text('Generated: ' + formatDateToUK(new Date()), 272, 30, { align: 'right' });
+            
+            // Summary box
+            doc.setFillColor(255, 243, 224);
+            doc.roundedRect(25, 48, 247, 24, 3, 3, 'F');
+            doc.setTextColor(60, 60, 60);
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('TOTAL: ' + formatCurrency(totalAmount) + '  |  ' + allPayments.length + ' Transactions', 148, 63, { align: 'center' });
+            
+            // Table
+            if (allPayments.length > 0) {
+                const tableData = allPayments.map((p, idx) => [
+                    idx + 1,
+                    p.studentName,
+                    p.term,
+                    'Year ' + p.year,
+                    p.date,
+                    formatCurrency(p.amount),
+                    p.invoice,
+                    p.method
+                ]);
+                
+                doc.autoTable({
+                    startY: 78,
+                    head: [['#', 'Student Name', 'Term', 'Year', 'Date', 'Amount', 'Receipt/Invoice', 'Method']],
+                    body: tableData,
+                    theme: 'grid',
+                    headStyles: { fillColor: [255, 149, 0], textColor: 255, fontSize: 9, fontStyle: 'bold' },
+                    bodyStyles: { fontSize: 8 },
+                    columnStyles: {
+                        0: { cellWidth: 10 },
+                        1: { cellWidth: 45 },
+                        2: { cellWidth: 22 },
+                        3: { cellWidth: 22 },
+                        4: { cellWidth: 28 },
+                        5: { cellWidth: 28 },
+                        6: { cellWidth: 35 },
+                        7: { cellWidth: 30 }
+                    },
+                    margin: { left: 20, right: 20 },
+                    didParseCell: function(data) {
+                        if (data.section === 'body' && data.column.index === 7) {
+                            const method = (data.cell.raw || '').toLowerCase();
+                            if (method === 'cash') data.cell.styles.textColor = [52, 199, 89];
+                            else if (method === 'card') data.cell.styles.textColor = [0, 122, 255];
+                            else if (method.includes('bank')) data.cell.styles.textColor = [175, 82, 222];
+                            else if (method === 'cheque') data.cell.styles.textColor = [255, 149, 0];
+                        }
+                    }
+                });
+                
+                // Add total row at the bottom of the last page
+                const finalY = doc.lastAutoTable.finalY + 5;
+                doc.setFillColor(255, 149, 0);
+                doc.roundedRect(20, finalY, 257, 12, 2, 2, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('GRAND TOTAL: ' + formatCurrency(totalAmount) + ' (' + allPayments.length + ' transactions)', 148, finalY + 8, { align: 'center' });
+                
+            } else {
+                doc.setFontSize(14);
+                doc.setTextColor(255, 149, 0);
+                doc.text('No payment transactions found for the selected criteria.', 148, 100, { align: 'center' });
+            }
+            
+            // Footer on all pages
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setDrawColor(255, 149, 0);
+                doc.line(25, 195, 272, 195);
+                doc.setTextColor(120, 120, 120);
+                doc.setFontSize(9);
+                doc.text('DUL Student Fees Tracker - Payment Transactions Report', 25, 203);
+                doc.text('Page ' + i + ' of ' + pageCount, 272, 203, { align: 'right' });
+            }
+            
+            // Save file
+            const methodSuffix = selectedMethod !== 'all' ? '_' + selectedMethod : '';
+            const termSuffix = selectedTerm !== 'all' ? '_' + selectedTerm : '_all_terms';
+            const fileName = 'payment_transactions' + methodSuffix + termSuffix + '_' + currentAcademicYear + '_' + formatDateToUK(new Date()).replace(/\//g, '-') + '.pdf';
+            doc.save(fileName);
+            
+            setTimeout(function() {
+                alert('Payment Transactions Report generated!\n\nMethod: ' + methodLabels[selectedMethod] + '\nTerm: ' + termLabels[selectedTerm] + '\nTransactions: ' + allPayments.length + '\nTotal: ' + formatCurrency(totalAmount));
+                if (btn) btn.disabled = false;
+                if (spinner) spinner.style.display = 'none';
+            }, 500);
+            
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error: ' + error.message);
+            if (btn) btn.disabled = false;
+            if (spinner) spinner.style.display = 'none';
+        }
+    }
+    
+    // Helper function to parse UK date format
+    function parseUKDate(dateStr) {
+        if (!dateStr) return new Date(0);
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+            return new Date(parts[2], parts[1] - 1, parts[0]);
+        }
+        return new Date(dateStr);
+    }
+
+    window.showPaymentTransactionsOptions = showPaymentTransactionsOptions;
+    window.generatePaymentTransactionsReport = generatePaymentTransactionsReport;
+    window.parseUKDate = parseUKDate;
     </script>
 </body>
 </html>
