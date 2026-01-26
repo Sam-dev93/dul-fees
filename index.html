@@ -1691,6 +1691,22 @@
                             </div>
                         </div>
                     </div>
+                
+                </div>
+
+                <!-- Transfer Students Section -->
+                <div class="table-container" style="margin-top: 32px;">
+                    <div style="padding: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div>
+                                <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">🔄 Transfer Students to Term 2</h3>
+                                <p style="font-size: 14px; color: var(--text-secondary);">Copy all Term 1 students to Term 2 with the same fees. Existing Term 2 students will not be overwritten.</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="showTransferConfirmation()" style="background: linear-gradient(135deg, var(--term2-color) 0%, #8E44AD 100%);">
+                            🔄 Transfer Term 1 → Term 2
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1988,7 +2004,84 @@
     </div>
 
     
-    <!-- Payment Transactions Report Modal -->
+    
+    
+    <!-- Transfer Students Confirmation Modal -->
+    <div id="transferConfirmModal" class="modal">
+        <div class="modal-content" style="max-width: 1000px;">
+            <div class="modal-header">
+                <h2>🔄 Transfer Students to Term 2</h2>
+                <button class="close-btn" onclick="closeModal('transferConfirmModal')">&times;</button>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Transfer Summary</div>
+                <div id="transferSummary" style="padding: 16px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);">
+                    <p style="color: var(--text-secondary);">Loading...</p>
+                </div>
+            </div>
+            
+            <!-- Students to be SKIPPED (matches found) -->
+            <div class="section" id="skippedStudentsSection" style="display: none;">
+                <div class="section-title" style="color: var(--warning);">⚠️ Students to be SKIPPED (Already in Term 2)</div>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">These students match existing Term 2 records by Name + DOB and will NOT be transferred:</p>
+                <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead>
+                            <tr style="background: var(--card-bg-elevated); position: sticky; top: 0;">
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border);">Term 1 Student</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border);">DOB</th>
+                                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border);">↔️</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border);">Matching Term 2 Student</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border);">DOB</th>
+                            </tr>
+                        </thead>
+                        <tbody id="skippedStudentsList"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Students to be TRANSFERRED -->
+            <div class="section" id="transferStudentsSection" style="display: none;">
+                <div class="section-title" style="color: var(--success);">✅ Students to be TRANSFERRED</div>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">These students will be added to Term 2 with the same fees (payments reset to zero):</p>
+                <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead>
+                            <tr style="background: var(--card-bg-elevated); position: sticky; top: 0;">
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border);">#</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border);">Student Name</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border);">DOB</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border);">Year</th>
+                                <th style="padding: 10px; text-align: right; border-bottom: 1px solid var(--border);">Set Fee</th>
+                                <th style="padding: 10px; text-align: right; border-bottom: 1px solid var(--border);">VAT</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transferStudentsList"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section" style="background: rgba(52, 199, 89, 0.1); border: 1px solid var(--success);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 24px;">ℹ️</span>
+                    <div>
+                        <div style="font-weight: 600; color: var(--success); margin-bottom: 4px;">What will be copied</div>
+                        <div style="font-size: 13px; color: var(--text-secondary);">Name, DOB, Year, Set Fee, VAT, Discount, Comments. Payments will be reset to zero for the new term.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('transferConfirmModal')">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmTransferBtn" onclick="executeTransfer()" style="background: linear-gradient(135deg, var(--term2-color) 0%, #8E44AD 100%);">
+                    🔄 Confirm Transfer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Transactions Report Modal --><!-- Payment Transactions Report Modal -->
     <div id="paymentTransactionsModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -6451,6 +6544,169 @@
     window.showPaymentTransactionsOptions = showPaymentTransactionsOptions;
     window.generatePaymentTransactionsReport = generatePaymentTransactionsReport;
     window.parseUKDate = parseUKDate;
+    
+    
+    // ===== TRANSFER STUDENTS TO TERM 2 =====
+    function showTransferConfirmation() {
+        // Calculate and categorize students
+        const term1Active = window.term1Students.filter(s => s.studentStatus !== 'left');
+        const term2Count = window.term2Students.length;
+        
+        let toSkip = [];
+        let toTransfer = [];
+        
+        term1Active.forEach(student => {
+            // Find matching Term 2 student
+            const match = window.term2Students.find(t2 => 
+                t2.firstName.toLowerCase().trim() === student.firstName.toLowerCase().trim() &&
+                t2.lastName.toLowerCase().trim() === student.lastName.toLowerCase().trim() &&
+                t2.dob === student.dob
+            );
+            
+            if (match) {
+                toSkip.push({ term1: student, term2: match });
+            } else {
+                toTransfer.push(student);
+            }
+        });
+        
+        // Update summary display
+        const summaryHtml = `
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                <div style="text-align: center; padding: 14px; background: var(--card-bg-elevated); border-radius: 12px;">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--term1-color);">${term1Active.length}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Term 1 Active</div>
+                </div>
+                <div style="text-align: center; padding: 14px; background: var(--card-bg-elevated); border-radius: 12px;">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--term2-color);">${term2Count}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Current Term 2</div>
+                </div>
+                <div style="text-align: center; padding: 14px; background: rgba(52, 199, 89, 0.15); border-radius: 12px; border: 2px solid var(--success);">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--success);">${toTransfer.length}</div>
+                    <div style="font-size: 11px; color: var(--success);">Will Transfer</div>
+                </div>
+                <div style="text-align: center; padding: 14px; background: rgba(255, 149, 0, 0.15); border-radius: 12px; border: 2px solid var(--warning);">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--warning);">${toSkip.length}</div>
+                    <div style="font-size: 11px; color: var(--warning);">Will Skip</div>
+                </div>
+            </div>
+        `;
+        document.getElementById('transferSummary').innerHTML = summaryHtml;
+        
+        // Show skipped students section if any
+        const skippedSection = document.getElementById('skippedStudentsSection');
+        const skippedList = document.getElementById('skippedStudentsList');
+        
+        if (toSkip.length > 0) {
+            skippedSection.style.display = 'block';
+            skippedList.innerHTML = toSkip.map(item => `
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 10px; color: var(--text-primary);">${item.term1.firstName} ${item.term1.lastName}</td>
+                    <td style="padding: 10px; color: var(--text-secondary);">${item.term1.dob}</td>
+                    <td style="padding: 10px; text-align: center; color: var(--warning);">🔗 MATCH</td>
+                    <td style="padding: 10px; color: var(--term2-color);">${item.term2.firstName} ${item.term2.lastName}</td>
+                    <td style="padding: 10px; color: var(--text-secondary);">${item.term2.dob}</td>
+                </tr>
+            `).join('');
+        } else {
+            skippedSection.style.display = 'none';
+        }
+        
+        // Show students to transfer
+        const transferSection = document.getElementById('transferStudentsSection');
+        const transferList = document.getElementById('transferStudentsList');
+        
+        if (toTransfer.length > 0) {
+            transferSection.style.display = 'block';
+            transferList.innerHTML = toTransfer.map((student, idx) => `
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 10px; color: var(--text-secondary);">${idx + 1}</td>
+                    <td style="padding: 10px; color: var(--text-primary); font-weight: 500;">${student.firstName} ${student.lastName}</td>
+                    <td style="padding: 10px; color: var(--text-secondary);">${student.dob}</td>
+                    <td style="padding: 10px; color: var(--text-secondary);">Year ${student.year}</td>
+                    <td style="padding: 10px; text-align: right; color: var(--success);">${formatCurrency(student.setFee)}</td>
+                    <td style="padding: 10px; text-align: right; color: var(--text-secondary);">${formatCurrency(student.vat)}</td>
+                </tr>
+            `).join('');
+            document.getElementById('confirmTransferBtn').disabled = false;
+        } else {
+            transferSection.style.display = 'block';
+            transferList.innerHTML = '<tr><td colspan="6" style="padding: 20px; text-align: center; color: var(--text-secondary);">No students to transfer - all Term 1 students already exist in Term 2</td></tr>';
+            document.getElementById('confirmTransferBtn').disabled = true;
+        }
+        
+        document.getElementById('transferConfirmModal').classList.add('active');
+    }
+    
+    function executeTransfer() {
+        let transferred = 0;
+        let skipped = 0;
+        
+        const term1Active = window.term1Students.filter(s => s.studentStatus !== 'left');
+        
+        term1Active.forEach(student => {
+            // Check if student already exists in Term 2 (match by name + DOB)
+            const exists = window.term2Students.some(t2 => 
+                t2.firstName.toLowerCase().trim() === student.firstName.toLowerCase().trim() &&
+                t2.lastName.toLowerCase().trim() === student.lastName.toLowerCase().trim() &&
+                t2.dob === student.dob
+            );
+            
+            if (exists) {
+                skipped++;
+                return;
+            }
+            
+            // Create new Term 2 student record
+            const newStudent = {
+                id: Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9),
+                firstName: student.firstName,
+                lastName: student.lastName,
+                dob: student.dob,
+                year: student.year,
+                setFee: student.setFee,
+                vat: student.vat,
+                studentStatus: 'active',
+                discount: student.discount ? { ...student.discount } : { type: 'none', value: 0, siblingNames: '' },
+                comments: student.comments || '',
+                payments: [],  // Reset payments for new term
+                term: 'term2',
+                academicYear: currentAcademicYear,
+                createdAt: formatDateToUK(new Date()),
+                updatedAt: formatDateToUK(new Date()),
+                transferredFrom: 'term1'
+            };
+            
+            window.term2Students.push(newStudent);
+            transferred++;
+        });
+        
+        // Save data
+        saveLocalData();
+        
+        // Sync to Firebase if online
+        if (isOnline && db) {
+            syncToFirebase();
+        }
+        
+        // Update UI
+        updateAllUI();
+        
+        // Close modal and show result
+        closeModal('transferConfirmModal');
+        
+        setTimeout(() => {
+            alert(
+                '✅ Transfer Complete!\n\n' +
+                '• Transferred: ' + transferred + ' students\n' +
+                '• Skipped (already existed): ' + skipped + ' students\n\n' +
+                'Term 2 now has ' + window.term2Students.length + ' students.'
+            );
+        }, 300);
+    }
+
+    window.showTransferConfirmation = showTransferConfirmation;
+    window.executeTransfer = executeTransfer;
     </script>
 </body>
 </html>
