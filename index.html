@@ -4562,26 +4562,50 @@
                 student.firstName + ' ' + student.lastName;
         }
         
-        // Save to Firebase
-        const savePromises = [saveToFirebase(currentAcademicYear, currentPaymentTerm)];
-        
-        // Also save Term 2 if overflow was applied
-        if (overflowApplied && term2Amount > 0) {
-            savePromises.push(saveToFirebase(currentAcademicYear, 'term2'));
-        }
-        
-        Promise.all(savePromises).then(() => {
-            console.log('Payment saved successfully' + (overflowApplied ? ' with overflow to Term 2' : ''));
+        // Save to Firebase - run sequentially to avoid "save already in progress" issue
+        saveToFirebase(currentAcademicYear, currentPaymentTerm).then(() => {
+            console.log(currentPaymentTerm + ' saved to Firebase successfully');
             
-            // Re-enable listeners after successful save
-            if (wasListenerActive && currentUser && isOnline) {
+            // If overflow was applied, save Term 2 AFTER Term 1 completes
+            if (overflowApplied && term2Amount > 0) {
+                console.log('Now saving overflow to Term 2...');
+                
+                // Small delay to ensure first save is fully complete
                 setTimeout(() => {
-                    setupRealtimeSync();
-                }, 2000);
+                    saveToFirebase(currentAcademicYear, 'term2').then(() => {
+                        console.log('Term 2 overflow saved to Firebase successfully!');
+                        
+                        // Re-enable listeners after both saves complete
+                        if (wasListenerActive && currentUser && isOnline) {
+                            setTimeout(() => {
+                                setupRealtimeSync();
+                            }, 2000);
+                        }
+                        
+                        alert(successMsg + '\n\n☁️ Both terms synced to cloud!');
+                    }).catch((error) => {
+                        console.error('Error saving Term 2 overflow:', error);
+                        
+                        if (wasListenerActive && currentUser && isOnline) {
+                            setTimeout(() => {
+                                setupRealtimeSync();
+                            }, 2000);
+                        }
+                        
+                        alert(successMsg + '\n\n⚠️ Term 1 saved but Term 2 overflow failed to sync. Try refreshing.');
+                    });
+                }, 1500);
+                
+            } else {
+                // No overflow - just finish up
+                if (wasListenerActive && currentUser && isOnline) {
+                    setTimeout(() => {
+                        setupRealtimeSync();
+                    }, 2000);
+                }
+                
+                alert(successMsg);
             }
-            
-            // Show success message
-            alert(successMsg);
         }).catch((error) => {
             console.error('Error saving payment:', error);
             
