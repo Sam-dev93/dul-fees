@@ -4444,24 +4444,100 @@
         
         if (studentIndex === -1) return;
         
+        const student = students[studentIndex];
+        
         // DISABLE LISTENERS TEMPORARILY to prevent conflicts
         const wasListenerActive = isListenerSetup;
         if (wasListenerActive) {
             cleanupListeners();
         }
         
-        // Add payment to student
+        // Calculate overflow for Term 1 payments
+        let term1Amount = amount;
+        let term2Amount = 0;
+        let overflowApplied = false;
+        let term2Student = null;
+        let term2StudentIndex = -1;
+        
+        if (currentPaymentTerm === 'term1') {
+            // Calculate how much is outstanding in Term 1
+            const outstanding = getOutstandingAmount(student, 'term1');
+            
+            if (amount > outstanding) {
+                // Payment exceeds outstanding - overflow to Term 2
+                term1Amount = outstanding;
+                term2Amount = amount - outstanding;
+                
+                // Find matching student in Term 2 (by name + DOB)
+                term2StudentIndex = window.term2Students.findIndex(t2 => 
+                    t2.firstName.toLowerCase().trim() === student.firstName.toLowerCase().trim() &&
+                    t2.lastName.toLowerCase().trim() === student.lastName.toLowerCase().trim() &&
+                    t2.dob === student.dob
+                );
+                
+                if (term2StudentIndex !== -1) {
+                    term2Student = window.term2Students[term2StudentIndex];
+                    overflowApplied = true;
+                } else {
+                    // No matching Term 2 student - ask user what to do
+                    const createInTerm2 = confirm(
+                        '⚠️ Overflow Payment Detected!\n\n' +
+                        'Payment: ' + formatCurrency(amount) + '\n' +
+                        'Term 1 Outstanding: ' + formatCurrency(outstanding) + '\n' +
+                        'Overflow Amount: ' + formatCurrency(term2Amount) + '\n\n' +
+                        'Student "' + student.firstName + ' ' + student.lastName + '" does not exist in Term 2.\n\n' +
+                        'Click OK to apply full payment to Term 1 anyway.\n' +
+                        'Click Cancel to go back and transfer the student to Term 2 first.'
+                    );
+                    
+                    if (!createInTerm2) {
+                        // User wants to cancel and transfer student first
+                        if (wasListenerActive && currentUser && isOnline) {
+                            setupRealtimeSync();
+                        }
+                        return;
+                    }
+                    
+                    // Apply full amount to Term 1
+                    term1Amount = amount;
+                    term2Amount = 0;
+                }
+            }
+        }
+        
+        // Initialize payments array if needed
         if (!students[studentIndex].payments) {
             students[studentIndex].payments = [];
         }
         
-        students[studentIndex].payments.push({
-            amount: amount,
-            date: dateUK,
-            invoice: invoice,
-            method: method,
-            createdAt: formatDateToUK(new Date())
-        });
+        // Add payment to Term 1 (or full amount if not Term 1 or no overflow)
+        if (term1Amount > 0) {
+            students[studentIndex].payments.push({
+                amount: term1Amount,
+                date: dateUK,
+                invoice: invoice + (overflowApplied ? ' (Part 1 of 2)' : ''),
+                method: method,
+                createdAt: formatDateToUK(new Date())
+            });
+        }
+        
+        // Add overflow payment to Term 2 if applicable
+        if (overflowApplied && term2Amount > 0 && term2StudentIndex !== -1) {
+            if (!window.term2Students[term2StudentIndex].payments) {
+                window.term2Students[term2StudentIndex].payments = [];
+            }
+            
+            window.term2Students[term2StudentIndex].payments.push({
+                amount: term2Amount,
+                date: dateUK,
+                invoice: invoice + ' (Part 2 of 2 - Overflow from Term 1)',
+                method: method,
+                createdAt: formatDateToUK(new Date()),
+                overflowFrom: 'term1'
+            });
+            
+            window.term2Students[term2StudentIndex].updatedAt = formatDateToUK(new Date());
+        }
         
         // Update student's last updated time
         students[studentIndex].updatedAt = formatDateToUK(new Date());
@@ -4473,9 +4549,29 @@
         updateAllUI();
         closeModal('addPaymentModal');
         
-        // Save to Firebase with conflict prevention
-        saveToFirebase(currentAcademicYear, currentPaymentTerm).then(() => {
-            console.log('Payment saved successfully');
+        // Build success message
+        let successMsg = '';
+        if (overflowApplied) {
+            successMsg = '💰 Payment Split Applied!\n\n' +
+                '• Term 1: ' + formatCurrency(term1Amount) + '\n' +
+                '• Term 2 (Overflow): ' + formatCurrency(term2Amount) + '\n' +
+                '• Total: ' + formatCurrency(amount) + '\n\n' +
+                'Student: ' + student.firstName + ' ' + student.lastName;
+        } else {
+            successMsg = 'Payment of ' + formatCurrency(amount) + ' added successfully for ' + 
+                student.firstName + ' ' + student.lastName;
+        }
+        
+        // Save to Firebase
+        const savePromises = [saveToFirebase(currentAcademicYear, currentPaymentTerm)];
+        
+        // Also save Term 2 if overflow was applied
+        if (overflowApplied && term2Amount > 0) {
+            savePromises.push(saveToFirebase(currentAcademicYear, 'term2'));
+        }
+        
+        Promise.all(savePromises).then(() => {
+            console.log('Payment saved successfully' + (overflowApplied ? ' with overflow to Term 2' : ''));
             
             // Re-enable listeners after successful save
             if (wasListenerActive && currentUser && isOnline) {
@@ -4485,7 +4581,7 @@
             }
             
             // Show success message
-            alert(`Payment of ${formatCurrency(amount)} added successfully for ${students[studentIndex].firstName} ${students[studentIndex].lastName}`);
+            alert(successMsg);
         }).catch((error) => {
             console.error('Error saving payment:', error);
             
@@ -4496,7 +4592,7 @@
                 }, 2000);
             }
             
-            alert(`Payment of ${formatCurrency(amount)} added successfully for ${students[studentIndex].firstName} ${students[studentIndex].lastName}.\n\nNote: Payment saved locally. Will sync to cloud when connection improves.`);
+            alert(successMsg + '\n\nNote: Payment saved locally. Will sync to cloud when connection improves.');
         });
     }
 
