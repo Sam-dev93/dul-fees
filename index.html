@@ -4446,6 +4446,157 @@
         
         const student = students[studentIndex];
         
+        // CHECK FOR TERM 1 OUTSTANDING WHEN ADDING TO TERM 2
+        if (currentPaymentTerm === 'term2') {
+            // Find matching student in Term 1 (by name + DOB)
+            const term1Student = window.term1Students.find(t1 => 
+                t1.firstName.toLowerCase().trim() === student.firstName.toLowerCase().trim() &&
+                t1.lastName.toLowerCase().trim() === student.lastName.toLowerCase().trim() &&
+                t1.dob === student.dob
+            );
+            
+            if (term1Student) {
+                const term1Outstanding = getOutstandingAmount(term1Student, 'term1');
+                
+                if (term1Outstanding > 0) {
+                    const choice = confirm(
+                        '⚠️ Outstanding Balance in Term 1!\n\n' +
+                        'Student: ' + student.firstName + ' ' + student.lastName + '\n' +
+                        'Term 1 Outstanding: ' + formatCurrency(term1Outstanding) + '\n\n' +
+                        'You are adding ' + formatCurrency(amount) + ' to Term 2.\n\n' +
+                        'Click OK to proceed with Term 2 payment.\n' +
+                        'Click CANCEL to add this payment to Term 1 instead\n(overflow will auto-apply to Term 2).'
+                    );
+                    
+                    if (!choice) {
+                        // User wants to add to Term 1 instead
+                        // Switch the payment to Term 1 and let overflow handle it
+                        currentPaymentTerm = 'term1';
+                        currentPaymentStudentId = term1Student.id;
+                        
+                        // Recursively call savePayment with Term 1 context
+                        // But first we need to update the variables
+                        const term1Students = window.term1Students;
+                        const term1StudentIndex = term1Students.findIndex(s => s.id === term1Student.id);
+                        
+                        if (term1StudentIndex !== -1) {
+                            // Redirect to Term 1 payment flow
+                            console.log('Redirecting payment to Term 1 with overflow...');
+                            
+                            // DISABLE LISTENERS TEMPORARILY
+                            const wasListenerActive = isListenerSetup;
+                            if (wasListenerActive) {
+                                cleanupListeners();
+                            }
+                            
+                            // Calculate overflow
+                            let term1Amount = amount;
+                            let term2Amount = 0;
+                            let overflowApplied = false;
+                            
+                            if (amount > term1Outstanding) {
+                                term1Amount = term1Outstanding;
+                                term2Amount = amount - term1Outstanding;
+                                overflowApplied = true;
+                            }
+                            
+                            // Add payment to Term 1
+                            if (!term1Students[term1StudentIndex].payments) {
+                                term1Students[term1StudentIndex].payments = [];
+                            }
+                            
+                            if (term1Amount > 0) {
+                                term1Students[term1StudentIndex].payments.push({
+                                    amount: term1Amount,
+                                    date: dateUK,
+                                    invoice: invoice + (overflowApplied ? ' (Part 1 of 2)' : ''),
+                                    method: method,
+                                    createdAt: formatDateToUK(new Date())
+                                });
+                            }
+                            
+                            term1Students[term1StudentIndex].updatedAt = formatDateToUK(new Date());
+                            
+                            // Add overflow to Term 2 if applicable
+                            if (overflowApplied && term2Amount > 0) {
+                                if (!students[studentIndex].payments) {
+                                    students[studentIndex].payments = [];
+                                }
+                                
+                                students[studentIndex].payments.push({
+                                    amount: term2Amount,
+                                    date: dateUK,
+                                    invoice: invoice + ' (Part 2 of 2 - Overflow from Term 1)',
+                                    method: method,
+                                    createdAt: formatDateToUK(new Date()),
+                                    overflowFrom: 'term1'
+                                });
+                                
+                                students[studentIndex].updatedAt = formatDateToUK(new Date());
+                            }
+                            
+                            // Save locally
+                            saveLocalData();
+                            updateAllUI();
+                            closeModal('addPaymentModal');
+                            
+                            // Build success message
+                            let successMsg = '';
+                            if (overflowApplied) {
+                                successMsg = '💰 Payment Split Applied!\n\n' +
+                                    '• Term 1: ' + formatCurrency(term1Amount) + '\n' +
+                                    '• Term 2 (Overflow): ' + formatCurrency(term2Amount) + '\n' +
+                                    '• Total: ' + formatCurrency(amount) + '\n\n' +
+                                    'Student: ' + student.firstName + ' ' + student.lastName;
+                            } else {
+                                successMsg = 'Payment of ' + formatCurrency(amount) + ' added to Term 1 for ' + 
+                                    student.firstName + ' ' + student.lastName;
+                            }
+                            
+                            // Save to Firebase sequentially
+                            saveToFirebase(currentAcademicYear, 'term1').then(() => {
+                                console.log('Term 1 saved to Firebase');
+                                
+                                if (overflowApplied && term2Amount > 0) {
+                                    setTimeout(() => {
+                                        saveToFirebase(currentAcademicYear, 'term2').then(() => {
+                                            console.log('Term 2 overflow saved to Firebase');
+                                            
+                                            if (wasListenerActive && currentUser && isOnline) {
+                                                setTimeout(() => { setupRealtimeSync(); }, 2000);
+                                            }
+                                            
+                                            alert(successMsg + '\n\n☁️ Both terms synced!');
+                                        }).catch((err) => {
+                                            console.error('Term 2 save error:', err);
+                                            if (wasListenerActive && currentUser && isOnline) {
+                                                setTimeout(() => { setupRealtimeSync(); }, 2000);
+                                            }
+                                            alert(successMsg + '\n\n⚠️ Term 2 sync failed.');
+                                        });
+                                    }, 1500);
+                                } else {
+                                    if (wasListenerActive && currentUser && isOnline) {
+                                        setTimeout(() => { setupRealtimeSync(); }, 2000);
+                                    }
+                                    alert(successMsg);
+                                }
+                            }).catch((err) => {
+                                console.error('Term 1 save error:', err);
+                                if (wasListenerActive && currentUser && isOnline) {
+                                    setTimeout(() => { setupRealtimeSync(); }, 2000);
+                                }
+                                alert(successMsg + '\n\n⚠️ Saved locally only.');
+                            });
+                            
+                            return; // Exit early - we handled the payment
+                        }
+                    }
+                    // If user clicked OK, continue with Term 2 payment below
+                }
+            }
+        }
+        
         // DISABLE LISTENERS TEMPORARILY to prevent conflicts
         const wasListenerActive = isListenerSetup;
         if (wasListenerActive) {
