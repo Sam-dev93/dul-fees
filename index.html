@@ -6681,28 +6681,49 @@
             transferred++;
         });
         
-        // Save data
+        // Save to local storage first
         saveLocalData();
         
-        // Sync to Firebase if online
-        if (isOnline && typeof db !== 'undefined' && db) {
-            syncToFirebase();
-        }
-        
-        // Update UI
-        updateAllUI();
-        
-        // Close modal and show result
+        // Close modal
         closeModal('transferConfirmModal');
         
-        setTimeout(() => {
+        // Save to Firebase explicitly for term2
+        if (currentUser && isOnline) {
+            console.log('Saving transferred students to Firebase...');
+            saveToFirebase(currentAcademicYear, 'term2')
+                .then(function() {
+                    console.log('Transfer saved to Firebase successfully!');
+                    updateAllUI();
+                    alert(
+                        '✅ Transfer Complete & Synced!\n\n' +
+                        '• Transferred: ' + transferred + ' students\n' +
+                        '• Skipped (already existed): ' + skipped + ' students\n\n' +
+                        'Term 2 now has ' + window.term2Students.length + ' students.\n\n' +
+                        '☁️ Saved to Firebase successfully!'
+                    );
+                })
+                .catch(function(error) {
+                    console.error('Firebase save error:', error);
+                    updateAllUI();
+                    alert(
+                        '⚠️ Transfer Complete (Local Only)\n\n' +
+                        '• Transferred: ' + transferred + ' students\n' +
+                        '• Skipped (already existed): ' + skipped + ' students\n\n' +
+                        'Term 2 now has ' + window.term2Students.length + ' students.\n\n' +
+                        '⚠️ Could not sync to Firebase. Data saved locally.\nTry refreshing to sync.'
+                    );
+                });
+        } else {
+            // Offline - just update UI
+            updateAllUI();
             alert(
-                '✅ Transfer Complete!\n\n' +
+                '✅ Transfer Complete (Offline)\n\n' +
                 '• Transferred: ' + transferred + ' students\n' +
                 '• Skipped (already existed): ' + skipped + ' students\n\n' +
-                'Term 2 now has ' + window.term2Students.length + ' students.'
+                'Term 2 now has ' + window.term2Students.length + ' students.\n\n' +
+                '📴 You are offline. Data will sync when you reconnect.'
             );
-        }, 300);
+        }
     }
 
     window.showTransferConfirmation = showTransferConfirmation;
