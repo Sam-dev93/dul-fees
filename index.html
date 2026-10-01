@@ -585,7 +585,9 @@ body.setup #setup { display: block; }
    Reads & writes go through the Apps Script web app (Api.gs), which
    calls the same functions as the 💷 Fees menu in the sheet.
    ===================================================================== */
-const APP_VERSION = '2026.10.01-1';
+const APP_VERSION = '2026.10.01-2';
+const API_URL = 'https://script.google.com/macros/s/AKfycbww1PVqw1oqRHk5Hv4-HiF2npdlxnpu2CBCyIdLPtRZsBT96S9kmXNUFLxAUHhf2r9T/exec';
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1krivueWr3l_Zc-q10wXj2hVUcJT_8AH0HWP2zjTXrR0/edit';
 const CFG_KEY = 'dulfees-api';
 const CACHE_KEY = 'dulfees-cache-v1';
 const NAME_KEY = 'dulfees-name';
@@ -1802,7 +1804,7 @@ function openSettings() {
     <div class="shead"><h2>Appearance</h2></div><div class="list" role="radiogroup">${radio('auto', 'Automatic', 'sparkle')}${radio('light', 'Light', 'sun')}${radio('dark', 'Dark', 'moon')}</div>
     <div class="shead"><h2>Google Sheet</h2></div>
     <div class="list">
-      ${D && D.sheetUrl ? `<a class="row plain slim" href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">${ico('ext', 'green', 34)}<div class="main"><div class="t">Open the sheet</div><div class="s">${esc(D.sheetName || 'Fees sheet')}</div></div>${chev()}</a>` : ''}
+      ${D || SHEET_URL ? `<a class="row plain slim" href="${esc((D && D.sheetUrl) || SHEET_URL)}" target="_blank" rel="noopener">${ico('ext', 'green', 34)}<div class="main"><div class="t">Open the sheet</div><div class="s">${esc((D && D.sheetName) || 'DUL Fees sheet')}</div></div>${chev()}</a>` : ''}
       <div class="row plain slim">${ico('key', 'teal', 34)}<div class="main"><div class="t">Web app</div><div class="s">${esc(url)}</div></div></div>
       <button class="row plain slim" onclick="closeSheet();showSetup(true)">${ico('edit', 'acc', 34)}<div class="main"><div class="t">Change URL or PIN</div></div>${chev()}</button>
       <button class="row plain slim" onclick="disconnect()">${ico('close', 'red', 34)}<div class="main"><div class="t" style="color:var(--red)">Disconnect this phone</div></div></button>
@@ -1829,7 +1831,7 @@ async function disconnect() {
 function showSetup(canCancel) {
   document.body.classList.add('setup');
   $('setupCancel').classList.toggle('hidden', !(canCancel && CFG));
-  $('setupUrl').value = CFG ? CFG.url : ''; $('setupPin').value = ''; $('setupName').value = myName();
+  $('setupUrl').value = CFG ? CFG.url : API_URL; $('setupPin').value = ''; $('setupName').value = myName();
   $('setupErr').classList.remove('show');
 }
 function cancelSetup() { document.body.classList.remove('setup'); }
